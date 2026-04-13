@@ -371,6 +371,7 @@ export default function CosmicSynth() {
   const [gyroPrompt, setGyroPrompt] = useState(false);
   const [djSection, setDjSection] = useState("");
   const [warpProgress, setWarpProgress] = useState(0);
+  const [seqOpen, setSeqOpen] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<any>(null);
