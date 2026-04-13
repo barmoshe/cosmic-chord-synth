@@ -1380,6 +1380,20 @@ export default function CosmicSynth() {
         </>
       )}
 
+      {/* Sequencer */}
+      {phase === "play" && (
+        <CosmicSequencer
+          visible={seqOpen}
+          onClose={() => setSeqOpen(false)}
+          audioRef={audioRef}
+          engineRef={engineRef}
+          scaleRef={scaleRef}
+          scales={SCALES}
+          noteColorFn={noteColor}
+          m2fFn={m2f}
+        />
+      )}
+
       <style>{`
         /* ── Cosmic Design System ── */
         @keyframes cosmicGradient {
