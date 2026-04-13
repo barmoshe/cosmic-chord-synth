@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as THREE from "three";
 import * as Tone from "tone";
+import CosmicSequencer from "./CosmicSequencer";
 
 /* ═══════════════════════════════════════════════
    CONSTANTS
@@ -370,6 +371,7 @@ export default function CosmicSynth() {
   const [gyroPrompt, setGyroPrompt] = useState(false);
   const [djSection, setDjSection] = useState("");
   const [warpProgress, setWarpProgress] = useState(0);
+  const [seqOpen, setSeqOpen] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<any>(null);
@@ -1327,6 +1329,15 @@ export default function CosmicSynth() {
             {autoPlay && djSection && (
               <div className="cosmic-section-tag">{djSection}</div>
             )}
+            {/* Sequencer button */}
+            <button
+              onTouchStart={(e) => { e.preventDefault(); setSeqOpen(true); }}
+              onClick={() => setSeqOpen(true)}
+              className="cosmic-btn cosmic-btn-seq"
+            >
+              <span className="cosmic-btn-icon">⎚</span>
+              <span className="cosmic-btn-label">SEQ</span>
+            </button>
           </div>
 
           {/* Scale selector */}
@@ -1367,6 +1378,20 @@ export default function CosmicSynth() {
             <div className="cosmic-error">Audio unavailable — visual only</div>
           )}
         </>
+      )}
+
+      {/* Sequencer */}
+      {phase === "play" && (
+        <CosmicSequencer
+          visible={seqOpen}
+          onClose={() => setSeqOpen(false)}
+          audioRef={audioRef}
+          engineRef={engineRef}
+          scaleRef={scaleRef}
+          scales={SCALES}
+          noteColorFn={noteColor}
+          m2fFn={m2f}
+        />
       )}
 
       <style>{`
@@ -1541,11 +1566,20 @@ export default function CosmicSynth() {
           transform: scale(0.95);
         }
 
-        .cosmic-btn-auto {
+        .cosmic-btn-auto, .cosmic-btn-seq {
           flex-direction: column; gap: 3px;
           width: 52px; height: 52px; border-radius: 50%;
           font-family: 'Orbitron', monospace;
           color: rgba(255,255,255,0.35);
+        }
+        .cosmic-btn-seq {
+          background: rgba(168,85,247,0.04);
+          border-color: rgba(168,85,247,0.12);
+        }
+        .cosmic-btn-seq:hover {
+          background: rgba(168,85,247,0.1);
+          border-color: rgba(168,85,247,0.25);
+          color: rgba(168,85,247,0.8);
         }
         .cosmic-btn-auto .cosmic-btn-icon {
           font-size: 14px; line-height: 1;
