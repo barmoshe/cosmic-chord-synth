@@ -1329,6 +1329,15 @@ export default function CosmicSynth() {
             {autoPlay && djSection && (
               <div className="cosmic-section-tag">{djSection}</div>
             )}
+            {/* Sequencer button */}
+            <button
+              onTouchStart={(e) => { e.preventDefault(); setSeqOpen(true); }}
+              onClick={() => setSeqOpen(true)}
+              className="cosmic-btn cosmic-btn-seq"
+            >
+              <span className="cosmic-btn-icon">⎚</span>
+              <span className="cosmic-btn-label">SEQ</span>
+            </button>
           </div>
 
           {/* Scale selector */}
