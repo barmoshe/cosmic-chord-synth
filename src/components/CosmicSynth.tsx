@@ -1566,11 +1566,20 @@ export default function CosmicSynth() {
           transform: scale(0.95);
         }
 
-        .cosmic-btn-auto {
+        .cosmic-btn-auto, .cosmic-btn-seq {
           flex-direction: column; gap: 3px;
           width: 52px; height: 52px; border-radius: 50%;
           font-family: 'Orbitron', monospace;
           color: rgba(255,255,255,0.35);
+        }
+        .cosmic-btn-seq {
+          background: rgba(168,85,247,0.04);
+          border-color: rgba(168,85,247,0.12);
+        }
+        .cosmic-btn-seq:hover {
+          background: rgba(168,85,247,0.1);
+          border-color: rgba(168,85,247,0.25);
+          color: rgba(168,85,247,0.8);
         }
         .cosmic-btn-auto .cosmic-btn-icon {
           font-size: 14px; line-height: 1;
