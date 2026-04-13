@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import * as THREE from "three";
 import * as Tone from "tone";
+import CosmicSequencer from "./CosmicSequencer";
 
 /* ═══════════════════════════════════════════════
    CONSTANTS
