@@ -549,9 +549,9 @@ export default function CosmicSynth() {
       snare.connect(snareFilter); snareFilter.connect(drumReverb);
 
       const hihat = new Tone.MetalSynth({
-        frequency: 300, envelope: { attack: 0.001, decay: 0.08, release: 0.01 },
+        envelope: { attack: 0.001, decay: 0.08, release: 0.01 },
         harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
-      });
+      } as any);
       hihat.volume.value = -20; hihat.connect(drumReverb);
 
       const clap = new Tone.NoiseSynth({
