@@ -614,16 +614,16 @@ export default function CosmicSynth() {
     const PR = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x020010, 0.00012);
-    const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 8000);
+    scene.fog = new THREE.FogExp2(0x010008, 0.00010);
+    const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 10000);
     camera.position.z = 650;
 
     const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !isMobile, powerPreference: "high-performance" });
     renderer.setSize(W(), H());
     renderer.setPixelRatio(PR);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
-    renderer.setClearColor(0x020010);
+    renderer.toneMappingExposure = 1.2;
+    renderer.setClearColor(0x010008);
 
     // ── Galaxy Stars — Realistic spiral ──
     const galaxyGeo = new THREE.BufferGeometry();
