@@ -1500,12 +1500,12 @@ export default function CosmicSynth() {
           {/* Title bar */}
           <div className="cosmic-header" style={{ opacity: showUI ? 1 : 0 }}>
             <div className="cosmic-header-title">COSMIC SYNTH</div>
-            <div className="cosmic-header-sub">Touch anywhere to play</div>
+            <div className="cosmic-header-sub">Touch · Tilt · Shake</div>
           </div>
 
           {/* Hint */}
           {!hintDismissed && (
-            <div className="cosmic-hint">Touch · Slide · Hold</div>
+            <div className="cosmic-hint">Touch to play · Tilt to explore · Shake to change scale</div>
           )}
 
           {/* Auto-play button */}
