@@ -1458,7 +1458,7 @@ export default function CosmicSynth() {
   }, [scale, changeScale]);
 
   return (
-    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#020010", touchAction: "none" }}>
+    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#010008", touchAction: "none" }}>
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
 
@@ -1563,7 +1563,10 @@ export default function CosmicSynth() {
               onClick={() => grantGyro()}
               className="cosmic-btn cosmic-gyro-prompt"
             >
-              🌀 Allow motion for full experience
+              🌀 Allow motion controls
+              <span style={{ display: "block", fontSize: 9, opacity: 0.5, marginTop: 4 }}>
+                Tilt · Rotate · Shake
+              </span>
             </button>
           )}
 
