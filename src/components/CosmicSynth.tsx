@@ -530,94 +530,94 @@ export default function CosmicSynth() {
 
   function initAudio() {
     try {
-      const mainFilter = new Tone.Filter({ type: "lowpass", frequency: 4500, rolloff: -24 });
-      const reverb = new Tone.Reverb({ decay: 6, wet: 0.4 });
-      const delay = new Tone.FeedbackDelay({ delayTime: "8n.", feedback: 0.22, wet: 0.13 });
-      const chorus = new Tone.Chorus({ frequency: 0.8, delayTime: 4, depth: 0.6, wet: 0.18 }).start();
+      const mainFilter = new Tone.Filter({ type: "lowpass", frequency: 4500, rolloff: -12 });
+      const reverb = new Tone.Reverb({ decay: 3, wet: 0.3 });
+      const delay = new Tone.FeedbackDelay({ delayTime: "8n.", feedback: 0.18, wet: 0.1 });
+      const chorus = new Tone.Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: 0.12 }).start();
 
       const lead = new Tone.PolySynth(Tone.FMSynth, {
-        maxPolyphony: 6, harmonicity: 2.5, modulationIndex: 4,
-        oscillator: { type: "fatsawtooth", spread: 15, count: 3 },
+        maxPolyphony: 4, harmonicity: 2, modulationIndex: 3,
+        oscillator: { type: "sawtooth" },
         modulation: { type: "triangle" },
-        envelope: { attack: 0.05, decay: 0.3, sustain: 0.5, release: 1.5 },
-        modulationEnvelope: { attack: 0.08, decay: 0.2, sustain: 0.4, release: 1 },
+        envelope: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.8 },
+        modulationEnvelope: { attack: 0.08, decay: 0.15, sustain: 0.3, release: 0.6 },
       } as any);
       lead.volume.value = -10;
 
       const sub = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "sine" },
-        envelope: { attack: 0.08, decay: 0.2, sustain: 0.6, release: 1.2 },
+        maxPolyphony: 3, oscillator: { type: "sine" },
+        envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.8 },
       } as any);
-      sub.volume.value = -16;
+      sub.volume.value = -18;
 
       lead.connect(mainFilter); sub.connect(mainFilter);
       mainFilter.connect(chorus); chorus.connect(delay); delay.connect(reverb); reverb.toDestination();
 
       const padFilter = new Tone.Filter({ type: "lowpass", frequency: 1200, rolloff: -12 });
-      const padReverb = new Tone.Reverb({ decay: 7, wet: 0.55 });
+      const padReverb = new Tone.Reverb({ decay: 4, wet: 0.4 });
       const pad = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "fatsine4", spread: 30, count: 4 },
-        envelope: { attack: 2.5, decay: 1, sustain: 0.7, release: 3 },
+        maxPolyphony: 4, oscillator: { type: "sine" },
+        envelope: { attack: 2, decay: 0.8, sustain: 0.6, release: 2 },
       } as any);
-      pad.volume.value = -20; pad.connect(padFilter); padFilter.connect(padReverb); padReverb.toDestination();
+      pad.volume.value = -22; pad.connect(padFilter); padFilter.connect(padReverb); padReverb.toDestination();
 
       const bassFilter = new Tone.Filter({ type: "lowpass", frequency: 800, rolloff: -24 });
-      const bassReverb = new Tone.Reverb({ decay: 3, wet: 0.2 });
+      const bassReverb = new Tone.Reverb({ decay: 1.5, wet: 0.12 });
       const bass = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 3, oscillator: { type: "fatsquare", spread: 8, count: 2 },
-        envelope: { attack: 0.02, decay: 0.15, sustain: 0.7, release: 0.5 },
+        maxPolyphony: 2, oscillator: { type: "square" },
+        envelope: { attack: 0.02, decay: 0.12, sustain: 0.6, release: 0.3 },
       } as any);
       bass.volume.value = -14; bass.connect(bassFilter); bassFilter.connect(bassReverb); bassReverb.toDestination();
 
       const arpFilter = new Tone.Filter({ type: "lowpass", frequency: 3000, rolloff: -12 });
-      const arpDelay = new Tone.FeedbackDelay({ delayTime: "16n", feedback: 0.3, wet: 0.2 });
+      const arpDelay = new Tone.FeedbackDelay({ delayTime: "16n", feedback: 0.2, wet: 0.15 });
       const arp = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, oscillator: { type: "triangle" },
-        envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.4 },
+        maxPolyphony: 3, oscillator: { type: "triangle" },
+        envelope: { attack: 0.01, decay: 0.08, sustain: 0.15, release: 0.25 },
       } as any);
       arp.volume.value = -18; arp.connect(arpFilter); arpFilter.connect(arpDelay); arpDelay.connect(reverb);
 
       const droneFilter = new Tone.Filter({ type: "lowpass", frequency: 600, rolloff: -12 });
-      const droneReverb = new Tone.Reverb({ decay: 8, wet: 0.5 });
+      const droneReverb = new Tone.Reverb({ decay: 5, wet: 0.4 });
       const drone = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, oscillator: { type: "sine" },
-        envelope: { attack: 3, decay: 2, sustain: 0.8, release: 5 },
+        maxPolyphony: 2, oscillator: { type: "sine" },
+        envelope: { attack: 3, decay: 2, sustain: 0.8, release: 4 },
       } as any);
-      drone.volume.value = -22; drone.connect(droneFilter); droneFilter.connect(droneReverb); droneReverb.toDestination();
+      drone.volume.value = -24; drone.connect(droneFilter); droneFilter.connect(droneReverb); droneReverb.toDestination();
       drone.triggerAttack([m2f(36), m2f(43)], Tone.now());
 
       const lfo = new Tone.LFO(0.05, 100, 500); lfo.connect(droneFilter.frequency); lfo.start();
-      const fft = new Tone.FFT(256); Tone.getDestination().connect(fft);
+      const fft = new Tone.FFT(128); Tone.getDestination().connect(fft);
 
-      // ── Drum synths ──
-      const drumReverb = new Tone.Reverb({ decay: 1.5, wet: 0.15 }); drumReverb.toDestination();
+      // ── Drum synths (lightweight) ──
+      const drumReverb = new Tone.Reverb({ decay: 1, wet: 0.1 }); drumReverb.toDestination();
       
       const kick = new Tone.MembraneSynth({
-        pitchDecay: 0.05, octaves: 6, oscillator: { type: "sine" },
-        envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.4 },
+        pitchDecay: 0.04, octaves: 5, oscillator: { type: "sine" },
+        envelope: { attack: 0.001, decay: 0.25, sustain: 0, release: 0.3 },
       });
-      kick.volume.value = -6; kick.connect(drumReverb);
+      kick.volume.value = -8; kick.connect(drumReverb);
 
       const snare = new Tone.NoiseSynth({
         noise: { type: "white" },
-        envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.15 },
+        envelope: { attack: 0.001, decay: 0.13, sustain: 0, release: 0.1 },
       });
-      snare.volume.value = -12;
-      const snareFilter = new Tone.Filter({ type: "bandpass", frequency: 3000, Q: 1.2 });
+      snare.volume.value = -14;
+      const snareFilter = new Tone.Filter({ type: "bandpass", frequency: 3000, Q: 1 });
       snare.connect(snareFilter); snareFilter.connect(drumReverb);
 
       const hihat = new Tone.MetalSynth({
-        envelope: { attack: 0.001, decay: 0.08, release: 0.01 },
-        harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+        envelope: { attack: 0.001, decay: 0.06, release: 0.01 },
+        harmonicity: 5.1, modulationIndex: 28, resonance: 4000, octaves: 1.5,
       } as any);
-      hihat.volume.value = -20; hihat.connect(drumReverb);
+      hihat.volume.value = -22; hihat.connect(drumReverb);
 
       const clap = new Tone.NoiseSynth({
         noise: { type: "pink" },
-        envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.1 },
+        envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.08 },
       });
-      clap.volume.value = -14;
-      const clapFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 2 });
+      clap.volume.value = -16;
+      const clapFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.5 });
       clap.connect(clapFilter); clapFilter.connect(drumReverb);
 
       audioRef.current = {
