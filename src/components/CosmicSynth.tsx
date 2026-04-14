@@ -379,7 +379,7 @@ export default function CosmicSynth() {
   const touchesRef = useRef(new Map());
   const analysisRef = useRef({ bass: 0, mid: 0, treble: 0, high: 0, vol: 0, pitch: 0 });
   const scaleRef = useRef("pentatonic");
-  const fftBuffer = useRef(new Float32Array(256));
+  const fftBuffer = useRef(new Float32Array(128));
   const rafRef = useRef<number | null>(null);
   const glowsRef = useRef(new Map());
   const glowContainerRef = useRef<HTMLDivElement>(null);
@@ -530,94 +530,94 @@ export default function CosmicSynth() {
 
   function initAudio() {
     try {
-      const mainFilter = new Tone.Filter({ type: "lowpass", frequency: 4500, rolloff: -24 });
-      const reverb = new Tone.Reverb({ decay: 6, wet: 0.4 });
-      const delay = new Tone.FeedbackDelay({ delayTime: "8n.", feedback: 0.22, wet: 0.13 });
-      const chorus = new Tone.Chorus({ frequency: 0.8, delayTime: 4, depth: 0.6, wet: 0.18 }).start();
+      const mainFilter = new Tone.Filter({ type: "lowpass", frequency: 4500, rolloff: -12 });
+      const reverb = new Tone.Reverb({ decay: 3, wet: 0.3 });
+      const delay = new Tone.FeedbackDelay({ delayTime: "8n.", feedback: 0.18, wet: 0.1 });
+      const chorus = new Tone.Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: 0.12 }).start();
 
       const lead = new Tone.PolySynth(Tone.FMSynth, {
-        maxPolyphony: 6, harmonicity: 2.5, modulationIndex: 4,
-        oscillator: { type: "fatsawtooth", spread: 15, count: 3 },
+        maxPolyphony: 4, harmonicity: 2, modulationIndex: 3,
+        oscillator: { type: "sawtooth" },
         modulation: { type: "triangle" },
-        envelope: { attack: 0.05, decay: 0.3, sustain: 0.5, release: 1.5 },
-        modulationEnvelope: { attack: 0.08, decay: 0.2, sustain: 0.4, release: 1 },
+        envelope: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.8 },
+        modulationEnvelope: { attack: 0.08, decay: 0.15, sustain: 0.3, release: 0.6 },
       } as any);
       lead.volume.value = -10;
 
       const sub = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "sine" },
-        envelope: { attack: 0.08, decay: 0.2, sustain: 0.6, release: 1.2 },
+        maxPolyphony: 3, oscillator: { type: "sine" },
+        envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.8 },
       } as any);
-      sub.volume.value = -16;
+      sub.volume.value = -18;
 
       lead.connect(mainFilter); sub.connect(mainFilter);
       mainFilter.connect(chorus); chorus.connect(delay); delay.connect(reverb); reverb.toDestination();
 
       const padFilter = new Tone.Filter({ type: "lowpass", frequency: 1200, rolloff: -12 });
-      const padReverb = new Tone.Reverb({ decay: 7, wet: 0.55 });
+      const padReverb = new Tone.Reverb({ decay: 4, wet: 0.4 });
       const pad = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "fatsine4", spread: 30, count: 4 },
-        envelope: { attack: 2.5, decay: 1, sustain: 0.7, release: 3 },
+        maxPolyphony: 4, oscillator: { type: "sine" },
+        envelope: { attack: 2, decay: 0.8, sustain: 0.6, release: 2 },
       } as any);
-      pad.volume.value = -20; pad.connect(padFilter); padFilter.connect(padReverb); padReverb.toDestination();
+      pad.volume.value = -22; pad.connect(padFilter); padFilter.connect(padReverb); padReverb.toDestination();
 
       const bassFilter = new Tone.Filter({ type: "lowpass", frequency: 800, rolloff: -24 });
-      const bassReverb = new Tone.Reverb({ decay: 3, wet: 0.2 });
+      const bassReverb = new Tone.Reverb({ decay: 1.5, wet: 0.12 });
       const bass = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 3, oscillator: { type: "fatsquare", spread: 8, count: 2 },
-        envelope: { attack: 0.02, decay: 0.15, sustain: 0.7, release: 0.5 },
+        maxPolyphony: 2, oscillator: { type: "square" },
+        envelope: { attack: 0.02, decay: 0.12, sustain: 0.6, release: 0.3 },
       } as any);
       bass.volume.value = -14; bass.connect(bassFilter); bassFilter.connect(bassReverb); bassReverb.toDestination();
 
       const arpFilter = new Tone.Filter({ type: "lowpass", frequency: 3000, rolloff: -12 });
-      const arpDelay = new Tone.FeedbackDelay({ delayTime: "16n", feedback: 0.3, wet: 0.2 });
+      const arpDelay = new Tone.FeedbackDelay({ delayTime: "16n", feedback: 0.2, wet: 0.15 });
       const arp = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, oscillator: { type: "triangle" },
-        envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.4 },
+        maxPolyphony: 3, oscillator: { type: "triangle" },
+        envelope: { attack: 0.01, decay: 0.08, sustain: 0.15, release: 0.25 },
       } as any);
       arp.volume.value = -18; arp.connect(arpFilter); arpFilter.connect(arpDelay); arpDelay.connect(reverb);
 
       const droneFilter = new Tone.Filter({ type: "lowpass", frequency: 600, rolloff: -12 });
-      const droneReverb = new Tone.Reverb({ decay: 8, wet: 0.5 });
+      const droneReverb = new Tone.Reverb({ decay: 5, wet: 0.4 });
       const drone = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, oscillator: { type: "sine" },
-        envelope: { attack: 3, decay: 2, sustain: 0.8, release: 5 },
+        maxPolyphony: 2, oscillator: { type: "sine" },
+        envelope: { attack: 3, decay: 2, sustain: 0.8, release: 4 },
       } as any);
-      drone.volume.value = -22; drone.connect(droneFilter); droneFilter.connect(droneReverb); droneReverb.toDestination();
+      drone.volume.value = -24; drone.connect(droneFilter); droneFilter.connect(droneReverb); droneReverb.toDestination();
       drone.triggerAttack([m2f(36), m2f(43)], Tone.now());
 
       const lfo = new Tone.LFO(0.05, 100, 500); lfo.connect(droneFilter.frequency); lfo.start();
-      const fft = new Tone.FFT(256); Tone.getDestination().connect(fft);
+      const fft = new Tone.FFT(128); Tone.getDestination().connect(fft);
 
-      // ── Drum synths ──
-      const drumReverb = new Tone.Reverb({ decay: 1.5, wet: 0.15 }); drumReverb.toDestination();
+      // ── Drum synths (lightweight) ──
+      const drumReverb = new Tone.Reverb({ decay: 1, wet: 0.1 }); drumReverb.toDestination();
       
       const kick = new Tone.MembraneSynth({
-        pitchDecay: 0.05, octaves: 6, oscillator: { type: "sine" },
-        envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.4 },
+        pitchDecay: 0.04, octaves: 5, oscillator: { type: "sine" },
+        envelope: { attack: 0.001, decay: 0.25, sustain: 0, release: 0.3 },
       });
-      kick.volume.value = -6; kick.connect(drumReverb);
+      kick.volume.value = -8; kick.connect(drumReverb);
 
       const snare = new Tone.NoiseSynth({
         noise: { type: "white" },
-        envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.15 },
+        envelope: { attack: 0.001, decay: 0.13, sustain: 0, release: 0.1 },
       });
-      snare.volume.value = -12;
-      const snareFilter = new Tone.Filter({ type: "bandpass", frequency: 3000, Q: 1.2 });
+      snare.volume.value = -14;
+      const snareFilter = new Tone.Filter({ type: "bandpass", frequency: 3000, Q: 1 });
       snare.connect(snareFilter); snareFilter.connect(drumReverb);
 
       const hihat = new Tone.MetalSynth({
-        envelope: { attack: 0.001, decay: 0.08, release: 0.01 },
-        harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+        envelope: { attack: 0.001, decay: 0.06, release: 0.01 },
+        harmonicity: 5.1, modulationIndex: 28, resonance: 4000, octaves: 1.5,
       } as any);
-      hihat.volume.value = -20; hihat.connect(drumReverb);
+      hihat.volume.value = -22; hihat.connect(drumReverb);
 
       const clap = new Tone.NoiseSynth({
         noise: { type: "pink" },
-        envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.1 },
+        envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.08 },
       });
-      clap.volume.value = -14;
-      const clapFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 2 });
+      clap.volume.value = -16;
+      const clapFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.5 });
       clap.connect(clapFilter); clapFilter.connect(drumReverb);
 
       audioRef.current = {
@@ -993,8 +993,8 @@ export default function CosmicSynth() {
       const a = analysisRef.current;
       const fc = frameCount.current++;
 
-      // Throttle FFT analysis
-      if (fc % 2 === 0) analyze();
+      // Throttle FFT analysis — every 3rd frame
+      if (fc % 3 === 0) analyze();
 
       // Gyro input — expanded mobile mechanics
       const g = gyroRef.current;
@@ -1006,13 +1006,12 @@ export default function CosmicSynth() {
         // Alpha (compass rotation) slowly rotates galaxy — immersive exploration
         galaxy.rotation.y += (g.alpha * 0.0001 - galaxy.rotation.y * 0.001) * 0.02;
         
-        // Tilt forward/back controls audio filter cutoff (lean forward = brighter)
-        if (audioRef.current) {
+        // Tilt controls audio — throttled to every 6th frame to avoid rampTo spam
+        if (audioRef.current && fc % 6 === 0) {
           const tiltBrightness = clamp((g.beta - 20) / 60, 0, 1);
-          try { audioRef.current.fi.frequency.rampTo(500 + tiltBrightness * 5000, 0.2); } catch {}
-          // Tilt left/right controls reverb wet amount
-          const tiltWet = clamp(Math.abs(g.gamma) / 45, 0, 0.7);
-          try { audioRef.current.rv.wet.rampTo(0.15 + tiltWet, 0.3); } catch {}
+          try { audioRef.current.fi.frequency.rampTo(500 + tiltBrightness * 5000, 0.5); } catch {}
+          const tiltWet = clamp(Math.abs(g.gamma) / 45, 0, 0.6);
+          try { audioRef.current.rv.wet.rampTo(0.12 + tiltWet, 0.5); } catch {}
         }
         
         // Accelerometer: tilt intensity affects bloom and chromatic aberration
@@ -1319,6 +1318,11 @@ export default function CosmicSynth() {
     let prog = (PROGS[scaleRef.current] || PROGS.minor)[0];
     dj.ci = 0; dj.motif = genMotif(sn().notes); dj.am = pick(ARP_MODES); dj.as = 0;
 
+    // Cache matrix — only rebuild on scale/section change
+    let cachedMatrix: Record<number, Record<number, number>> = buildMatrix(sn().notes);
+    let cachedScale = scaleRef.current;
+    let lastFilterVal = -1;
+
     function secRhy(s: any) { return s.d < 0.3 ? RHY.sparse : s.d < 0.5 ? RHY.quarter : s.d < 0.7 ? pick([RHY.syncopated, RHY.quarter]) : s.d < 0.85 ? RHY.driving : pick([RHY.dense, RHY.driving]); }
     function secBass(s: any) { return s.e < 0.4 ? BASS_PAT.whole : s.e < 0.7 ? BASS_PAT.octave : BASS_PAT.bounce; }
     let rhy = secRhy(sec()); dj.ri = 0; let bRhy = secBass(sec()); dj.bi = 0;
@@ -1328,10 +1332,17 @@ export default function CosmicSynth() {
       rhy = secRhy(s); dj.ri = 0; bRhy = secBass(s); dj.bi = 0;
       dj.tf = s.ft; dj.te = s.e; dj.am = pick(ARP_MODES); dj.as = 0;
       try {
-        const [at, dc, su, rl] = s.adsr; const [mi, hm, , sp] = s.mod;
-        audioRef.current.ld.set({ envelope: { attack: at, decay: dc, sustain: su, release: rl }, modulationIndex: mi, harmonicity: hm, oscillator: { spread: sp } });
-        audioRef.current.rv.set({ wet: s.rv }); audioRef.current.dl.set({ wet: s.dw });
+        const [at, dc, su, rl] = s.adsr;
+        const [mi, hm, , sp] = s.mod;
+        audioRef.current.ld.set({ envelope: { attack: at, decay: dc, sustain: su, release: rl }, modulationIndex: mi, harmonicity: hm });
+        audioRef.current.rv.wet.value = s.rv;
+        audioRef.current.dl.wet.value = s.dw;
       } catch {}
+      // Rebuild matrix only on scale change
+      if (scaleRef.current !== cachedScale) {
+        cachedMatrix = buildMatrix(sn().notes);
+        cachedScale = scaleRef.current;
+      }
       const sc2 = sn();
       switch (s.algo) {
         case "motif": dj.phrase = [...dj.motif]; break;
@@ -1348,13 +1359,24 @@ export default function CosmicSynth() {
 
     dj.iv = setInterval(() => {
       if (!audioRef.current || !dj.on) return;
-      const s = sec(), sc2 = sn(), notes = sc2.notes, chords = sc2.chords, matrix = buildMatrix(notes);
+      const s = sec(), sc2 = sn(), notes = sc2.notes, chords = sc2.chords;
+      // Refresh matrix cache if scale changed
+      if (scaleRef.current !== cachedScale) { cachedMatrix = buildMatrix(notes); cachedScale = scaleRef.current; }
+      const matrix = cachedMatrix;
+      
       dj.tt++; dj.tis++;
       dj.ce += (dj.te - dj.ce) * 0.06;
       dj.cf += (dj.tf - dj.cf) * 0.04;
       const E = dj.ce;
       if (s.sweep) { dj.cf = lerp(s.ft * 0.3, s.ft, Math.min(dj.tis / (s.bars * 4), 1)); }
-      try { audioRef.current.fi.frequency.rampTo(200 + dj.cf * 5800, 0.15); } catch {}
+      
+      // Throttle filter rampTo — only when value changes significantly
+      const newFilterVal = Math.round(200 + dj.cf * 5800);
+      if (Math.abs(newFilterVal - lastFilterVal) > 100) {
+        lastFilterVal = newFilterVal;
+        try { audioRef.current.fi.frequency.rampTo(newFilterVal, 0.3); } catch {}
+      }
+      
       if (dj.tis >= s.bars * 4) { dj.tis = 0; dj.si++; transition(); return; }
       dj.ct++;
       if (dj.ct >= 4) {
@@ -1363,76 +1385,69 @@ export default function CosmicSynth() {
         if (s.l.pd > 0) {
           try {
             audioRef.current.pd.releaseAll(Tone.now());
-            audioRef.current.pd.triggerAttack(dj.ac.map((n: number) => m2f(48 + n)), Tone.now(), 0.1 + E * 0.15 * s.l.pd);
-            audioRef.current.pf.frequency.rampTo(400 + E * 2500, 0.5);
+            const padFreqs = dj.ac.map((n: number) => m2f(48 + n));
+            audioRef.current.pd.triggerAttack(padFreqs, Tone.now() + 0.02, 0.08 + E * 0.12 * s.l.pd);
+            audioRef.current.pf.frequency.rampTo(400 + E * 2500, 0.8);
           } catch {}
         }
         if (dj.tt % 8 === 0) {
           try {
             const rn = notes[prog[dj.ci] % notes.length];
             audioRef.current.dn.releaseAll(Tone.now() + 0.1);
-            audioRef.current.dn.triggerAttack([m2f(36 + rn), m2f(36 + rn + 7)], Tone.now() + 0.12);
-            audioRef.current.df.frequency.rampTo(300 + E * 600, 1);
+            audioRef.current.dn.triggerAttack([m2f(36 + rn), m2f(36 + rn + 7)], Tone.now() + 0.15);
           } catch {}
         }
       }
 
       const rC = rhy[dj.ri % rhy.length]; dj.ri++; const durS = rC[0] * 0.14;
+      const now = Tone.now();
 
-      // Melody
+      // Melody — use triggerAttackRelease with offset to prevent scheduling conflicts
       if (s.l.ml > 0 && dj.phrase.length > 0) {
-        const restProb = E < 0.2 ? 0.5 : E < 0.4 ? 0.2 : 0.05;
+        const restProb = E < 0.2 ? 0.5 : E < 0.4 ? 0.25 : 0.08;
         if (Math.random() > restProb) {
           let di: number;
           if (dj.pp < dj.phrase.length) { di = dj.phrase[dj.pp]; dj.pp++; }
           else { di = wPick(matrix[dj.deg]); dj.deg = di; }
           dj.oct = E > 0.6 ? 5 : 4;
           const midi = dj.oct * 12 + notes[di % notes.length];
-          const freq = m2f(midi);
-          const vel = Math.min((0.1 + E * 0.7) * rC[1] * s.l.ml, 1);
+          const vel = Math.min((0.1 + E * 0.6) * rC[1] * s.l.ml, 0.85);
           try {
-            audioRef.current.ld.triggerAttackRelease(freq, durS * 0.85, Tone.now(), vel);
-            audioRef.current.sb.triggerAttackRelease(m2f(midi - 12), durS * 0.85, Tone.now(), vel * 0.5);
+            audioRef.current.ld.triggerAttackRelease(m2f(midi), durS * 0.8, now + 0.01, vel);
           } catch {}
-          if (E > 0.7) haptic([12, 25, 12]);
-          if (engineRef.current) {
+          if (engineRef.current && dj.tt % 2 === 0) {
             const fx = ((midi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
             const fy = (1 - E) * window.innerHeight;
             const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
-            const col = noteColor(midi);
-            engineRef.current.addRipple(wx, wy, wz, col);
-            engineRef.current.emitParticles(wx, wy, wz, col, Math.floor(6 + E * 18), E);
+            engineRef.current.addRipple(wx, wy, wz, noteColor(midi));
+            engineRef.current.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(4 + E * 10), E);
           }
         }
       }
 
-      // Bass
+      // Bass — less frequent
       if (s.l.bs > 0) {
         const bC = bRhy[dj.bi % bRhy.length]; dj.bi++;
         if (bC[1] > 0) {
           const bn = notes[prog[dj.ci] % notes.length];
-          try { audioRef.current.bs.triggerAttackRelease(m2f(36 + bn), bC[0] * 0.14 * 0.9, Tone.now(), Math.min((0.2 + E * 0.6) * bC[1] * s.l.bs, 1)); } catch {}
+          try { audioRef.current.bs.triggerAttackRelease(m2f(36 + bn), bC[0] * 0.12, now + 0.01, Math.min((0.2 + E * 0.5) * bC[1] * s.l.bs, 0.8)); } catch {}
         }
       }
 
-      // Arp
-      if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % 2 === 0) {
+      // Arp — every 3rd tick instead of 2nd
+      if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % 3 === 0) {
         const an = getArpNote(dj.ac, dj.as, dj.am); dj.as++;
-        try { audioRef.current.ar.triggerAttackRelease(m2f(60 + an), 0.14 * 0.7, Tone.now(), Math.min((0.15 + E * 0.4) * s.l.ar, 1)); } catch {}
-        if (engineRef.current) {
-          const [wx, wy, wz] = engineRef.current.s2w(Math.random() * window.innerWidth, 0.3 * window.innerHeight);
-          engineRef.current.emitParticles(wx, wy, wz, noteColor(60 + an), 4, 0.3);
-        }
+        try { audioRef.current.ar.triggerAttackRelease(m2f(60 + an), 0.1, now + 0.01, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
       }
 
-      // Counter melody
-      if (s.l.ct > 0 && dj.tt % 6 === 3) {
+      // Counter melody — less frequent
+      if (s.l.ct > 0 && dj.tt % 8 === 5) {
         const cD = wPick(matrix[dj.deg]);
-        try { audioRef.current.ld.triggerAttackRelease(m2f(60 + notes[cD % notes.length]), 0.14 * 0.6, Tone.now() + 0.05, Math.min((0.1 + E * 0.35) * s.l.ct, 1)); } catch {}
+        try { audioRef.current.ld.triggerAttackRelease(m2f(60 + notes[cD % notes.length]), 0.08, now + 0.06, Math.min((0.08 + E * 0.25) * s.l.ct, 0.6)); } catch {}
       }
 
-      if (s.riser) { dj.rf = lerp(200, 2000, dj.tis / (s.bars * 4)); try { audioRef.current.af.frequency.rampTo(dj.rf, 0.1); } catch {} }
-    }, 140);
+      if (s.riser && dj.tt % 3 === 0) { dj.rf = lerp(200, 2000, dj.tis / (s.bars * 4)); try { audioRef.current.af.frequency.rampTo(dj.rf, 0.3); } catch {} }
+    }, 160);  // Slower tick rate: 160ms instead of 140ms
 
     return () => { if (djState.current.iv) { clearInterval(djState.current.iv); djState.current.iv = null; } };
   }, [autoPlay]);
