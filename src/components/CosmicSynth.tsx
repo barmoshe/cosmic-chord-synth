@@ -531,10 +531,43 @@ export default function CosmicSynth() {
       const lfo = new Tone.LFO(0.05, 100, 500); lfo.connect(droneFilter.frequency); lfo.start();
       const fft = new Tone.FFT(256); Tone.getDestination().connect(fft);
 
+      // ── Drum synths ──
+      const drumReverb = new Tone.Reverb({ decay: 1.5, wet: 0.15 }); drumReverb.toDestination();
+      
+      const kick = new Tone.MembraneSynth({
+        pitchDecay: 0.05, octaves: 6, oscillator: { type: "sine" },
+        envelope: { attack: 0.001, decay: 0.3, sustain: 0, release: 0.4 },
+      });
+      kick.volume.value = -6; kick.connect(drumReverb);
+
+      const snare = new Tone.NoiseSynth({
+        noise: { type: "white" },
+        envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.15 },
+      });
+      snare.volume.value = -12;
+      const snareFilter = new Tone.Filter({ type: "bandpass", frequency: 3000, Q: 1.2 });
+      snare.connect(snareFilter); snareFilter.connect(drumReverb);
+
+      const hihat = new Tone.MetalSynth({
+        frequency: 300, envelope: { attack: 0.001, decay: 0.08, release: 0.01 },
+        harmonicity: 5.1, modulationIndex: 32, resonance: 4000, octaves: 1.5,
+      });
+      hihat.volume.value = -20; hihat.connect(drumReverb);
+
+      const clap = new Tone.NoiseSynth({
+        noise: { type: "pink" },
+        envelope: { attack: 0.001, decay: 0.12, sustain: 0, release: 0.1 },
+      });
+      clap.volume.value = -14;
+      const clapFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 2 });
+      clap.connect(clapFilter); clapFilter.connect(drumReverb);
+
       audioRef.current = {
         ld: lead, sb: sub, pd: pad, bs: bass, ar: arp, dn: drone,
+        kick, snare, hihat, clap,
         fi: mainFilter, pf: padFilter, bf: bassFilter, af: arpFilter, df: droneFilter,
         rv: reverb, dl: delay, ch: chorus, pr: padReverb, br2: bassReverb, dr2: droneReverb,
+        drumRv: drumReverb,
         fft, lfo,
       };
     } catch (e) {
@@ -592,27 +625,57 @@ export default function CosmicSynth() {
     renderer.toneMappingExposure = 1.15;
     renderer.setClearColor(0x020010);
 
-    // ── Galaxy Stars ──
+    // ── Galaxy Stars — Realistic spiral ──
     const galaxyGeo = new THREE.BufferGeometry();
     const gPos = new Float32Array(GALAXY_COUNT * 3);
     const gCol = new Float32Array(GALAXY_COUNT * 3);
     const gSize = new Float32Array(GALAXY_COUNT);
     const gRand = new Float32Array(GALAXY_COUNT);
+    
+    const ARM_COUNT = 4;
+    const TWIST_FACTOR = 0.0035;
+    const ARM_SPREAD = 0.35;
+    
     for (let i = 0; i < GALAXY_COUNT; i++) {
-      const arm = Math.floor(Math.random() * 4);
-      const armAngle = arm * 1.5708 + Math.random() * 5;
-      const radius = 20 + Math.pow(Math.random(), 1.4) * 950;
-      const twist = radius * 0.002;
-      const x = Math.cos(armAngle + twist) * radius;
-      const z = Math.sin(armAngle + twist) * radius;
-      const y = (Math.random() - 0.5) * 50 * (1 + radius * 0.002);
+      const arm = i % ARM_COUNT;
+      const baseAngle = (arm / ARM_COUNT) * Math.PI * 2;
+      const t = Math.random();
+      const radius = 15 + Math.pow(t, 0.6) * 980;
+      
+      // Logarithmic spiral with spread
+      const spiralAngle = baseAngle + radius * TWIST_FACTOR + (Math.random() - 0.5) * ARM_SPREAD * (1 + radius * 0.0008);
+      
+      const x = Math.cos(spiralAngle) * radius;
+      const z = Math.sin(spiralAngle) * radius;
+      // Thin disk with bulge in center
+      const diskThickness = 12 * Math.exp(-radius * 0.003) + 3;
+      const y = (Math.random() - 0.5) * diskThickness * (1 + (Math.random() < 0.02 ? 8 : 1));
+      
       gPos[i * 3] = x; gPos[i * 3 + 1] = y; gPos[i * 3 + 2] = z;
-      const ci = Math.floor(Math.random() * PAL.length);
-      const brightness = 0.7 + Math.random() * 0.3;
-      gCol[i * 3] = PAL[ci][0] * brightness;
-      gCol[i * 3 + 1] = PAL[ci][1] * brightness;
-      gCol[i * 3 + 2] = PAL[ci][2] * brightness;
-      gSize[i] = 1.2 + Math.random() * 4;
+      
+      // Realistic star colors — core is warm/yellow, arms are blue/white, scattered red giants
+      const coreInfluence = Math.exp(-radius * 0.004);
+      const isRedGiant = Math.random() < 0.03;
+      const isBlueGiant = Math.random() < 0.06 && radius > 200;
+      
+      let r: number, g: number, b: number;
+      if (isRedGiant) {
+        r = 1; g = 0.4 + Math.random() * 0.2; b = 0.1 + Math.random() * 0.1;
+      } else if (isBlueGiant) {
+        r = 0.6 + Math.random() * 0.2; g = 0.7 + Math.random() * 0.2; b = 1;
+      } else {
+        // Mix between warm core and cool arm stars
+        const temp = coreInfluence * 0.8 + Math.random() * 0.3;
+        r = 0.8 + temp * 0.2;
+        g = 0.7 + (1 - temp) * 0.3;
+        b = 0.5 + (1 - temp) * 0.5;
+      }
+      
+      const brightness = (0.3 + Math.random() * 0.7) * (0.5 + coreInfluence * 1.5);
+      gCol[i * 3] = r * brightness;
+      gCol[i * 3 + 1] = g * brightness;
+      gCol[i * 3 + 2] = b * brightness;
+      gSize[i] = (0.8 + Math.random() * 2.5) * (1 + coreInfluence * 3);
       gRand[i] = Math.random();
     }
     galaxyGeo.setAttribute("position", new THREE.BufferAttribute(gPos, 3));
@@ -626,6 +689,39 @@ export default function CosmicSynth() {
     });
     const galaxy = new THREE.Points(galaxyGeo, galaxyMat);
     scene.add(galaxy);
+
+    // ── Dust lanes (dark matter feel) ──
+    for (let d = 0; d < 3; d++) {
+      const dustGeo = new THREE.BufferGeometry();
+      const dustCount = isMobile ? 600 : 1200;
+      const dustPos = new Float32Array(dustCount * 3);
+      const dustCol = new Float32Array(dustCount * 3);
+      const dustSize = new Float32Array(dustCount);
+      const dustRand = new Float32Array(dustCount);
+      for (let i = 0; i < dustCount; i++) {
+        const arm = (d + i % 2) % ARM_COUNT;
+        const baseAngle = (arm / ARM_COUNT) * Math.PI * 2 + 0.15;
+        const radius = 80 + Math.pow(Math.random(), 0.5) * 700;
+        const angle = baseAngle + radius * TWIST_FACTOR * 0.95 + (Math.random() - 0.5) * 0.2;
+        dustPos[i * 3] = Math.cos(angle) * radius;
+        dustPos[i * 3 + 1] = (Math.random() - 0.5) * 6;
+        dustPos[i * 3 + 2] = Math.sin(angle) * radius;
+        const warmth = 0.5 + Math.random() * 0.5;
+        dustCol[i * 3] = 0.15 * warmth; dustCol[i * 3 + 1] = 0.08 * warmth; dustCol[i * 3 + 2] = 0.2 * warmth;
+        dustSize[i] = 6 + Math.random() * 14;
+        dustRand[i] = Math.random();
+      }
+      dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+      dustGeo.setAttribute("color", new THREE.BufferAttribute(dustCol, 3));
+      dustGeo.setAttribute("aSize", new THREE.BufferAttribute(dustSize, 1));
+      dustGeo.setAttribute("aRand", new THREE.BufferAttribute(dustRand, 1));
+      const dustMat = new THREE.ShaderMaterial({
+        uniforms: galaxyMat.uniforms,
+        vertexShader: GALAXY_VERT, fragmentShader: GALAXY_FRAG,
+        transparent: true, depthWrite: false, vertexColors: true, blending: THREE.AdditiveBlending,
+      });
+      scene.add(new THREE.Points(dustGeo, dustMat));
+    }
 
     // ── Central Star ──
     const starGeo = new THREE.IcosahedronGeometry(18, 5);
@@ -662,23 +758,35 @@ export default function CosmicSynth() {
       rings.push(ring);
     }
 
-    // ── Nebulae ──
+    // ── Nebulae — volumetric look ──
     const nebulae: (THREE.Sprite & { _baseOpacity: number })[] = [];
-    for (let i = 0; i < 6; i++) {
-      const c = document.createElement("canvas"); c.width = 256; c.height = 256;
+    for (let i = 0; i < 10; i++) {
+      const c = document.createElement("canvas"); c.width = 512; c.height = 512;
       const ctx = c.getContext("2d")!;
-      const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      // Multi-layer radial gradient for volume
       const ci = PAL[i % PAL.length];
-      grad.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.15)`);
-      grad.addColorStop(0.5, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.06)`);
+      const cx = 256 + (Math.random() - 0.5) * 60;
+      const cy = 256 + (Math.random() - 0.5) * 60;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220 + Math.random() * 36);
+      grad.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.12)`);
+      grad.addColorStop(0.3, `rgba(${Math.round(ci[0] * 200)},${Math.round(ci[1] * 200)},${Math.round(ci[2] * 200)},0.06)`);
+      grad.addColorStop(0.6, `rgba(${Math.round(ci[0] * 120)},${Math.round(ci[1] * 120)},${Math.round(ci[2] * 120)},0.03)`);
       grad.addColorStop(1, "transparent");
-      ctx.fillStyle = grad; ctx.fillRect(0, 0, 256, 256);
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+      // Second pass — displaced center for asymmetry
+      const grad2 = ctx.createRadialGradient(cx + 40, cy - 30, 0, cx + 40, cy - 30, 160);
+      grad2.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.06)`);
+      grad2.addColorStop(1, "transparent");
+      ctx.fillStyle = grad2; ctx.fillRect(0, 0, 512, 512);
       const tex = new THREE.CanvasTexture(c);
-      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.06 + Math.random() * 0.04 });
+      const baseOp = 0.04 + Math.random() * 0.04;
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: baseOp });
       const spr = new THREE.Sprite(mat) as THREE.Sprite & { _baseOpacity: number };
-      spr.scale.setScalar(350 + Math.random() * 600);
-      spr.position.set((Math.random() - 0.5) * 1400, (Math.random() - 0.5) * 500, (Math.random() - 0.5) * 1400);
-      spr._baseOpacity = mat.opacity;
+      const dist = 200 + Math.random() * 900;
+      const angle = Math.random() * Math.PI * 2;
+      spr.scale.setScalar(300 + Math.random() * 700);
+      spr.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 120, Math.sin(angle) * dist);
+      spr._baseOpacity = baseOp;
       scene.add(spr); nebulae.push(spr);
     }
 
