@@ -996,11 +996,39 @@ export default function CosmicSynth() {
       // Throttle FFT analysis
       if (fc % 2 === 0) analyze();
 
-      // Gyro input
+      // Gyro input — expanded mobile mechanics
       const g = gyroRef.current;
       if (g.on) {
+        // Tilt controls camera position (gamma=left/right, beta=forward/back)
         mouse.tx = clamp(g.gamma / 30, -1, 1);
         mouse.ty = clamp(-g.beta / 45 + 0.5, -1, 1);
+        
+        // Alpha (compass rotation) slowly rotates galaxy — immersive exploration
+        galaxy.rotation.y += (g.alpha * 0.0001 - galaxy.rotation.y * 0.001) * 0.02;
+        
+        // Tilt forward/back controls audio filter cutoff (lean forward = brighter)
+        if (audioRef.current) {
+          const tiltBrightness = clamp((g.beta - 20) / 60, 0, 1);
+          try { audioRef.current.fi.frequency.rampTo(500 + tiltBrightness * 5000, 0.2); } catch {}
+          // Tilt left/right controls reverb wet amount
+          const tiltWet = clamp(Math.abs(g.gamma) / 45, 0, 0.7);
+          try { audioRef.current.rv.wet.rampTo(0.15 + tiltWet, 0.3); } catch {}
+        }
+        
+        // Accelerometer: tilt intensity affects bloom and chromatic aberration
+        const accelMag = Math.sqrt(g.accelX ** 2 + g.accelY ** 2) * 0.05;
+        compositePass.uniforms.uChromatic.value = clamp(a.treble * 1.5 + accelMag * 0.3, 0, 3);
+        
+        // Shake decay
+        g.shake *= 0.92;
+        if (g.shake > 0.01) {
+          // Shake adds camera vibration and bloom burst
+          camera.position.x += (Math.random() - 0.5) * g.shake * 8;
+          camera.position.y += (Math.random() - 0.5) * g.shake * 6;
+          compositePass.uniforms.uBloomStrength.value = 0.55 + g.shake * 1.5;
+        } else {
+          compositePass.uniforms.uBloomStrength.value = 0.55;
+        }
       }
 
       // Smooth camera
