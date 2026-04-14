@@ -379,7 +379,7 @@ export default function CosmicSynth() {
   const touchesRef = useRef(new Map());
   const analysisRef = useRef({ bass: 0, mid: 0, treble: 0, high: 0, vol: 0, pitch: 0 });
   const scaleRef = useRef("pentatonic");
-  const fftBuffer = useRef(new Float32Array(256));
+  const fftBuffer = useRef(new Float32Array(128));
   const rafRef = useRef<number | null>(null);
   const glowsRef = useRef(new Map());
   const glowContainerRef = useRef<HTMLDivElement>(null);
