@@ -383,7 +383,7 @@ export default function CosmicSynth() {
   const rafRef = useRef<number | null>(null);
   const glowsRef = useRef(new Map());
   const glowContainerRef = useRef<HTMLDivElement>(null);
-  const gyroRef = useRef({ on: false, beta: 0, gamma: 0 });
+  const gyroRef = useRef({ on: false, beta: 0, gamma: 0, alpha: 0, accelX: 0, accelY: 0, accelZ: 0, shake: 0, lastShakeTime: 0 });
   const hideTimerRef = useRef<any>(null);
   const flashIntensity = useRef(0);
   const warpState = useRef({ on: false, t: 0 });
@@ -425,29 +425,87 @@ export default function CosmicSynth() {
     if (!hintDismissed) setHintDismissed(true);
   }, [hintDismissed]);
 
-  // Gyroscope
+  // Gyroscope + Accelerometer
   useEffect(() => {
     if (phase !== "play") return;
     const g = gyroRef.current;
-    const handler = (e: DeviceOrientationEvent) => { g.on = true; g.beta = e.beta || 0; g.gamma = e.gamma || 0; };
+    const orientHandler = (e: DeviceOrientationEvent) => {
+      g.on = true; g.beta = e.beta || 0; g.gamma = e.gamma || 0; g.alpha = e.alpha || 0;
+    };
+    const motionHandler = (e: DeviceMotionEvent) => {
+      const acc = e.accelerationIncludingGravity;
+      if (!acc) return;
+      g.accelX = acc.x || 0; g.accelY = acc.y || 0; g.accelZ = acc.z || 0;
+      // Shake detection
+      const magnitude = Math.sqrt(g.accelX ** 2 + g.accelY ** 2 + g.accelZ ** 2);
+      if (magnitude > 25) {
+        const now = Date.now();
+        if (now - g.lastShakeTime > 600) {
+          g.lastShakeTime = now;
+          g.shake = 1;
+          // Shake triggers scale change + visual burst
+          const si = SCALE_ORDER.indexOf(scaleRef.current);
+          const newScale = SCALE_ORDER[(si + 1) % SCALE_ORDER.length];
+          setScale(newScale); scaleRef.current = newScale;
+          flashIntensity.current = 1.5;
+          setFlash(SCALES[newScale].label);
+          setTimeout(() => setFlash(""), 1500);
+          haptic([30, 50, 30, 50, 30]);
+          // Emit burst particles from center
+          if (engineRef.current) {
+            const col = noteColor(60);
+            for (let i = 0; i < 5; i++) {
+              engineRef.current.emitParticles(
+                (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 200,
+                col, 15, 1
+              );
+            }
+          }
+        }
+      }
+    };
+
     if (typeof DeviceOrientationEvent !== "undefined" && typeof (DeviceOrientationEvent as any).requestPermission === "function") {
       setGyroPrompt(true);
     } else {
-      window.addEventListener("deviceorientation", handler);
+      window.addEventListener("deviceorientation", orientHandler);
+      window.addEventListener("devicemotion", motionHandler);
       g.on = true;
     }
-    return () => window.removeEventListener("deviceorientation", handler);
+    return () => {
+      window.removeEventListener("deviceorientation", orientHandler);
+      window.removeEventListener("devicemotion", motionHandler);
+    };
   }, [phase]);
 
   const grantGyro = useCallback(async () => {
     setGyroPrompt(false);
     try {
+      const g = gyroRef.current;
       const s = await (DeviceOrientationEvent as any).requestPermission();
       if (s === "granted") {
-        const g = gyroRef.current;
         window.addEventListener("deviceorientation", (e: DeviceOrientationEvent) => {
-          g.on = true; g.beta = e.beta || 0; g.gamma = e.gamma || 0;
+          g.on = true; g.beta = e.beta || 0; g.gamma = e.gamma || 0; g.alpha = e.alpha || 0;
         });
+      }
+      // Also request motion permission (iOS 13+)
+      if (typeof (DeviceMotionEvent as any).requestPermission === "function") {
+        const ms = await (DeviceMotionEvent as any).requestPermission();
+        if (ms === "granted") {
+          window.addEventListener("devicemotion", (e: DeviceMotionEvent) => {
+            const acc = e.accelerationIncludingGravity;
+            if (!acc) return;
+            g.accelX = acc.x || 0; g.accelY = acc.y || 0; g.accelZ = acc.z || 0;
+            const magnitude = Math.sqrt(g.accelX ** 2 + g.accelY ** 2 + g.accelZ ** 2);
+            if (magnitude > 25) {
+              const now = Date.now();
+              if (now - g.lastShakeTime > 600) {
+                g.lastShakeTime = now; g.shake = 1;
+                haptic([30, 50, 30]);
+              }
+            }
+          });
+        }
       }
     } catch {}
   }, []);
@@ -938,11 +996,39 @@ export default function CosmicSynth() {
       // Throttle FFT analysis
       if (fc % 2 === 0) analyze();
 
-      // Gyro input
+      // Gyro input — expanded mobile mechanics
       const g = gyroRef.current;
       if (g.on) {
+        // Tilt controls camera position (gamma=left/right, beta=forward/back)
         mouse.tx = clamp(g.gamma / 30, -1, 1);
         mouse.ty = clamp(-g.beta / 45 + 0.5, -1, 1);
+        
+        // Alpha (compass rotation) slowly rotates galaxy — immersive exploration
+        galaxy.rotation.y += (g.alpha * 0.0001 - galaxy.rotation.y * 0.001) * 0.02;
+        
+        // Tilt forward/back controls audio filter cutoff (lean forward = brighter)
+        if (audioRef.current) {
+          const tiltBrightness = clamp((g.beta - 20) / 60, 0, 1);
+          try { audioRef.current.fi.frequency.rampTo(500 + tiltBrightness * 5000, 0.2); } catch {}
+          // Tilt left/right controls reverb wet amount
+          const tiltWet = clamp(Math.abs(g.gamma) / 45, 0, 0.7);
+          try { audioRef.current.rv.wet.rampTo(0.15 + tiltWet, 0.3); } catch {}
+        }
+        
+        // Accelerometer: tilt intensity affects bloom and chromatic aberration
+        const accelMag = Math.sqrt(g.accelX ** 2 + g.accelY ** 2) * 0.05;
+        compositePass.uniforms.uChromatic.value = clamp(a.treble * 1.5 + accelMag * 0.3, 0, 3);
+        
+        // Shake decay
+        g.shake *= 0.92;
+        if (g.shake > 0.01) {
+          // Shake adds camera vibration and bloom burst
+          camera.position.x += (Math.random() - 0.5) * g.shake * 8;
+          camera.position.y += (Math.random() - 0.5) * g.shake * 6;
+          compositePass.uniforms.uBloomStrength.value = 0.55 + g.shake * 1.5;
+        } else {
+          compositePass.uniforms.uBloomStrength.value = 0.55;
+        }
       }
 
       // Smooth camera
@@ -1372,7 +1458,7 @@ export default function CosmicSynth() {
   }, [scale, changeScale]);
 
   return (
-    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#020010", touchAction: "none" }}>
+    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#010008", touchAction: "none" }}>
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
 
@@ -1414,12 +1500,12 @@ export default function CosmicSynth() {
           {/* Title bar */}
           <div className="cosmic-header" style={{ opacity: showUI ? 1 : 0 }}>
             <div className="cosmic-header-title">COSMIC SYNTH</div>
-            <div className="cosmic-header-sub">Touch anywhere to play</div>
+            <div className="cosmic-header-sub">Touch · Tilt · Shake</div>
           </div>
 
           {/* Hint */}
           {!hintDismissed && (
-            <div className="cosmic-hint">Touch · Slide · Hold</div>
+            <div className="cosmic-hint">Touch to play · Tilt to explore · Shake to change scale</div>
           )}
 
           {/* Auto-play button */}
@@ -1477,7 +1563,10 @@ export default function CosmicSynth() {
               onClick={() => grantGyro()}
               className="cosmic-btn cosmic-gyro-prompt"
             >
-              🌀 Allow motion for full experience
+              🌀 Allow motion controls
+              <span style={{ display: "block", fontSize: 9, opacity: 0.5, marginTop: 4 }}>
+                Tilt · Rotate · Shake
+              </span>
             </button>
           )}
 
