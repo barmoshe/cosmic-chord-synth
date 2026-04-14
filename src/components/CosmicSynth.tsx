@@ -993,8 +993,8 @@ export default function CosmicSynth() {
       const a = analysisRef.current;
       const fc = frameCount.current++;
 
-      // Throttle FFT analysis
-      if (fc % 2 === 0) analyze();
+      // Throttle FFT analysis — every 3rd frame
+      if (fc % 3 === 0) analyze();
 
       // Gyro input — expanded mobile mechanics
       const g = gyroRef.current;
@@ -1006,13 +1006,12 @@ export default function CosmicSynth() {
         // Alpha (compass rotation) slowly rotates galaxy — immersive exploration
         galaxy.rotation.y += (g.alpha * 0.0001 - galaxy.rotation.y * 0.001) * 0.02;
         
-        // Tilt forward/back controls audio filter cutoff (lean forward = brighter)
-        if (audioRef.current) {
+        // Tilt controls audio — throttled to every 6th frame to avoid rampTo spam
+        if (audioRef.current && fc % 6 === 0) {
           const tiltBrightness = clamp((g.beta - 20) / 60, 0, 1);
-          try { audioRef.current.fi.frequency.rampTo(500 + tiltBrightness * 5000, 0.2); } catch {}
-          // Tilt left/right controls reverb wet amount
-          const tiltWet = clamp(Math.abs(g.gamma) / 45, 0, 0.7);
-          try { audioRef.current.rv.wet.rampTo(0.15 + tiltWet, 0.3); } catch {}
+          try { audioRef.current.fi.frequency.rampTo(500 + tiltBrightness * 5000, 0.5); } catch {}
+          const tiltWet = clamp(Math.abs(g.gamma) / 45, 0, 0.6);
+          try { audioRef.current.rv.wet.rampTo(0.12 + tiltWet, 0.5); } catch {}
         }
         
         // Accelerometer: tilt intensity affects bloom and chromatic aberration
