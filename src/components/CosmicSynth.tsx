@@ -783,6 +783,14 @@ export default function CosmicSynth() {
     const galaxy = new THREE.Points(galaxyGeo, galaxyMat);
     scene.add(galaxy);
 
+    // ── Background starfield ──
+    const bgMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uPixelRatio: { value: PR }, uBass: { value: 0 }, uTreble: { value: 0 }, uVol: { value: 0 }, uFlash: { value: 0 } },
+      vertexShader: GALAXY_VERT, fragmentShader: GALAXY_FRAG,
+      transparent: true, depthWrite: false, vertexColors: true, blending: THREE.AdditiveBlending,
+    });
+    scene.add(new THREE.Points(bgGeo, bgMat));
+
     // ── Dust lanes (dark matter feel) ──
     for (let d = 0; d < 3; d++) {
       const dustGeo = new THREE.BufferGeometry();
