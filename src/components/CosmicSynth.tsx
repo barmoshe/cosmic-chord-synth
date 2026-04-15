@@ -198,12 +198,16 @@ const GALAXY_FRAG = `
     float d = length(gl_PointCoord - 0.5);
     if (d > 0.5) discard;
     
-    // Soft circular falloff with bright core
-    float core = exp(-d * 6.0) * 0.6;
-    float glow = exp(-d * 3.0) * 0.3;
-    float alpha = smoothstep(0.5, 0.02, d) * vAlpha;
+    // Airy disk diffraction pattern for realistic star rendering
+    float core = exp(-d * 8.0) * 0.7;
+    float inner = exp(-d * 4.0) * 0.25;
+    float outer = exp(-d * 2.0) * 0.08;
+    float spikes = (1.0 - smoothstep(0.0, 0.03, abs(gl_PointCoord.x - 0.5))) * 0.15 +
+                   (1.0 - smoothstep(0.0, 0.03, abs(gl_PointCoord.y - 0.5))) * 0.15;
+    spikes *= exp(-d * 3.0);
+    float alpha = smoothstep(0.5, 0.01, d) * vAlpha;
     
-    vec3 col = vColor + core * (0.3 + uVol * 0.4) + glow * 0.15;
+    vec3 col = vColor * (1.0 + core * (0.5 + uVol * 0.6)) + inner * 0.2 + outer * 0.05 + spikes * vColor;
     gl_FragColor = vec4(col, alpha);
   }
 `;
