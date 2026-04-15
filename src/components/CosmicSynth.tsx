@@ -859,34 +859,58 @@ export default function CosmicSynth() {
       rings.push(ring);
     }
 
-    // ── Nebulae — volumetric look ──
+    // ── Nebulae — photorealistic multi-layer ──
     const nebulae: (THREE.Sprite & { _baseOpacity: number })[] = [];
-    for (let i = 0; i < 10; i++) {
+    const nebulaColors = [
+      [0.1, 0.3, 1.0],   // Deep blue emission
+      [0.8, 0.1, 0.4],   // Hydrogen alpha pink
+      [0.2, 0.8, 0.6],   // Oxygen teal
+      [0.6, 0.15, 0.9],  // Violet
+      [1.0, 0.4, 0.1],   // Warm orange
+      [0.1, 0.6, 1.0],   // Bright blue
+      [0.9, 0.2, 0.6],   // Magenta
+      [0.3, 1.0, 0.7],   // Green emission
+      [0.5, 0.2, 0.8],   // Purple
+      [0.9, 0.6, 0.2],   // Gold
+      [0.15, 0.4, 0.9],  // Steel blue
+      [0.7, 0.1, 0.3],   // Deep red
+      [0.2, 0.9, 0.9],   // Cyan
+      [0.8, 0.3, 0.7],   // Orchid
+    ];
+    const nebulaCount = isMobile ? 10 : 16;
+    for (let i = 0; i < nebulaCount; i++) {
       const c = document.createElement("canvas"); c.width = 512; c.height = 512;
       const ctx = c.getContext("2d")!;
-      // Multi-layer radial gradient for volume
-      const ci = PAL[i % PAL.length];
-      const cx = 256 + (Math.random() - 0.5) * 60;
-      const cy = 256 + (Math.random() - 0.5) * 60;
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220 + Math.random() * 36);
-      grad.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.12)`);
-      grad.addColorStop(0.3, `rgba(${Math.round(ci[0] * 200)},${Math.round(ci[1] * 200)},${Math.round(ci[2] * 200)},0.06)`);
-      grad.addColorStop(0.6, `rgba(${Math.round(ci[0] * 120)},${Math.round(ci[1] * 120)},${Math.round(ci[2] * 120)},0.03)`);
-      grad.addColorStop(1, "transparent");
-      ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
-      // Second pass — displaced center for asymmetry
-      const grad2 = ctx.createRadialGradient(cx + 40, cy - 30, 0, cx + 40, cy - 30, 160);
-      grad2.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.06)`);
-      grad2.addColorStop(1, "transparent");
-      ctx.fillStyle = grad2; ctx.fillRect(0, 0, 512, 512);
+      const ci = nebulaColors[i % nebulaColors.length];
+      // Multi-pass for volumetric depth
+      for (let pass = 0; pass < 3; pass++) {
+        const cx = 256 + (Math.random() - 0.5) * 100;
+        const cy = 256 + (Math.random() - 0.5) * 100;
+        const radius = 160 + Math.random() * 80;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        const alpha = pass === 0 ? 0.14 : pass === 1 ? 0.08 : 0.04;
+        grad.addColorStop(0, `rgba(${Math.round(ci[0]*255)},${Math.round(ci[1]*255)},${Math.round(ci[2]*255)},${alpha})`);
+        grad.addColorStop(0.25, `rgba(${Math.round(ci[0]*200)},${Math.round(ci[1]*200)},${Math.round(ci[2]*200)},${alpha*0.6})`);
+        grad.addColorStop(0.5, `rgba(${Math.round(ci[0]*140)},${Math.round(ci[1]*140)},${Math.round(ci[2]*140)},${alpha*0.3})`);
+        grad.addColorStop(0.8, `rgba(${Math.round(ci[0]*80)},${Math.round(ci[1]*80)},${Math.round(ci[2]*80)},${alpha*0.1})`);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+      }
+      // Add a subtle secondary color blend
+      const ci2 = nebulaColors[(i + 3) % nebulaColors.length];
+      const grad3 = ctx.createRadialGradient(300, 200, 0, 300, 200, 180);
+      grad3.addColorStop(0, `rgba(${Math.round(ci2[0]*255)},${Math.round(ci2[1]*255)},${Math.round(ci2[2]*255)},0.05)`);
+      grad3.addColorStop(1, "transparent");
+      ctx.fillStyle = grad3; ctx.fillRect(0, 0, 512, 512);
+      
       const tex = new THREE.CanvasTexture(c);
-      const baseOp = 0.04 + Math.random() * 0.04;
+      const baseOp = 0.03 + Math.random() * 0.05;
       const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: baseOp });
       const spr = new THREE.Sprite(mat) as THREE.Sprite & { _baseOpacity: number };
-      const dist = 200 + Math.random() * 900;
+      const dist = 150 + Math.random() * 1000;
       const angle = Math.random() * Math.PI * 2;
-      spr.scale.setScalar(300 + Math.random() * 700);
-      spr.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 120, Math.sin(angle) * dist);
+      spr.scale.setScalar(300 + Math.random() * 900);
+      spr.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 150, Math.sin(angle) * dist);
       spr._baseOpacity = baseOp;
       scene.add(spr); nebulae.push(spr);
     }
