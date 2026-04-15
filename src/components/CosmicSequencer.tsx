@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 /* ═══════════════════════════════════════════════
    TYPES
 ═══════════════════════════════════════════════ */
 export interface SeqStep {
   on: boolean;
-  note: number;   // scale degree index (0–7)
-  vel: number;     // 0–1
+  note: number;
+  vel: number;
   slide: boolean;
 }
 
@@ -19,49 +19,70 @@ export interface SeqTrack {
   muted: boolean;
   solo: boolean;
   octave: number;
-  synth: "ld" | "bs" | "ar" | "pd";
-}
-
-export interface SeqPattern {
-  name: string;
-  tracks: SeqTrack[];
-}
-
-export interface SequencerState {
-  playing: boolean;
-  bpm: number;
-  swing: number;
-  stepCount: number;
-  currentStep: number;
-  patterns: SeqPattern[];
-  activePattern: number;
+  synth: "ld" | "bs" | "ar" | "pd" | "kick" | "snare" | "hihat" | "clap";
+  isDrum: boolean;
 }
 
 const TRACK_DEFS: Omit<SeqTrack, "steps">[] = [
-  { id: "lead", label: "LEAD", color: "#00f0ff", colorRgb: "0,240,255", synth: "ld", muted: false, solo: false, octave: 5 },
-  { id: "bass", label: "BASS", color: "#ff00e6", colorRgb: "255,0,230", synth: "bs", muted: false, solo: false, octave: 3 },
-  { id: "arp", label: "ARP", color: "#ffee00", colorRgb: "255,238,0", synth: "ar", muted: false, solo: false, octave: 5 },
-  { id: "pad", label: "PAD", color: "#00ff88", colorRgb: "0,255,136", synth: "pd", muted: false, solo: false, octave: 4 },
+  // Drum tracks
+  { id: "kick",  label: "KICK",  color: "#ff3366", colorRgb: "255,51,102",  synth: "kick",  muted: false, solo: false, octave: 2, isDrum: true },
+  { id: "snare", label: "SNARE", color: "#ff8800", colorRgb: "255,136,0",   synth: "snare", muted: false, solo: false, octave: 3, isDrum: true },
+  { id: "hihat", label: "HAT",   color: "#ffee00", colorRgb: "255,238,0",   synth: "hihat", muted: false, solo: false, octave: 5, isDrum: true },
+  { id: "clap",  label: "CLAP",  color: "#ff55aa", colorRgb: "255,85,170",  synth: "clap",  muted: false, solo: false, octave: 3, isDrum: true },
+  // Melodic tracks
+  { id: "lead", label: "LEAD", color: "#00f0ff", colorRgb: "0,240,255",   synth: "ld", muted: false, solo: false, octave: 5, isDrum: false },
+  { id: "bass", label: "BASS", color: "#a855f7", colorRgb: "168,85,247",  synth: "bs", muted: false, solo: false, octave: 3, isDrum: false },
+  { id: "arp",  label: "ARP",  color: "#00ff88", colorRgb: "0,255,136",   synth: "ar", muted: false, solo: false, octave: 5, isDrum: false },
+  { id: "pad",  label: "PAD",  color: "#7c3aed", colorRgb: "124,58,237",  synth: "pd", muted: false, solo: false, octave: 4, isDrum: false },
 ];
 
 function makeEmptySteps(count: number): SeqStep[] {
   return Array.from({ length: count }, () => ({ on: false, note: 0, vel: 0.7, slide: false }));
 }
 
-function makeEmptyPattern(name: string, stepCount: number): SeqPattern {
-  return {
-    name,
-    tracks: TRACK_DEFS.map(def => ({ ...def, steps: makeEmptySteps(stepCount) })),
-  };
-}
+// Drum preset patterns
+const DRUM_PRESETS: Record<string, { tracks: { hits: (number | null)[] }[] }> = {
+  "Cosmic Pulse": {
+    tracks: [
+      { hits: [1, null, null, null, 1, null, null, null, 1, null, null, null, 1, null, null, null] }, // kick
+      { hits: [null, null, null, null, 1, null, null, null, null, null, null, null, 1, null, null, null] }, // snare
+      { hits: [1, null, 1, null, 1, null, 1, null, 1, null, 1, null, 1, null, 1, null] }, // hat
+      { hits: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, 1, null] }, // clap
+    ],
+  },
+  "Nebula Beat": {
+    tracks: [
+      { hits: [1, null, null, 1, null, null, 1, null, null, null, 1, null, null, 1, null, null] },
+      { hits: [null, null, null, null, 1, null, null, 1, null, null, null, null, 1, null, null, null] },
+      { hits: [1, 1, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 0.5, 1] },
+      { hits: [null, null, null, null, 1, null, null, null, null, null, null, null, 1, null, null, 1] },
+    ],
+  },
+  "Stellar Groove": {
+    tracks: [
+      { hits: [1, null, null, null, null, null, 1, null, 1, null, null, null, null, null, 1, null] },
+      { hits: [null, null, null, null, 1, null, null, null, null, null, null, null, 1, null, null, null] },
+      { hits: [1, null, 1, 1, null, 1, 1, null, 1, null, 1, 1, null, 1, 1, null] },
+      { hits: [null, null, null, 1, null, null, null, null, null, null, null, 1, null, null, null, null] },
+    ],
+  },
+  "Dark Matter": {
+    tracks: [
+      { hits: [1, null, 1, null, null, null, null, 1, null, null, 1, null, null, null, null, 1] },
+      { hits: [null, null, null, null, 1, null, null, null, null, null, null, null, 1, null, null, null] },
+      { hits: [0.5, null, 0.5, null, 0.5, null, 0.5, null, 0.5, null, 0.5, null, 0.5, null, 0.5, null] },
+      { hits: [null, null, null, null, 1, null, null, null, null, 1, null, null, 1, null, null, null] },
+    ],
+  },
+};
 
-// Pre-made patterns (scale degree indices)
-const PRESET_PATTERNS: Record<string, { tracks: { notes: (number | null)[]; vels?: number[] }[] }> = {
+// Melodic presets
+const MELODIC_PRESETS: Record<string, { tracks: { notes: (number | null)[]; vels?: number[] }[] }> = {
   "Cosmic Rise": {
     tracks: [
       { notes: [0, null, 2, null, 4, null, 3, null, 5, null, 4, null, 6, null, 5, null] },
       { notes: [0, null, null, null, 0, null, null, null, 3, null, null, null, 4, null, null, null] },
-      { notes: [0, 2, 4, 2, 0, 2, 4, 6, 0, 2, 4, 2, 0, 2, 4, 6], vels: [0.6, 0.4, 0.5, 0.3, 0.6, 0.4, 0.5, 0.3, 0.6, 0.4, 0.5, 0.3, 0.6, 0.4, 0.5, 0.3] },
+      { notes: [0, 2, 4, 2, 0, 2, 4, 6, 0, 2, 4, 2, 0, 2, 4, 6] },
       { notes: [0, null, null, null, null, null, null, null, 3, null, null, null, null, null, null, null] },
     ],
   },
@@ -73,44 +94,41 @@ const PRESET_PATTERNS: Record<string, { tracks: { notes: (number | null)[]; vels
       { notes: [0, null, null, null, null, null, null, null, 4, null, null, null, null, null, null, null] },
     ],
   },
-  "Stellar Pulse": {
-    tracks: [
-      { notes: [0, null, 0, null, 2, null, 4, null, 3, null, 2, null, 4, null, 6, null], vels: [0.9, 0, 0.5, 0, 0.8, 0, 0.7, 0, 0.9, 0, 0.6, 0, 0.8, 0, 1, 0] },
-      { notes: [0, null, null, 0, null, null, 3, null, null, 4, null, null, 0, null, null, 0] },
-      { notes: [0, 2, 4, 6, 4, 2, 0, 2, 4, 6, 4, 2, 0, 2, 4, 6] },
-      { notes: [null, null, null, null, null, null, null, null, 0, null, null, null, null, null, null, null] },
-    ],
-  },
-  "Dark Matter": {
-    tracks: [
-      { notes: [0, null, null, 1, null, null, 0, null, null, null, 3, null, 2, null, 1, null] },
-      { notes: [0, 0, null, null, 0, 0, null, null, 2, 2, null, null, 3, 3, null, null], vels: [1, 0.5, 0, 0, 1, 0.5, 0, 0, 1, 0.5, 0, 0, 1, 0.5, 0, 0] },
-      { notes: [null, null, 4, null, null, null, 3, null, null, null, 2, null, null, null, 5, null] },
-      { notes: [0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null] },
-    ],
-  },
 };
 
-function applyPreset(presetName: string, stepCount: number): SeqTrack[] {
-  const preset = PRESET_PATTERNS[presetName];
-  if (!preset) return TRACK_DEFS.map(def => ({ ...def, steps: makeEmptySteps(stepCount) }));
-  return TRACK_DEFS.map((def, ti) => {
-    const pTrack = preset.tracks[ti];
+function applyDrumPreset(presetName: string, stepCount: number): SeqTrack[] {
+  const preset = DRUM_PRESETS[presetName];
+  const drumDefs = TRACK_DEFS.filter(d => d.isDrum);
+  const meloDefs = TRACK_DEFS.filter(d => !d.isDrum);
+  
+  const drumTracks = drumDefs.map((def, ti) => {
+    const pTrack = preset?.tracks[ti];
     const steps: SeqStep[] = Array.from({ length: stepCount }, (_, si) => {
-      const n = pTrack?.notes?.[si % (pTrack.notes.length)];
-      const v = pTrack?.vels?.[si % (pTrack.vels?.length || 1)];
+      const h = pTrack?.hits?.[si % (pTrack.hits.length)];
       return {
-        on: n !== null && n !== undefined,
-        note: n ?? 0,
-        vel: v ?? 0.7,
+        on: h !== null && h !== undefined,
+        note: 0,
+        vel: typeof h === 'number' ? h : 0.8,
         slide: false,
       };
     });
     return { ...def, steps };
   });
+  
+  const meloTracks = meloDefs.map(def => ({ ...def, steps: makeEmptySteps(stepCount) }));
+  return [...drumTracks, ...meloTracks];
 }
 
-function randomizeTrack(steps: SeqStep[], density: number = 0.4, maxNote: number = 6): SeqStep[] {
+function randomizeDrumTrack(steps: SeqStep[], density: number): SeqStep[] {
+  return steps.map(() => ({
+    on: Math.random() < density,
+    note: 0,
+    vel: 0.5 + Math.random() * 0.5,
+    slide: false,
+  }));
+}
+
+function randomizeMelodicTrack(steps: SeqStep[], density: number, maxNote: number = 6): SeqStep[] {
   return steps.map(() => ({
     on: Math.random() < density,
     note: Math.floor(Math.random() * (maxNote + 1)),
@@ -147,6 +165,8 @@ export default function CosmicSequencer({
   const [activeTrack, setActiveTrack] = useState(0);
   const [editMode, setEditMode] = useState<"toggle" | "note" | "vel">("toggle");
   const [showPresets, setShowPresets] = useState(false);
+  const [presetType, setPresetType] = useState<"drums" | "melody">("drums");
+  const [pulseStep, setPulseStep] = useState(-1);
 
   const playingRef = useRef(false);
   const stepRef = useRef(-1);
@@ -172,6 +192,8 @@ export default function CosmicSequencer({
       stepRef.current = (stepRef.current + 1) % STEP_COUNT;
       const step = stepRef.current;
       setCurrentStep(step);
+      setPulseStep(step);
+      setTimeout(() => setPulseStep(-1), 100);
 
       const trks = tracksRef.current;
       const anySolo = trks.some(t => t.solo);
@@ -183,39 +205,65 @@ export default function CosmicSequencer({
         const s = track.steps[step];
         if (!s.on) continue;
 
-        const noteIdx = s.note % sn.length;
-        const midi = track.octave * 12 + sn[noteIdx];
-        const freq = m2fFn(midi);
-        const dur = (60 / bpmRef.current) * 0.4;
-
         try {
-          const synth = audioRef.current?.[track.synth];
-          if (synth) {
-            if (track.synth === "pd") {
-              synth.triggerAttackRelease(freq, dur * 3, undefined, s.vel * 0.4);
-            } else {
-              synth.triggerAttackRelease(freq, dur, undefined, s.vel);
+          if (track.isDrum) {
+            // Trigger drum synths
+            const drumSynth = audioRef.current?.[track.synth];
+            if (drumSynth) {
+              if (track.synth === "kick") {
+                drumSynth.triggerAttackRelease("C1", "8n", undefined, s.vel);
+              } else if (track.synth === "hihat") {
+                drumSynth.triggerAttackRelease("C4", "32n", undefined, s.vel * 0.6);
+              } else {
+                // snare, clap are NoiseSynth — no pitch
+                drumSynth.triggerAttackRelease("16n", undefined, s.vel);
+              }
+            }
+          } else {
+            // Melodic
+            const noteIdx = s.note % sn.length;
+            const midi = track.octave * 12 + sn[noteIdx];
+            const freq = m2fFn(midi);
+            const dur = (60 / bpmRef.current) * 0.4;
+            const synth = audioRef.current?.[track.synth];
+            if (synth) {
+              if (track.synth === "pd") {
+                synth.triggerAttackRelease(freq, dur * 3, undefined, s.vel * 0.4);
+              } else {
+                synth.triggerAttackRelease(freq, dur, undefined, s.vel);
+              }
+            }
+            if (track.synth === "ld" && audioRef.current?.sb) {
+              audioRef.current.sb.triggerAttackRelease(m2fFn(midi - 12), dur, undefined, s.vel * 0.4);
+            }
+
+            // Visuals for melodic
+            if (engineRef.current) {
+              const fx = ((midi - 48) / 36) * window.innerWidth;
+              const fy = (1 - s.vel) * window.innerHeight;
+              const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
+              const col = noteColorFn(midi);
+              engineRef.current.addRipple(wx, wy, wz, col);
+              engineRef.current.emitParticles(wx, wy, wz, col, Math.floor(4 + s.vel * 8), s.vel);
             }
           }
-          // Sub for lead
-          if (track.synth === "ld" && audioRef.current?.sb) {
-            audioRef.current.sb.triggerAttackRelease(m2fFn(midi - 12), dur, undefined, s.vel * 0.4);
+
+          // Visual burst for drums
+          if (track.isDrum && engineRef.current) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 50 + Math.random() * 150;
+            const wx = Math.cos(angle) * dist;
+            const wz = Math.sin(angle) * dist;
+            const drumColors: Record<string, [number, number, number]> = {
+              kick: [1, 0.2, 0.3], snare: [1, 0.5, 0], hihat: [1, 0.9, 0], clap: [1, 0.3, 0.7],
+            };
+            const col = drumColors[track.synth] || [1, 1, 1];
+            engineRef.current.emitParticles(wx, 0, wz, col, Math.floor(3 + s.vel * 6), s.vel * 0.7);
           }
         } catch {}
-
-        // Visuals
-        if (engineRef.current) {
-          const fx = ((midi - 48) / 36) * window.innerWidth;
-          const fy = (1 - s.vel) * window.innerHeight;
-          const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
-          const col = noteColorFn(midi);
-          engineRef.current.addRipple(wx, wy, wz, col);
-          engineRef.current.emitParticles(wx, wy, wz, col, Math.floor(4 + s.vel * 12), s.vel);
-        }
       }
 
-      // Schedule next with swing
-      const baseInterval = (60 / bpmRef.current / 4) * 1000; // 16th note
+      const baseInterval = (60 / bpmRef.current / 4) * 1000;
       const swingAmount = swingRef.current;
       const isOdd = step % 2 === 1;
       const delay = isOdd ? baseInterval * (1 + swingAmount * 0.5) : baseInterval * (1 - swingAmount * 0.25);
@@ -236,32 +284,25 @@ export default function CosmicSequencer({
     return () => { if (intervalRef.current) clearTimeout(intervalRef.current); };
   }, []);
 
-  // Stop when hidden
   useEffect(() => {
     if (!visible && playing) stopPlayback();
   }, [visible, playing, stopPlayback]);
 
   const toggleStep = useCallback((trackIdx: number, stepIdx: number) => {
-    setTracks(prev => {
-      const next = prev.map((t, ti) => ti === trackIdx ? {
-        ...t,
-        steps: t.steps.map((s, si) => si === stepIdx ? { ...s, on: !s.on } : s),
-      } : t);
-      return next;
-    });
+    setTracks(prev => prev.map((t, ti) => ti === trackIdx ? {
+      ...t, steps: t.steps.map((s, si) => si === stepIdx ? { ...s, on: !s.on } : s),
+    } : t));
   }, []);
 
   const setStepNote = useCallback((trackIdx: number, stepIdx: number, note: number) => {
     setTracks(prev => prev.map((t, ti) => ti === trackIdx ? {
-      ...t,
-      steps: t.steps.map((s, si) => si === stepIdx ? { ...s, note, on: true } : s),
+      ...t, steps: t.steps.map((s, si) => si === stepIdx ? { ...s, note, on: true } : s),
     } : t));
   }, []);
 
   const setStepVel = useCallback((trackIdx: number, stepIdx: number, vel: number) => {
     setTracks(prev => prev.map((t, ti) => ti === trackIdx ? {
-      ...t,
-      steps: t.steps.map((s, si) => si === stepIdx ? { ...s, vel } : s),
+      ...t, steps: t.steps.map((s, si) => si === stepIdx ? { ...s, vel } : s),
     } : t));
   }, []);
 
@@ -282,15 +323,51 @@ export default function CosmicSequencer({
   }, []);
 
   const randomizeCurrentTrack = useCallback(() => {
-    setTracks(prev => prev.map((t, ti) => ti === activeTrack ? {
-      ...t,
-      steps: randomizeTrack(t.steps, t.synth === "pd" ? 0.15 : t.synth === "bs" ? 0.3 : 0.45),
-    } : t));
+    setTracks(prev => prev.map((t, ti) => {
+      if (ti !== activeTrack) return t;
+      if (t.isDrum) {
+        const density = t.synth === "kick" ? 0.3 : t.synth === "snare" ? 0.2 : t.synth === "hihat" ? 0.6 : 0.15;
+        return { ...t, steps: randomizeDrumTrack(t.steps, density) };
+      }
+      return { ...t, steps: randomizeMelodicTrack(t.steps, t.synth === "pd" ? 0.15 : t.synth === "bs" ? 0.3 : 0.45) };
+    }));
   }, [activeTrack]);
 
-  const loadPreset = useCallback((name: string) => {
-    const newTracks = applyPreset(name, STEP_COUNT);
-    setTracks(newTracks);
+  const loadPreset = useCallback((name: string, type: "drums" | "melody") => {
+    if (type === "drums") {
+      const preset = DRUM_PRESETS[name];
+      if (!preset) return;
+      setTracks(prev => {
+        const drumTracks = prev.filter(t => t.isDrum);
+        const meloTracks = prev.filter(t => !t.isDrum);
+        const newDrums = drumTracks.map((def, ti) => {
+          const pTrack = preset.tracks[ti];
+          const steps: SeqStep[] = Array.from({ length: STEP_COUNT }, (_, si) => {
+            const h = pTrack?.hits?.[si % (pTrack.hits.length)];
+            return { on: h !== null && h !== undefined, note: 0, vel: typeof h === 'number' ? Math.max(h, 0.5) : 0.8, slide: false };
+          });
+          return { ...def, steps };
+        });
+        return [...newDrums, ...meloTracks];
+      });
+    } else {
+      const preset = MELODIC_PRESETS[name];
+      if (!preset) return;
+      setTracks(prev => {
+        const drumTracks = prev.filter(t => t.isDrum);
+        const meloDefs = prev.filter(t => !t.isDrum);
+        const newMelo = meloDefs.map((def, ti) => {
+          const pTrack = preset.tracks[ti];
+          const steps: SeqStep[] = Array.from({ length: STEP_COUNT }, (_, si) => {
+            const n = pTrack?.notes?.[si % (pTrack.notes.length)];
+            const v = pTrack?.vels?.[si % (pTrack.vels?.length || 1)];
+            return { on: n !== null && n !== undefined, note: n ?? 0, vel: v ?? 0.7, slide: false };
+          });
+          return { ...def, steps };
+        });
+        return [...drumTracks, ...newMelo];
+      });
+    }
     setShowPresets(false);
   }, []);
 
@@ -307,8 +384,7 @@ export default function CosmicSequencer({
       const diffs: number[] = [];
       for (let i = 1; i < taps.length; i++) diffs.push(taps[i] - taps[i - 1]);
       const avg = diffs.reduce((a, b) => a + b, 0) / diffs.length;
-      const newBpm = clamp(Math.round(60000 / avg), 40, 240);
-      setBpm(newBpm);
+      setBpm(clamp(Math.round(60000 / avg), 40, 240));
     }
   }, []);
 
@@ -316,168 +392,183 @@ export default function CosmicSequencer({
   const scaleLabel = scales[scaleRef.current]?.label || "SCALE";
   const noteLabels = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
+  const drumTracks = tracks.filter(t => t.isDrum);
+  const meloTracks = tracks.filter(t => !t.isDrum);
+
   if (!visible) return null;
 
   return (
-    <div className="seq-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="seq-panel" onClick={(e) => e.stopPropagation()}>
+    <div className="cseq-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="cseq-panel" onClick={(e) => e.stopPropagation()}>
+        {/* Cosmic background effect */}
+        <div className="cseq-bg-stars" />
+        
         {/* Header */}
-        <div className="seq-header">
-          <div className="seq-title-group">
-            <span className="seq-title">SEQUENCER</span>
-            <span className="seq-scale-badge">{scaleLabel}</span>
+        <div className="cseq-header">
+          <div className="cseq-title-group">
+            <div className="cseq-nebula-icon">✦</div>
+            <span className="cseq-title">COSMIC SEQUENCER</span>
+            <span className="cseq-scale-badge">{scaleLabel}</span>
           </div>
-          <div className="seq-header-controls">
-            <button className="seq-icon-btn" onClick={onClose} title="Close">✕</button>
-          </div>
+          <button className="cseq-close-btn" onClick={onClose}>✕</button>
         </div>
 
         {/* Transport */}
-        <div className="seq-transport">
+        <div className="cseq-transport">
           <button
-            className={`seq-transport-btn ${playing ? "active" : ""}`}
+            className={`cseq-play-btn ${playing ? "active" : ""}`}
             onClick={() => playing ? stopPlayback() : startPlayback()}
           >
-            {playing ? "⏹" : "▶"} {playing ? "STOP" : "PLAY"}
+            <span className="cseq-play-icon">{playing ? "■" : "▶"}</span>
           </button>
 
-          <div className="seq-bpm-group">
-            <button className="seq-tiny-btn" onClick={() => setBpm(b => clamp(b - 5, 40, 240))}>−</button>
-            <div className="seq-bpm-display" onClick={tapTempo} title="Tap for tempo">
-              <span className="seq-bpm-value">{bpm}</span>
-              <span className="seq-bpm-label">BPM</span>
+          <div className="cseq-bpm-group">
+            <button className="cseq-adj-btn" onClick={() => setBpm(b => clamp(b - 5, 40, 240))}>−</button>
+            <div className="cseq-bpm-display" onClick={tapTempo} title="Tap tempo">
+              <span className="cseq-bpm-val">{bpm}</span>
+              <span className="cseq-bpm-lbl">BPM</span>
             </div>
-            <button className="seq-tiny-btn" onClick={() => setBpm(b => clamp(b + 5, 40, 240))}>+</button>
+            <button className="cseq-adj-btn" onClick={() => setBpm(b => clamp(b + 5, 40, 240))}>+</button>
           </div>
 
-          <div className="seq-swing-group">
-            <span className="seq-param-label">SWING</span>
+          <div className="cseq-swing-group">
+            <span className="cseq-lbl">SWING</span>
             <input
-              type="range"
-              min="0" max="100" value={Math.round(swing * 100)}
+              type="range" min="0" max="100" value={Math.round(swing * 100)}
               onChange={(e) => setSwing(parseInt(e.target.value) / 100)}
-              className="seq-slider"
+              className="cseq-slider"
             />
-            <span className="seq-param-value">{Math.round(swing * 100)}%</span>
+            <span className="cseq-val">{Math.round(swing * 100)}%</span>
           </div>
         </div>
 
-        {/* Track headers + Grid */}
-        <div className="seq-grid-container">
+        {/* Grid */}
+        <div className="cseq-grid-container">
           {/* Track sidebar */}
-          <div className="seq-track-sidebar">
-            {tracks.map((track, ti) => (
-              <div
-                key={track.id}
-                className={`seq-track-header ${ti === activeTrack ? "active" : ""}`}
-                onClick={() => setActiveTrack(ti)}
-                style={{ "--track-color": track.color, "--track-rgb": track.colorRgb } as any}
-              >
-                <div className="seq-track-name">{track.label}</div>
-                <div className="seq-track-btns">
-                  <button
-                    className={`seq-ms-btn ${track.muted ? "on" : ""}`}
-                    onClick={(e) => { e.stopPropagation(); toggleMute(ti); }}
-                  >M</button>
-                  <button
-                    className={`seq-ms-btn solo ${track.solo ? "on" : ""}`}
-                    onClick={(e) => { e.stopPropagation(); toggleSolo(ti); }}
-                  >S</button>
+          <div className="cseq-sidebar">
+            {/* Drum section label */}
+            <div className="cseq-section-label">⚡ DRUMS</div>
+            {tracks.map((track, ti) => {
+              // Insert separator before melodic
+              const showMeloLabel = ti === drumTracks.length;
+              return (
+                <div key={track.id}>
+                  {showMeloLabel && <div className="cseq-section-label">♫ MELODIC</div>}
+                  <div
+                    className={`cseq-track-hdr ${ti === activeTrack ? "active" : ""} ${track.isDrum ? "drum" : "melo"}`}
+                    onClick={() => setActiveTrack(ti)}
+                    style={{ "--tc": track.color, "--tcr": track.colorRgb } as any}
+                  >
+                    <div className="cseq-track-name">{track.label}</div>
+                    <div className="cseq-track-ctrls">
+                      <button className={`cseq-ms ${track.muted ? "on" : ""}`}
+                        onClick={(e) => { e.stopPropagation(); toggleMute(ti); }}>M</button>
+                      <button className={`cseq-ms solo ${track.solo ? "on" : ""}`}
+                        onClick={(e) => { e.stopPropagation(); toggleSolo(ti); }}>S</button>
+                    </div>
+                    {!track.isDrum && ti === activeTrack && (
+                      <div className="cseq-oct">
+                        <button onClick={(e) => { e.stopPropagation(); setTrackOctave(ti, track.octave - 1); }}>−</button>
+                        <span>C{track.octave}</span>
+                        <button onClick={(e) => { e.stopPropagation(); setTrackOctave(ti, track.octave + 1); }}>+</button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="seq-track-oct">
-                  <button className="seq-oct-btn" onClick={(e) => { e.stopPropagation(); setTrackOctave(ti, track.octave - 1); }}>−</button>
-                  <span>C{track.octave}</span>
-                  <button className="seq-oct-btn" onClick={(e) => { e.stopPropagation(); setTrackOctave(ti, track.octave + 1); }}>+</button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Step grid */}
-          <div className="seq-grid-scroll">
-            <div className="seq-grid">
+          <div className="cseq-grid-scroll">
+            <div className="cseq-grid">
               {/* Step numbers */}
-              <div className="seq-step-numbers">
+              <div className="cseq-step-nums">
                 {Array.from({ length: STEP_COUNT }, (_, i) => (
-                  <div
-                    key={i}
-                    className={`seq-step-num ${currentStep === i ? "active" : ""} ${i % 4 === 0 ? "beat" : ""}`}
-                  >
+                  <div key={i} className={`cseq-snum ${currentStep === i ? "active" : ""} ${i % 4 === 0 ? "beat" : ""}`}>
                     {i + 1}
                   </div>
                 ))}
               </div>
 
-              {/* Track rows */}
-              {tracks.map((track, ti) => (
-                <div key={track.id} className="seq-track-row">
-                  {track.steps.map((step, si) => (
-                    <div
-                      key={si}
-                      className={`seq-step ${step.on ? "on" : ""} ${currentStep === si ? "playing" : ""} ${si % 4 === 0 ? "beat" : ""} ${ti === activeTrack ? "focused" : ""}`}
-                      style={{
-                        "--step-color": track.color,
-                        "--step-rgb": track.colorRgb,
-                        "--step-vel": step.vel,
-                        "--step-note": step.note / Math.max(scaleNotes.length - 1, 1),
-                      } as any}
-                      onClick={() => {
-                        if (editMode === "toggle") toggleStep(ti, si);
-                        else if (editMode === "note") {
-                          const newNote = (step.note + 1) % scaleNotes.length;
-                          setStepNote(ti, si, newNote);
-                        } else {
-                          const newVel = step.vel >= 0.9 ? 0.3 : step.vel + 0.2;
-                          setStepVel(ti, si, newVel);
-                        }
-                      }}
-                    >
-                      {step.on && editMode === "note" && (
-                        <span className="seq-step-note">{noteLabels[scaleNotes[step.note % scaleNotes.length] % 12]}</span>
-                      )}
-                      {step.on && editMode === "vel" && (
-                        <span className="seq-step-vel-label">{Math.round(step.vel * 100)}</span>
-                      )}
-                      {step.on && editMode === "toggle" && (
-                        <div className="seq-step-bar" style={{ height: `${step.vel * 100}%` }} />
-                      )}
+              {tracks.map((track, ti) => {
+                const showSep = ti === drumTracks.length;
+                return (
+                  <div key={track.id}>
+                    {showSep && <div className="cseq-grid-sep" />}
+                    <div className="cseq-row">
+                      {track.steps.map((step, si) => (
+                        <div
+                          key={si}
+                          className={`cseq-step ${step.on ? "on" : ""} ${currentStep === si ? "playing" : ""} ${si % 4 === 0 ? "beat" : ""} ${ti === activeTrack ? "focused" : ""} ${track.isDrum ? "drum" : ""} ${pulseStep === si && step.on ? "pulse" : ""}`}
+                          style={{
+                            "--sc": track.color,
+                            "--scr": track.colorRgb,
+                            "--sv": step.vel,
+                          } as any}
+                          onClick={() => {
+                            if (track.isDrum || editMode === "toggle") toggleStep(ti, si);
+                            else if (editMode === "note") {
+                              const newNote = (step.note + 1) % scaleNotes.length;
+                              setStepNote(ti, si, newNote);
+                            } else {
+                              const newVel = step.vel >= 0.9 ? 0.3 : step.vel + 0.2;
+                              setStepVel(ti, si, newVel);
+                            }
+                          }}
+                        >
+                          {step.on && track.isDrum && (
+                            <div className="cseq-drum-dot" />
+                          )}
+                          {step.on && !track.isDrum && editMode === "note" && (
+                            <span className="cseq-note-lbl">{noteLabels[scaleNotes[step.note % scaleNotes.length] % 12]}</span>
+                          )}
+                          {step.on && !track.isDrum && editMode === "vel" && (
+                            <span className="cseq-vel-lbl">{Math.round(step.vel * 100)}</span>
+                          )}
+                          {step.on && !track.isDrum && editMode === "toggle" && (
+                            <div className="cseq-step-fill" style={{ height: `${step.vel * 100}%` }} />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="seq-toolbar">
-          <div className="seq-mode-group">
-            <span className="seq-param-label">EDIT</span>
+        <div className="cseq-toolbar">
+          <div className="cseq-modes">
+            <span className="cseq-lbl">EDIT</span>
             {(["toggle", "note", "vel"] as const).map(mode => (
-              <button
-                key={mode}
-                className={`seq-mode-btn ${editMode === mode ? "active" : ""}`}
-                onClick={() => setEditMode(mode)}
-              >
+              <button key={mode} className={`cseq-mode-btn ${editMode === mode ? "active" : ""}`}
+                onClick={() => setEditMode(mode)}>
                 {mode === "toggle" ? "●" : mode === "note" ? "♪" : "⚡"} {mode.toUpperCase()}
               </button>
             ))}
           </div>
-          <div className="seq-action-group">
-            <button className="seq-action-btn" onClick={randomizeCurrentTrack}>🎲 RANDOM</button>
-            <button className="seq-action-btn" onClick={() => clearTrack(activeTrack)}>🗑 CLEAR</button>
-            <button className="seq-action-btn" onClick={clearAll}>⊘ CLEAR ALL</button>
-            <button className="seq-action-btn preset" onClick={() => setShowPresets(!showPresets)}>
-              ◆ PRESETS
+          <div className="cseq-actions">
+            <button className="cseq-act" onClick={randomizeCurrentTrack}>🎲 RND</button>
+            <button className="cseq-act" onClick={() => clearTrack(activeTrack)}>✕ CLR</button>
+            <button className="cseq-act" onClick={clearAll}>⊘ ALL</button>
+            <button className="cseq-act preset" onClick={() => { setPresetType("drums"); setShowPresets(!showPresets); }}>
+              ⚡ DRUMS
+            </button>
+            <button className="cseq-act preset" onClick={() => { setPresetType("melody"); setShowPresets(!showPresets); }}>
+              ♫ MELO
             </button>
           </div>
         </div>
 
         {/* Preset dropdown */}
         {showPresets && (
-          <div className="seq-presets-dropdown">
-            {Object.keys(PRESET_PATTERNS).map(name => (
-              <button key={name} className="seq-preset-item" onClick={() => loadPreset(name)}>
+          <div className="cseq-presets">
+            <div className="cseq-presets-title">{presetType === "drums" ? "⚡ DRUM PATTERNS" : "♫ MELODIC PATTERNS"}</div>
+            {Object.keys(presetType === "drums" ? DRUM_PRESETS : MELODIC_PRESETS).map(name => (
+              <button key={name} className="cseq-preset-item" onClick={() => loadPreset(name, presetType)}>
                 {name}
               </button>
             ))}
@@ -486,361 +577,381 @@ export default function CosmicSequencer({
       </div>
 
       <style>{`
-        .seq-overlay {
+        .cseq-overlay {
           position: fixed; inset: 0; z-index: 50;
           display: flex; align-items: flex-end; justify-content: center;
-          background: rgba(0,0,0,0.5);
-          backdrop-filter: blur(4px);
-          animation: seqFadeIn 0.3s ease-out;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(8px);
+          animation: cseqFade 0.3s ease-out;
         }
-        @keyframes seqFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes seqSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes cseqFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes cseqSlide { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes cseqPulse { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 20px rgba(var(--scr), 0.6); } }
+        @keyframes cseqStarTwinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+        @keyframes cseqNebula { 0%, 100% { opacity: 0.03; } 50% { opacity: 0.08; } }
 
-        .seq-panel {
-          width: 100%; max-width: 900px;
-          max-height: 85vh;
-          background: rgba(8,4,24,0.95);
-          backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(255,255,255,0.06);
+        .cseq-panel {
+          width: 100%; max-width: 960px;
+          max-height: 88vh;
+          background: rgba(4,2,18,0.97);
+          border: 1px solid rgba(100,60,200,0.1);
           border-bottom: none;
-          border-radius: 20px 20px 0 0;
-          box-shadow: 0 -10px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+          border-radius: 24px 24px 0 0;
+          box-shadow: 0 -10px 80px rgba(100,40,200,0.15), 0 -2px 40px rgba(0,200,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04);
           display: flex; flex-direction: column;
           overflow: hidden;
-          animation: seqSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          animation: cseqSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1);
           font-family: 'Orbitron', monospace;
+          position: relative;
         }
 
-        .seq-header {
+        .cseq-bg-stars {
+          position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+          background: 
+            radial-gradient(1px 1px at 10% 20%, rgba(0,240,255,0.4) 0%, transparent 100%),
+            radial-gradient(1px 1px at 30% 60%, rgba(168,85,247,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 50% 10%, rgba(255,238,0,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 70% 80%, rgba(0,255,136,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 90% 40%, rgba(255,0,230,0.3) 0%, transparent 100%),
+            radial-gradient(200px 200px at 20% 30%, rgba(100,40,200,0.04) 0%, transparent 100%),
+            radial-gradient(300px 300px at 80% 70%, rgba(0,150,255,0.03) 0%, transparent 100%);
+          animation: cseqNebula 8s ease-in-out infinite;
+        }
+
+        .cseq-header {
           display: flex; align-items: center; justify-content: space-between;
           padding: 16px 20px 12px;
-          border-bottom: 1px solid rgba(255,255,255,0.04);
+          border-bottom: 1px solid rgba(100,60,200,0.08);
+          position: relative; z-index: 1;
         }
-        .seq-title-group { display: flex; align-items: center; gap: 12px; }
-        .seq-title {
-          font-size: 13px; font-weight: 700; letter-spacing: 0.3em;
-          background: linear-gradient(90deg, #00f0ff, #a855f7);
+        .cseq-title-group { display: flex; align-items: center; gap: 10px; }
+        .cseq-nebula-icon {
+          font-size: 16px;
+          background: linear-gradient(135deg, #00f0ff, #a855f7, #ff00e6);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          animation: cseqStarTwinkle 2s ease-in-out infinite;
         }
-        .seq-scale-badge {
-          font-size: 8px; letter-spacing: 0.15em;
-          padding: 3px 10px; border-radius: 10px;
-          background: rgba(168,85,247,0.08);
-          border: 1px solid rgba(168,85,247,0.2);
-          color: rgba(168,85,247,0.7);
+        .cseq-title {
+          font-size: 12px; font-weight: 700; letter-spacing: 0.25em;
+          background: linear-gradient(90deg, #00f0ff, #a855f7, #ff00e6);
+          background-size: 200% 100%;
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          animation: cosmicGradient 4s ease infinite;
         }
-        .seq-icon-btn {
+        @keyframes cosmicGradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .cseq-scale-badge {
+          font-size: 7px; letter-spacing: 0.15em;
+          padding: 3px 10px; border-radius: 12px;
+          background: rgba(168,85,247,0.06);
+          border: 1px solid rgba(168,85,247,0.15);
+          color: rgba(168,85,247,0.6);
+        }
+        .cseq-close-btn {
           all: unset; cursor: pointer;
           width: 32px; height: 32px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 14px; color: rgba(255,255,255,0.3);
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
+          font-size: 14px; color: rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.04);
           transition: all 0.2s;
         }
-        .seq-icon-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+        .cseq-close-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
 
-        .seq-transport {
-          display: flex; align-items: center; gap: 16px;
-          padding: 12px 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.04);
+        .cseq-transport {
+          display: flex; align-items: center; gap: 14px;
+          padding: 10px 20px;
+          border-bottom: 1px solid rgba(100,60,200,0.06);
           flex-wrap: wrap;
+          position: relative; z-index: 1;
         }
-        .seq-transport-btn {
+        .cseq-play-btn {
           all: unset; cursor: pointer;
-          padding: 8px 18px; border-radius: 8px;
-          font-family: 'Orbitron', monospace;
-          font-size: 10px; letter-spacing: 0.15em; font-weight: 400;
-          color: rgba(255,255,255,0.5);
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.08);
-          transition: all 0.2s;
-          display: flex; align-items: center; gap: 8px;
+          width: 40px; height: 40px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(0,240,255,0.04);
+          border: 1.5px solid rgba(0,240,255,0.15);
+          transition: all 0.3s;
         }
-        .seq-transport-btn:hover { background: rgba(255,255,255,0.06); }
-        .seq-transport-btn.active {
-          color: #ff4466;
+        .cseq-play-btn:hover { background: rgba(0,240,255,0.08); border-color: rgba(0,240,255,0.3); }
+        .cseq-play-btn.active {
           background: rgba(255,68,102,0.08);
           border-color: rgba(255,68,102,0.3);
-          box-shadow: 0 0 20px rgba(255,68,102,0.1);
+          box-shadow: 0 0 20px rgba(255,68,102,0.15);
         }
+        .cseq-play-icon { font-size: 14px; color: rgba(0,240,255,0.7); }
+        .cseq-play-btn.active .cseq-play-icon { color: #ff4466; }
 
-        .seq-bpm-group { display: flex; align-items: center; gap: 6px; }
-        .seq-bpm-display {
-          cursor: pointer;
-          display: flex; flex-direction: column; align-items: center;
-          padding: 4px 12px; border-radius: 8px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
-          transition: background 0.2s;
-          min-width: 50px;
-        }
-        .seq-bpm-display:hover { background: rgba(255,255,255,0.06); }
-        .seq-bpm-value { font-size: 16px; color: rgba(0,240,255,0.8); font-weight: 700; }
-        .seq-bpm-label { font-size: 7px; letter-spacing: 0.2em; color: rgba(255,255,255,0.25); margin-top: 1px; }
-        .seq-tiny-btn {
+        .cseq-bpm-group { display: flex; align-items: center; gap: 6px; }
+        .cseq-adj-btn {
           all: unset; cursor: pointer;
-          width: 26px; height: 26px; border-radius: 6px;
+          width: 26px; height: 26px; border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          font-size: 14px; color: rgba(255,255,255,0.3);
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
+          font-size: 14px; color: rgba(255,255,255,0.25);
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.04);
           font-family: 'Raleway', sans-serif;
           transition: all 0.15s;
         }
-        .seq-tiny-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+        .cseq-adj-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+        .cseq-bpm-display {
+          cursor: pointer;
+          display: flex; flex-direction: column; align-items: center;
+          padding: 4px 14px; border-radius: 10px;
+          background: rgba(0,240,255,0.03);
+          border: 1px solid rgba(0,240,255,0.08);
+          min-width: 50px;
+        }
+        .cseq-bpm-val { font-size: 16px; color: rgba(0,240,255,0.8); font-weight: 700; }
+        .cseq-bpm-lbl { font-size: 7px; letter-spacing: 0.2em; color: rgba(255,255,255,0.2); }
 
-        .seq-swing-group {
-          display: flex; align-items: center; gap: 8px;
-          margin-left: auto;
-        }
-        .seq-param-label {
-          font-size: 8px; letter-spacing: 0.15em;
-          color: rgba(255,255,255,0.25);
-        }
-        .seq-param-value {
-          font-size: 10px; color: rgba(0,240,255,0.5);
-          min-width: 30px; text-align: right;
-        }
-        .seq-slider {
-          width: 70px; height: 3px;
+        .cseq-swing-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .cseq-lbl { font-size: 7px; letter-spacing: 0.15em; color: rgba(255,255,255,0.2); }
+        .cseq-val { font-size: 9px; color: rgba(0,240,255,0.4); min-width: 28px; text-align: right; }
+        .cseq-slider {
+          width: 65px; height: 3px;
           -webkit-appearance: none; appearance: none;
-          background: rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.06);
           border-radius: 2px; outline: none;
         }
-        .seq-slider::-webkit-slider-thumb {
-          -webkit-appearance: none; appearance: none;
+        .cseq-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
           width: 12px; height: 12px; border-radius: 50%;
-          background: #00f0ff;
-          border: 2px solid rgba(0,240,255,0.3);
-          cursor: pointer;
-          box-shadow: 0 0 8px rgba(0,240,255,0.3);
+          background: radial-gradient(circle, #00f0ff, rgba(0,240,255,0.5));
+          border: none; cursor: pointer;
+          box-shadow: 0 0 10px rgba(0,240,255,0.4);
         }
 
-        .seq-grid-container {
-          display: flex;
-          flex: 1; overflow: hidden;
-          min-height: 0;
+        .cseq-grid-container {
+          display: flex; flex: 1; overflow: hidden; min-height: 0;
+          position: relative; z-index: 1;
         }
 
-        .seq-track-sidebar {
+        .cseq-sidebar {
           display: flex; flex-direction: column;
-          width: 90px; flex-shrink: 0;
-          padding: 24px 0 0;
-          border-right: 1px solid rgba(255,255,255,0.04);
+          width: 85px; flex-shrink: 0;
+          padding: 0;
+          border-right: 1px solid rgba(100,60,200,0.06);
+          overflow-y: auto;
         }
-        .seq-track-header {
-          height: 40px;
+        .cseq-section-label {
+          font-size: 7px; letter-spacing: 0.2em;
+          color: rgba(255,255,255,0.15);
+          padding: 8px 8px 4px;
+          border-top: 1px solid rgba(100,60,200,0.06);
+        }
+        .cseq-section-label:first-child { border-top: none; padding-top: 10px; }
+
+        .cseq-track-hdr {
+          height: 34px;
           display: flex; align-items: center;
-          padding: 0 8px;
-          gap: 4px;
+          padding: 0 6px; gap: 3px;
           cursor: pointer;
           border-left: 2px solid transparent;
           transition: all 0.15s;
           flex-shrink: 0;
         }
-        .seq-track-header.active {
-          border-left-color: var(--track-color);
-          background: rgba(var(--track-rgb), 0.04);
+        .cseq-track-hdr.active {
+          border-left-color: var(--tc);
+          background: rgba(var(--tcr), 0.06);
         }
-        .seq-track-header:hover { background: rgba(255,255,255,0.02); }
-        .seq-track-name {
-          font-size: 8px; letter-spacing: 0.12em;
-          color: var(--track-color);
-          opacity: 0.7;
-          flex: 1;
+        .cseq-track-hdr:hover { background: rgba(255,255,255,0.02); }
+        .cseq-track-name {
+          font-size: 7px; letter-spacing: 0.1em;
+          color: var(--tc); opacity: 0.7; flex: 1;
         }
-        .seq-track-btns {
-          display: flex; gap: 2px;
-        }
-        .seq-ms-btn {
+        .cseq-track-ctrls { display: flex; gap: 2px; }
+        .cseq-ms {
           all: unset; cursor: pointer;
-          width: 16px; height: 14px; border-radius: 3px;
-          font-size: 7px; font-weight: 700;
+          width: 14px; height: 13px; border-radius: 3px;
+          font-size: 6px; font-weight: 700;
           display: flex; align-items: center; justify-content: center;
-          color: rgba(255,255,255,0.2);
-          background: rgba(255,255,255,0.03);
+          color: rgba(255,255,255,0.15);
+          background: rgba(255,255,255,0.02);
           transition: all 0.15s;
           font-family: 'Orbitron', monospace;
         }
-        .seq-ms-btn.on { color: #ff4466; background: rgba(255,68,102,0.15); }
-        .seq-ms-btn.solo.on { color: #ffee00; background: rgba(255,238,0,0.15); }
-        .seq-track-oct {
-          display: none; /* show on active */
-          align-items: center; gap: 2px;
-          font-size: 7px; color: rgba(255,255,255,0.25);
+        .cseq-ms.on { color: #ff4466; background: rgba(255,68,102,0.12); }
+        .cseq-ms.solo.on { color: #ffee00; background: rgba(255,238,0,0.12); }
+        .cseq-oct {
+          display: flex; align-items: center; gap: 2px;
+          font-size: 7px; color: rgba(255,255,255,0.2);
         }
-        .seq-track-header.active .seq-track-oct { display: flex; }
-        .seq-track-header.active .seq-track-btns { display: flex; }
-        .seq-oct-btn {
+        .cseq-oct button {
           all: unset; cursor: pointer;
-          font-size: 9px; color: rgba(255,255,255,0.3);
-          padding: 0 2px;
+          font-size: 8px; color: rgba(255,255,255,0.25); padding: 0 2px;
           font-family: 'Raleway', sans-serif;
         }
-        .seq-oct-btn:hover { color: rgba(255,255,255,0.6); }
 
-        .seq-grid-scroll {
-          flex: 1; overflow-x: auto; overflow-y: hidden;
-          padding: 0 8px;
+        .cseq-grid-scroll {
+          flex: 1; overflow-x: auto; overflow-y: auto;
+          padding: 0 6px;
         }
-        .seq-grid {
-          display: flex; flex-direction: column;
-          min-width: max-content;
+        .cseq-grid { display: flex; flex-direction: column; min-width: max-content; }
+        .cseq-step-nums {
+          display: flex; height: 18px; gap: 2px; padding: 6px 0 2px;
+          position: sticky; top: 0; z-index: 2;
+          background: rgba(4,2,18,0.95);
         }
-        .seq-step-numbers {
-          display: flex; height: 20px; gap: 3px;
-          padding: 4px 0;
-        }
-        .seq-step-num {
-          width: 36px; flex-shrink: 0;
+        .cseq-snum {
+          width: 32px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          font-size: 7px; color: rgba(255,255,255,0.15);
-          letter-spacing: 0.05em;
+          font-size: 6px; color: rgba(255,255,255,0.1);
         }
-        .seq-step-num.beat { color: rgba(255,255,255,0.25); }
-        .seq-step-num.active {
-          color: #00f0ff;
-          text-shadow: 0 0 8px rgba(0,240,255,0.5);
+        .cseq-snum.beat { color: rgba(255,255,255,0.2); }
+        .cseq-snum.active { color: #00f0ff; text-shadow: 0 0 8px rgba(0,240,255,0.6); }
+
+        .cseq-grid-sep {
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(168,85,247,0.15), transparent);
+          margin: 4px 0;
         }
 
-        .seq-track-row {
-          display: flex; gap: 3px;
-          height: 40px;
-          align-items: stretch;
-        }
+        .cseq-row { display: flex; gap: 2px; height: 34px; align-items: stretch; }
 
-        .seq-step {
-          width: 36px; flex-shrink: 0;
-          border-radius: 4px;
-          background: rgba(255,255,255,0.015);
-          border: 1px solid rgba(255,255,255,0.03);
+        .cseq-step {
+          width: 32px; flex-shrink: 0;
+          border-radius: 5px;
+          background: rgba(255,255,255,0.01);
+          border: 1px solid rgba(255,255,255,0.02);
           cursor: pointer;
           transition: all 0.1s;
           position: relative;
           overflow: hidden;
           display: flex; align-items: center; justify-content: center;
         }
-        .seq-step.beat { background: rgba(255,255,255,0.025); }
-        .seq-step:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
-        .seq-step.on {
-          background: rgba(var(--step-rgb), calc(0.08 + var(--step-vel) * 0.15));
-          border-color: rgba(var(--step-rgb), 0.25);
-          box-shadow: inset 0 0 10px rgba(var(--step-rgb), 0.05);
+        .cseq-step.beat { background: rgba(255,255,255,0.018); }
+        .cseq-step:hover { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.06); }
+        .cseq-step.on {
+          background: rgba(var(--scr), calc(0.06 + var(--sv) * 0.18));
+          border-color: rgba(var(--scr), 0.2);
+          box-shadow: inset 0 0 12px rgba(var(--scr), 0.06);
         }
-        .seq-step.on.playing {
-          background: rgba(var(--step-rgb), calc(0.15 + var(--step-vel) * 0.3));
-          border-color: rgba(var(--step-rgb), 0.6);
-          box-shadow: 0 0 15px rgba(var(--step-rgb), 0.2), inset 0 0 15px rgba(var(--step-rgb), 0.1);
+        .cseq-step.on.drum {
+          background: rgba(var(--scr), calc(0.1 + var(--sv) * 0.25));
+          border-color: rgba(var(--scr), 0.35);
         }
-        .seq-step.playing:not(.on) {
-          border-color: rgba(255,255,255,0.12);
-          background: rgba(255,255,255,0.03);
+        .cseq-step.on.playing {
+          background: rgba(var(--scr), calc(0.2 + var(--sv) * 0.35));
+          border-color: rgba(var(--scr), 0.6);
+          box-shadow: 0 0 18px rgba(var(--scr), 0.25), inset 0 0 12px rgba(var(--scr), 0.1);
+        }
+        .cseq-step.playing:not(.on) {
+          border-color: rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.02);
+        }
+        .cseq-step.pulse {
+          animation: cseqPulse 0.3s ease-out;
         }
 
-        .seq-step-bar {
+        .cseq-drum-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          background: radial-gradient(circle, var(--sc), rgba(var(--scr), 0.4));
+          box-shadow: 0 0 6px rgba(var(--scr), 0.3);
+        }
+        .cseq-step.playing .cseq-drum-dot {
+          width: 10px; height: 10px;
+          box-shadow: 0 0 12px rgba(var(--scr), 0.6);
+        }
+
+        .cseq-step-fill {
           position: absolute; bottom: 0; left: 2px; right: 2px;
-          background: linear-gradient(to top, rgba(var(--step-rgb), 0.5), rgba(var(--step-rgb), 0.15));
+          background: linear-gradient(to top, rgba(var(--scr), 0.5), rgba(var(--scr), 0.1));
           border-radius: 2px 2px 0 0;
           transition: height 0.15s;
         }
-        .seq-step-note {
-          font-size: 8px; font-weight: 400;
-          color: var(--step-color);
-          opacity: 0.8;
-          z-index: 1;
-        }
-        .seq-step-vel-label {
-          font-size: 7px; color: rgba(255,255,255,0.4);
-          z-index: 1;
-        }
+        .cseq-note-lbl { font-size: 7px; color: var(--sc); opacity: 0.8; z-index: 1; }
+        .cseq-vel-lbl { font-size: 6px; color: rgba(255,255,255,0.35); z-index: 1; }
 
-        .seq-toolbar {
+        .cseq-toolbar {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 10px 16px 14px;
-          border-top: 1px solid rgba(255,255,255,0.04);
-          flex-wrap: wrap; gap: 8px;
+          padding: 8px 14px 12px;
+          border-top: 1px solid rgba(100,60,200,0.06);
+          flex-wrap: wrap; gap: 6px;
+          position: relative; z-index: 1;
         }
-        .seq-mode-group { display: flex; align-items: center; gap: 6px; }
-        .seq-mode-btn {
+        .cseq-modes { display: flex; align-items: center; gap: 5px; }
+        .cseq-mode-btn {
           all: unset; cursor: pointer;
-          padding: 5px 10px; border-radius: 6px;
+          padding: 4px 9px; border-radius: 6px;
           font-family: 'Orbitron', monospace;
-          font-size: 8px; letter-spacing: 0.1em;
-          color: rgba(255,255,255,0.3);
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.04);
+          font-size: 7px; letter-spacing: 0.08em;
+          color: rgba(255,255,255,0.25);
+          background: rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.03);
           transition: all 0.15s;
-          display: flex; align-items: center; gap: 4px;
+          display: flex; align-items: center; gap: 3px;
         }
-        .seq-mode-btn:hover { background: rgba(255,255,255,0.05); }
-        .seq-mode-btn.active {
+        .cseq-mode-btn:hover { background: rgba(255,255,255,0.04); }
+        .cseq-mode-btn.active {
           color: #00f0ff;
-          background: rgba(0,240,255,0.06);
-          border-color: rgba(0,240,255,0.2);
+          background: rgba(0,240,255,0.05);
+          border-color: rgba(0,240,255,0.15);
         }
 
-        .seq-action-group { display: flex; gap: 6px; flex-wrap: wrap; }
-        .seq-action-btn {
+        .cseq-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+        .cseq-act {
           all: unset; cursor: pointer;
-          padding: 5px 10px; border-radius: 6px;
+          padding: 4px 9px; border-radius: 6px;
           font-family: 'Orbitron', monospace;
-          font-size: 8px; letter-spacing: 0.08em;
-          color: rgba(255,255,255,0.3);
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.04);
+          font-size: 7px; letter-spacing: 0.06em;
+          color: rgba(255,255,255,0.25);
+          background: rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.03);
           transition: all 0.15s;
         }
-        .seq-action-btn:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
-        .seq-action-btn.preset {
-          color: rgba(168,85,247,0.5);
-          border-color: rgba(168,85,247,0.15);
+        .cseq-act:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45); }
+        .cseq-act.preset {
+          color: rgba(168,85,247,0.4);
+          border-color: rgba(168,85,247,0.1);
         }
-        .seq-action-btn.preset:hover { background: rgba(168,85,247,0.08); }
+        .cseq-act.preset:hover { background: rgba(168,85,247,0.06); }
 
-        .seq-presets-dropdown {
-          position: absolute; bottom: 50px; right: 16px;
-          background: rgba(12,6,30,0.98);
+        .cseq-presets {
+          position: absolute; bottom: 50px; right: 14px;
+          background: rgba(8,4,26,0.98);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(168,85,247,0.2);
-          border-radius: 12px;
-          padding: 6px;
+          border: 1px solid rgba(168,85,247,0.15);
+          border-radius: 14px;
+          padding: 8px;
           display: flex; flex-direction: column; gap: 2px;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(100,40,200,0.1);
           z-index: 5;
-          animation: seqFadeIn 0.2s ease-out;
+          animation: cseqFade 0.2s ease-out;
         }
-        .seq-preset-item {
+        .cseq-presets-title {
+          font-size: 8px; letter-spacing: 0.15em;
+          color: rgba(168,85,247,0.4);
+          padding: 4px 12px 8px;
+          border-bottom: 1px solid rgba(168,85,247,0.08);
+        }
+        .cseq-preset-item {
           all: unset; cursor: pointer;
           padding: 10px 18px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
-          font-size: 10px; letter-spacing: 0.1em;
-          color: rgba(255,255,255,0.45);
+          font-size: 9px; letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.35);
           transition: all 0.15s;
         }
-        .seq-preset-item:hover {
-          background: rgba(168,85,247,0.1);
-          color: rgba(168,85,247,0.9);
+        .cseq-preset-item:hover {
+          background: rgba(168,85,247,0.08);
+          color: rgba(168,85,247,0.8);
         }
 
-        /* Scrollbar */
-        .seq-grid-scroll::-webkit-scrollbar { height: 4px; }
-        .seq-grid-scroll::-webkit-scrollbar-track { background: transparent; }
-        .seq-grid-scroll::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.08);
-          border-radius: 2px;
-        }
+        .cseq-grid-scroll::-webkit-scrollbar { width: 3px; height: 3px; }
+        .cseq-grid-scroll::-webkit-scrollbar-track { background: transparent; }
+        .cseq-grid-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
 
-        /* Mobile adjustments */
         @media (max-width: 600px) {
-          .seq-panel { max-height: 90vh; }
-          .seq-track-sidebar { width: 70px; }
-          .seq-step { width: 30px; }
-          .seq-transport { gap: 10px; padding: 10px 14px; }
-          .seq-swing-group { margin-left: 0; }
-          .seq-toolbar { padding: 8px 12px 12px; }
-          .seq-track-header { padding: 0 6px; }
-          .seq-track-oct { display: none !important; }
+          .cseq-panel { max-height: 92vh; }
+          .cseq-sidebar { width: 65px; }
+          .cseq-step { width: 28px; }
+          .cseq-row { height: 30px; }
+          .cseq-transport { gap: 8px; padding: 8px 14px; }
+          .cseq-swing-group { margin-left: 0; }
+          .cseq-toolbar { padding: 6px 10px 10px; }
+          .cseq-track-hdr { padding: 0 4px; height: 30px; }
+          .cseq-oct { display: none !important; }
+          .cseq-section-label { font-size: 6px; padding: 6px 4px 2px; }
         }
       `}</style>
     </div>

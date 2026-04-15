@@ -198,12 +198,16 @@ const GALAXY_FRAG = `
     float d = length(gl_PointCoord - 0.5);
     if (d > 0.5) discard;
     
-    // Soft circular falloff with bright core
-    float core = exp(-d * 6.0) * 0.6;
-    float glow = exp(-d * 3.0) * 0.3;
-    float alpha = smoothstep(0.5, 0.02, d) * vAlpha;
+    // Airy disk diffraction pattern for realistic star rendering
+    float core = exp(-d * 8.0) * 0.7;
+    float inner = exp(-d * 4.0) * 0.25;
+    float outer = exp(-d * 2.0) * 0.08;
+    float spikes = (1.0 - smoothstep(0.0, 0.03, abs(gl_PointCoord.x - 0.5))) * 0.15 +
+                   (1.0 - smoothstep(0.0, 0.03, abs(gl_PointCoord.y - 0.5))) * 0.15;
+    spikes *= exp(-d * 3.0);
+    float alpha = smoothstep(0.5, 0.01, d) * vAlpha;
     
-    vec3 col = vColor + core * (0.3 + uVol * 0.4) + glow * 0.15;
+    vec3 col = vColor * (1.0 + core * (0.5 + uVol * 0.6)) + inner * 0.2 + outer * 0.05 + spikes * vColor;
     gl_FragColor = vec4(col, alpha);
   }
 `;
@@ -341,17 +345,21 @@ const COMPOSITE_FRAG = `
     vec3 color = vec3(r, g, b);
     color += texture2D(tBloom, vUv).rgb * uBloomStrength;
     
-    // Vignette
-    color *= 1.0 - smoothstep(0.4, 1.4, dist * 2.0) * uVignette;
+    // Vignette — deeper for space immersion
+    color *= 1.0 - smoothstep(0.35, 1.5, dist * 2.0) * uVignette;
     
-    // Color grading based on mood
-    vec3 cool = color * vec3(0.85, 0.92, 1.15);
-    vec3 warm = color * vec3(1.12, 0.98, 0.85);
+    // Color grading — deeper, richer space tones
+    vec3 cool = color * vec3(0.82, 0.9, 1.2);
+    vec3 warm = color * vec3(1.15, 0.95, 0.82);
     color = mix(cool, warm, uMood);
     
-    // Film grain (subtle)
+    // Subtle blue lift in shadows for space depth
+    float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    color += vec3(0.01, 0.015, 0.04) * (1.0 - luminance);
+    
+    // Film grain (very subtle)
     float grain = fract(sin(dot(vUv * uTime * 60.0, vec2(12.9898, 78.233))) * 43758.5453);
-    color += (grain - 0.5) * 0.02;
+    color += (grain - 0.5) * 0.015;
     
     gl_FragColor = vec4(color, 1.0);
   }
@@ -672,16 +680,47 @@ export default function CosmicSynth() {
     const PR = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x010008, 0.00010);
-    const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 10000);
+    scene.fog = new THREE.FogExp2(0x010005, 0.00008);
+    const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 12000);
     camera.position.z = 650;
 
     const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !isMobile, powerPreference: "high-performance" });
     renderer.setSize(W(), H());
     renderer.setPixelRatio(PR);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    renderer.setClearColor(0x010008);
+    renderer.toneMappingExposure = 1.4;
+    renderer.setClearColor(0x010005);
+
+    // ── Background star field — distant fixed stars ──
+    const bgStarCount = isMobile ? 2000 : 4000;
+    const bgGeo = new THREE.BufferGeometry();
+    const bgPos = new Float32Array(bgStarCount * 3);
+    const bgCol = new Float32Array(bgStarCount * 3);
+    const bgSize = new Float32Array(bgStarCount);
+    const bgRand = new Float32Array(bgStarCount);
+    for (let i = 0; i < bgStarCount; i++) {
+      // Distribute on a large sphere
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 3000 + Math.random() * 5000;
+      bgPos[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
+      bgPos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
+      bgPos[i * 3 + 2] = Math.cos(phi) * r;
+      // Realistic star temperature colors
+      const temp = Math.random();
+      if (temp < 0.1) { bgCol[i*3]=1; bgCol[i*3+1]=0.6; bgCol[i*3+2]=0.3; } // red/orange
+      else if (temp < 0.3) { bgCol[i*3]=1; bgCol[i*3+1]=0.9; bgCol[i*3+2]=0.7; } // warm white
+      else if (temp < 0.7) { bgCol[i*3]=0.9; bgCol[i*3+1]=0.92; bgCol[i*3+2]=1; } // white
+      else { bgCol[i*3]=0.7; bgCol[i*3+1]=0.8; bgCol[i*3+2]=1; } // blue-white
+      const b = 0.3 + Math.random() * 0.7;
+      bgCol[i*3] *= b; bgCol[i*3+1] *= b; bgCol[i*3+2] *= b;
+      bgSize[i] = 0.5 + Math.random() * 1.5;
+      bgRand[i] = Math.random();
+    }
+    bgGeo.setAttribute("position", new THREE.BufferAttribute(bgPos, 3));
+    bgGeo.setAttribute("color", new THREE.BufferAttribute(bgCol, 3));
+    bgGeo.setAttribute("aSize", new THREE.BufferAttribute(bgSize, 1));
+    bgGeo.setAttribute("aRand", new THREE.BufferAttribute(bgRand, 1));
 
     // ── Galaxy Stars — Realistic spiral ──
     const galaxyGeo = new THREE.BufferGeometry();
@@ -747,6 +786,14 @@ export default function CosmicSynth() {
     });
     const galaxy = new THREE.Points(galaxyGeo, galaxyMat);
     scene.add(galaxy);
+
+    // ── Background starfield ──
+    const bgMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uPixelRatio: { value: PR }, uBass: { value: 0 }, uTreble: { value: 0 }, uVol: { value: 0 }, uFlash: { value: 0 } },
+      vertexShader: GALAXY_VERT, fragmentShader: GALAXY_FRAG,
+      transparent: true, depthWrite: false, vertexColors: true, blending: THREE.AdditiveBlending,
+    });
+    scene.add(new THREE.Points(bgGeo, bgMat));
 
     // ── Dust lanes (dark matter feel) ──
     for (let d = 0; d < 3; d++) {
@@ -816,34 +863,58 @@ export default function CosmicSynth() {
       rings.push(ring);
     }
 
-    // ── Nebulae — volumetric look ──
+    // ── Nebulae — photorealistic multi-layer ──
     const nebulae: (THREE.Sprite & { _baseOpacity: number })[] = [];
-    for (let i = 0; i < 10; i++) {
+    const nebulaColors = [
+      [0.1, 0.3, 1.0],   // Deep blue emission
+      [0.8, 0.1, 0.4],   // Hydrogen alpha pink
+      [0.2, 0.8, 0.6],   // Oxygen teal
+      [0.6, 0.15, 0.9],  // Violet
+      [1.0, 0.4, 0.1],   // Warm orange
+      [0.1, 0.6, 1.0],   // Bright blue
+      [0.9, 0.2, 0.6],   // Magenta
+      [0.3, 1.0, 0.7],   // Green emission
+      [0.5, 0.2, 0.8],   // Purple
+      [0.9, 0.6, 0.2],   // Gold
+      [0.15, 0.4, 0.9],  // Steel blue
+      [0.7, 0.1, 0.3],   // Deep red
+      [0.2, 0.9, 0.9],   // Cyan
+      [0.8, 0.3, 0.7],   // Orchid
+    ];
+    const nebulaCount = isMobile ? 10 : 16;
+    for (let i = 0; i < nebulaCount; i++) {
       const c = document.createElement("canvas"); c.width = 512; c.height = 512;
       const ctx = c.getContext("2d")!;
-      // Multi-layer radial gradient for volume
-      const ci = PAL[i % PAL.length];
-      const cx = 256 + (Math.random() - 0.5) * 60;
-      const cy = 256 + (Math.random() - 0.5) * 60;
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220 + Math.random() * 36);
-      grad.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.12)`);
-      grad.addColorStop(0.3, `rgba(${Math.round(ci[0] * 200)},${Math.round(ci[1] * 200)},${Math.round(ci[2] * 200)},0.06)`);
-      grad.addColorStop(0.6, `rgba(${Math.round(ci[0] * 120)},${Math.round(ci[1] * 120)},${Math.round(ci[2] * 120)},0.03)`);
-      grad.addColorStop(1, "transparent");
-      ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
-      // Second pass — displaced center for asymmetry
-      const grad2 = ctx.createRadialGradient(cx + 40, cy - 30, 0, cx + 40, cy - 30, 160);
-      grad2.addColorStop(0, `rgba(${Math.round(ci[0] * 255)},${Math.round(ci[1] * 255)},${Math.round(ci[2] * 255)},0.06)`);
-      grad2.addColorStop(1, "transparent");
-      ctx.fillStyle = grad2; ctx.fillRect(0, 0, 512, 512);
+      const ci = nebulaColors[i % nebulaColors.length];
+      // Multi-pass for volumetric depth
+      for (let pass = 0; pass < 3; pass++) {
+        const cx = 256 + (Math.random() - 0.5) * 100;
+        const cy = 256 + (Math.random() - 0.5) * 100;
+        const radius = 160 + Math.random() * 80;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        const alpha = pass === 0 ? 0.14 : pass === 1 ? 0.08 : 0.04;
+        grad.addColorStop(0, `rgba(${Math.round(ci[0]*255)},${Math.round(ci[1]*255)},${Math.round(ci[2]*255)},${alpha})`);
+        grad.addColorStop(0.25, `rgba(${Math.round(ci[0]*200)},${Math.round(ci[1]*200)},${Math.round(ci[2]*200)},${alpha*0.6})`);
+        grad.addColorStop(0.5, `rgba(${Math.round(ci[0]*140)},${Math.round(ci[1]*140)},${Math.round(ci[2]*140)},${alpha*0.3})`);
+        grad.addColorStop(0.8, `rgba(${Math.round(ci[0]*80)},${Math.round(ci[1]*80)},${Math.round(ci[2]*80)},${alpha*0.1})`);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+      }
+      // Add a subtle secondary color blend
+      const ci2 = nebulaColors[(i + 3) % nebulaColors.length];
+      const grad3 = ctx.createRadialGradient(300, 200, 0, 300, 200, 180);
+      grad3.addColorStop(0, `rgba(${Math.round(ci2[0]*255)},${Math.round(ci2[1]*255)},${Math.round(ci2[2]*255)},0.05)`);
+      grad3.addColorStop(1, "transparent");
+      ctx.fillStyle = grad3; ctx.fillRect(0, 0, 512, 512);
+      
       const tex = new THREE.CanvasTexture(c);
-      const baseOp = 0.04 + Math.random() * 0.04;
+      const baseOp = 0.03 + Math.random() * 0.05;
       const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: baseOp });
       const spr = new THREE.Sprite(mat) as THREE.Sprite & { _baseOpacity: number };
-      const dist = 200 + Math.random() * 900;
+      const dist = 150 + Math.random() * 1000;
       const angle = Math.random() * Math.PI * 2;
-      spr.scale.setScalar(300 + Math.random() * 700);
-      spr.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 120, Math.sin(angle) * dist);
+      spr.scale.setScalar(300 + Math.random() * 900);
+      spr.position.set(Math.cos(angle) * dist, (Math.random() - 0.5) * 150, Math.sin(angle) * dist);
       spr._baseOpacity = baseOp;
       scene.add(spr); nebulae.push(spr);
     }
