@@ -676,16 +676,47 @@ export default function CosmicSynth() {
     const PR = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x010008, 0.00010);
-    const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 10000);
+    scene.fog = new THREE.FogExp2(0x010005, 0.00008);
+    const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 12000);
     camera.position.z = 650;
 
     const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: !isMobile, powerPreference: "high-performance" });
     renderer.setSize(W(), H());
     renderer.setPixelRatio(PR);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    renderer.setClearColor(0x010008);
+    renderer.toneMappingExposure = 1.4;
+    renderer.setClearColor(0x010005);
+
+    // ── Background star field — distant fixed stars ──
+    const bgStarCount = isMobile ? 2000 : 4000;
+    const bgGeo = new THREE.BufferGeometry();
+    const bgPos = new Float32Array(bgStarCount * 3);
+    const bgCol = new Float32Array(bgStarCount * 3);
+    const bgSize = new Float32Array(bgStarCount);
+    const bgRand = new Float32Array(bgStarCount);
+    for (let i = 0; i < bgStarCount; i++) {
+      // Distribute on a large sphere
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 3000 + Math.random() * 5000;
+      bgPos[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
+      bgPos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
+      bgPos[i * 3 + 2] = Math.cos(phi) * r;
+      // Realistic star temperature colors
+      const temp = Math.random();
+      if (temp < 0.1) { bgCol[i*3]=1; bgCol[i*3+1]=0.6; bgCol[i*3+2]=0.3; } // red/orange
+      else if (temp < 0.3) { bgCol[i*3]=1; bgCol[i*3+1]=0.9; bgCol[i*3+2]=0.7; } // warm white
+      else if (temp < 0.7) { bgCol[i*3]=0.9; bgCol[i*3+1]=0.92; bgCol[i*3+2]=1; } // white
+      else { bgCol[i*3]=0.7; bgCol[i*3+1]=0.8; bgCol[i*3+2]=1; } // blue-white
+      const b = 0.3 + Math.random() * 0.7;
+      bgCol[i*3] *= b; bgCol[i*3+1] *= b; bgCol[i*3+2] *= b;
+      bgSize[i] = 0.5 + Math.random() * 1.5;
+      bgRand[i] = Math.random();
+    }
+    bgGeo.setAttribute("position", new THREE.BufferAttribute(bgPos, 3));
+    bgGeo.setAttribute("color", new THREE.BufferAttribute(bgCol, 3));
+    bgGeo.setAttribute("aSize", new THREE.BufferAttribute(bgSize, 1));
+    bgGeo.setAttribute("aRand", new THREE.BufferAttribute(bgRand, 1));
 
     // ── Galaxy Stars — Realistic spiral ──
     const galaxyGeo = new THREE.BufferGeometry();
