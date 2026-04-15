@@ -345,17 +345,21 @@ const COMPOSITE_FRAG = `
     vec3 color = vec3(r, g, b);
     color += texture2D(tBloom, vUv).rgb * uBloomStrength;
     
-    // Vignette
-    color *= 1.0 - smoothstep(0.4, 1.4, dist * 2.0) * uVignette;
+    // Vignette — deeper for space immersion
+    color *= 1.0 - smoothstep(0.35, 1.5, dist * 2.0) * uVignette;
     
-    // Color grading based on mood
-    vec3 cool = color * vec3(0.85, 0.92, 1.15);
-    vec3 warm = color * vec3(1.12, 0.98, 0.85);
+    // Color grading — deeper, richer space tones
+    vec3 cool = color * vec3(0.82, 0.9, 1.2);
+    vec3 warm = color * vec3(1.15, 0.95, 0.82);
     color = mix(cool, warm, uMood);
     
-    // Film grain (subtle)
+    // Subtle blue lift in shadows for space depth
+    float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    color += vec3(0.01, 0.015, 0.04) * (1.0 - luminance);
+    
+    // Film grain (very subtle)
     float grain = fract(sin(dot(vUv * uTime * 60.0, vec2(12.9898, 78.233))) * 43758.5453);
-    color += (grain - 0.5) * 0.02;
+    color += (grain - 0.5) * 0.015;
     
     gl_FragColor = vec4(color, 1.0);
   }
