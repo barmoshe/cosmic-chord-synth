@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import * as THREE from "three";
-import { isMobile, GALAXY_COUNT, PARTICLE_POOL, RIPPLE_POOL, FFT_BARS, SCALES, PAL } from "./constants";
-import { clamp, lerp } from "./helpers";
-import { GALAXY_VERT, GALAXY_FRAG, PARTICLE_VERT, PARTICLE_FRAG, STAR_VERT, STAR_FRAG, HALO_FRAG, PP_VERT, BRIGHT_FRAG, BLUR_FRAG, COMPOSITE_FRAG } from "./shaders";
+import { isMobile, GALAXY_COUNT, PARTICLE_POOL, RIPPLE_POOL, FFT_BARS, SCALES, PAL, DRUM_STARS, DRUM_ORBIT_R, type DrumName } from "./constants";
+import { clamp, haptic } from "./helpers";
+import { GALAXY_VERT, GALAXY_FRAG, PARTICLE_VERT, PARTICLE_FRAG, STAR_VERT, STAR_FRAG, HALO_FRAG, DRUM_STAR_VERT, DRUM_STAR_FRAG, PP_VERT, BRIGHT_FRAG, BLUR_FRAG, COMPOSITE_FRAG } from "./shaders";
 
 export function useThreeScene(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,
@@ -283,6 +283,52 @@ export function useThreeScene(
     const shMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.8, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false });
     scene.add(new THREE.Points(shGeo, shMat));
 
+    // ── Drum Stars — four playable orbiting stars ──
+    const drumGroup = new THREE.Group(); scene.add(drumGroup);
+    type DrumMesh = THREE.Mesh & { userData: { name: DrumName; pulse: number; col: number[] } };
+    const drumMeshes: DrumMesh[] = [];
+    for (const ds of DRUM_STARS) {
+      const geo = new THREE.IcosahedronGeometry(14, 3);
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: { value: 0 },
+          uPulse: { value: 0 },
+          uColor: { value: new THREE.Vector3(ds.color[0], ds.color[1], ds.color[2]) },
+        },
+        vertexShader: DRUM_STAR_VERT,
+        fragmentShader: DRUM_STAR_FRAG,
+        transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const m = new THREE.Mesh(geo, mat) as DrumMesh;
+      m.position.set(Math.cos(ds.angle) * DRUM_ORBIT_R, 0, Math.sin(ds.angle) * DRUM_ORBIT_R);
+      m.userData = { name: ds.name, pulse: 0, col: [...ds.color] };
+      drumGroup.add(m); drumMeshes.push(m);
+
+      // Soft halo sprite behind each drum-star, colored to match
+      const haloCanvas = document.createElement("canvas"); haloCanvas.width = 128; haloCanvas.height = 128;
+      const hctx = haloCanvas.getContext("2d")!;
+      const grad = hctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      const [rCol, gCol, bCol] = ds.color;
+      grad.addColorStop(0, `rgba(${Math.round(rCol*255)},${Math.round(gCol*255)},${Math.round(bCol*255)},0.55)`);
+      grad.addColorStop(0.5, `rgba(${Math.round(rCol*180)},${Math.round(gCol*180)},${Math.round(bCol*180)},0.15)`);
+      grad.addColorStop(1, "transparent");
+      hctx.fillStyle = grad; hctx.fillRect(0, 0, 128, 128);
+      const haloSpr = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(haloCanvas),
+        blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.9,
+      }));
+      haloSpr.scale.setScalar(70);
+      m.add(haloSpr);
+    }
+
+    const drumRaycaster = new THREE.Raycaster();
+    function pickDrumStar(clientX: number, clientY: number): DrumName | null {
+      const ndc = new THREE.Vector2((clientX / W()) * 2 - 1, -(clientY / H()) * 2 + 1);
+      drumRaycaster.setFromCamera(ndc, camera);
+      const hits = drumRaycaster.intersectObjects(drumMeshes, false);
+      return hits.length ? (hits[0].object as DrumMesh).userData.name : null;
+    }
+
     // ── Particles ──
     const pPos = new Float32Array(PARTICLE_POOL * 3);
     const pCol = new Float32Array(PARTICLE_POOL * 3);
@@ -397,15 +443,13 @@ export function useThreeScene(
       return camera.position.clone().add(dir.multiplyScalar(280));
     }
 
-    // ── DJ "Cosmic Pulse" state — drives per-kick camera punch, galaxy spin boost, and phase whip ──
+    // ── DJ state — galaxy spin boost + section whip ──
     const djFx = {
-      camPunch: 0,        // additive offset into camera.z (negative = closer), decays
       spinBoost: 0,       // additive rotation speed multiplier, decays
       whipPhase: 0,       // additive rotation offset for section-transition "whip", decays
     };
 
     function shockwave(col: number[], scale: number) {
-      // Big ring from galaxy core; reuses ripple pool with custom scale multiplier
       const r = ripples.find(rr => !rr.active); if (!r) return;
       r.active = true; r.life = 0; r.scaleMult = scale; r.startOp = 0.85; r.maxLife = 80;
       r.mesh.visible = true;
@@ -415,52 +459,56 @@ export function useThreeScene(
       (r.mesh.material as THREE.MeshBasicMaterial).opacity = r.startOp;
     }
 
-    function cameraImpulse(dz: number) {
-      // Punch camera closer by |dz|; decayed in frame loop
-      djFx.camPunch = Math.min(djFx.camPunch + dz, 80);
-    }
-
-    function kickPulse(vel: number) {
-      const v = clamp(vel, 0, 1);
-      if (0.4 * v > flashIntensity.current) flashIntensity.current = 0.4 * v;
-      shockwave([0.99, 0.83, 0.30], 0.8 + v * 0.8);             // warm-spark gold (Aurora accent)
-      cameraImpulse(8 + v * 12);
-      djFx.spinBoost = Math.min(djFx.spinBoost + 0.25 * v, 0.8);
-      // Radial particle burst from core — aurora gold embers
-      const n = Math.floor(6 + v * 10);
-      for (let i = 0; i < n; i++) {
-        const ang = (i / n) * Math.PI * 2;
-        const dist = 20 + Math.random() * 30;
-        emitParticles(Math.cos(ang) * dist, (Math.random() - 0.5) * 6, Math.sin(ang) * dist, [0.99, 0.75 + Math.random() * 0.2, 0.3], 1, 0.7 + v * 0.4);
-      }
-    }
-
-    function sparkleCloud(col: number[], count: number) {
-      // Scatter tiny sparkles at mid-galaxy distance (matches camera forward ray approximately)
-      for (let i = 0; i < count; i++) {
-        const ang = Math.random() * Math.PI * 2;
-        const r = 120 + Math.random() * 180;
-        const y = (Math.random() - 0.5) * 40;
-        emitParticles(Math.cos(ang) * r, y, Math.sin(ang) * r, col, 1, 0.3 + Math.random() * 0.3);
-      }
-    }
-
     function sectionTransition(col: number[]) {
       if (0.7 > flashIntensity.current) flashIntensity.current = 0.7;
       shockwave(col, 2.4);
       djFx.whipPhase = 0.35;
       djFx.spinBoost = Math.min(djFx.spinBoost + 0.6, 1.2);
-      // Color the FFT ring briefly by setting its emissive-ish color via meshes
       for (let i = 0; i < fftMeshes.length; i++) {
         (fftMeshes[i].material as THREE.MeshBasicMaterial).color.setRGB(col[0], col[1], col[2]);
       }
+    }
+
+    // ── Drum-star trigger — unified path for both auto-DJ and user taps ──
+    const _tmpWP = new THREE.Vector3();
+    function triggerDrum(name: DrumName, vel: number, auto = false) {
+      const v = clamp(vel, 0, 1);
+      const m = drumMeshes.find(d => d.userData.name === name);
+      if (!m) return;
+
+      // Audio
+      try {
+        const a = audioRef.current;
+        if (name === "kick")       a?.kick?.triggerAttackRelease("C1", "8n", undefined, v);
+        else if (name === "snare") a?.snare?.triggerAttackRelease("16n", undefined, v);
+        else if (name === "hat")   a?.hihat?.triggerAttackRelease("32n", undefined, v * 0.6);
+        else if (name === "clap")  a?.clap?.triggerAttackRelease("16n", undefined, v);
+      } catch {}
+
+      // Visual pulse on the star
+      const pulseBoost = auto ? 1 : 1.3;
+      m.userData.pulse = Math.max(m.userData.pulse, v * pulseBoost);
+
+      // Burst from the star's world position
+      m.getWorldPosition(_tmpWP);
+      emitParticles(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col, 6 + Math.floor(v * 10), 0.6 + v * 0.4);
+      addRipple(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col);
+
+      // Kick gets a small full-scene flash + gentle spin boost
+      if (name === "kick") {
+        const f = 0.2 * v;
+        if (f > flashIntensity.current) flashIntensity.current = f;
+        djFx.spinBoost = Math.min(djFx.spinBoost + 0.18 * v, 0.6);
+      }
+
+      haptic(name === "kick" ? 15 : 6);
     }
 
     engineRef.current = {
       camera, addRipple, emitParticles,
       s2w: (x: number, y: number) => { const p = screenToWorld(x, y); return [p.x, p.y, p.z]; },
       flash: (v: number) => { if (v > flashIntensity.current) flashIntensity.current = v; },
-      shockwave, kickPulse, cameraImpulse, sparkleCloud, sectionTransition,
+      sectionTransition, triggerDrum, pickDrumStar,
     };
 
     const clock = new THREE.Clock();
@@ -483,12 +531,20 @@ export function useThreeScene(
       camera.position.x += (mouse.x * 120 - camera.position.x) * 0.015;
       camera.position.y += (mouse.y * 80 - camera.position.y) * 0.015;
       camera.position.z += (targetZ - camera.position.z) * 0.035;
-      camera.position.z -= djFx.camPunch;                 // DJ kick punch — direct offset, decays below
       camera.position.z = clamp(camera.position.z, 80, 1600);
       camera.lookAt(0, 0, 0);
-      djFx.camPunch *= 0.82;
       djFx.spinBoost *= 0.94;
       djFx.whipPhase *= 0.9;
+
+      // Drum stars — slow orbit drift + per-star pulse decay
+      drumGroup.rotation.y = t * 0.08;
+      for (const m of drumMeshes) {
+        m.userData.pulse *= 0.85;
+        const u = (m.material as THREE.ShaderMaterial).uniforms;
+        u.uTime.value = t;
+        u.uPulse.value = m.userData.pulse;
+        m.scale.setScalar(1 + m.userData.pulse * 0.45);
+      }
 
       // Flash decay
       flashIntensity.current *= 0.92;

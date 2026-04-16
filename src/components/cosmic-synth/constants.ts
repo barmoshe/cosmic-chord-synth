@@ -29,7 +29,7 @@ export const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G�
    Per-phase `col` drives section-transition flash + panel accents.
    Colors sampled from Glacial Aurora 2026 palette (teal/cyan/periwinkle/mint/lavender/warm-gold spark). */
 export const DJ_SECTIONS = [
-  { name: "DRIFT",    bars: 8,  e: 0.15, drums: "drift",    l: { pd: 1,   bs: 0, ml: 0.25, ar: 0 }, ft: 0.3,  rv: 0.65, dw: 0.28, adsr: [1.4, 0.8, 0.7, 2.8], algo: "motif",    col: [0.37, 0.92, 0.83] }, // mint aurora
+  { name: "DRIFT",    bars: 8,  e: 0.15, drums: "nebula",   l: { pd: 1,   bs: 0, ml: 0.25, ar: 0 }, ft: 0.3,  rv: 0.65, dw: 0.28, adsr: [1.4, 0.8, 0.7, 2.8], algo: "motif",    col: [0.37, 0.92, 0.83] }, // mint aurora — nebula shimmer
   { name: "PULSE",    bars: 12, e: 0.45, drums: "pulse",    l: { pd: 0.9, bs: 0, ml: 0.6,  ar: 0 }, ft: 0.45, rv: 0.5,  dw: 0.2,  adsr: [0.2, 0.4, 0.55, 2],   algo: "motif",    col: [0.51, 0.55, 0.97] }, // periwinkle
   { name: "BLOOM",    bars: 16, e: 0.7,  drums: "bloom",    l: { pd: 0.7, bs: 1, ml: 1,    ar: 0 }, ft: 0.65, rv: 0.4,  dw: 0.15, adsr: [0.06, 0.3, 0.55, 1.2], algo: "develop", col: [0.13, 0.83, 0.93] }, // cyan
   { name: "SURGE",    bars: 12, e: 1,    drums: "surge",    l: { pd: 1,   bs: 1, ml: 1,    ar: 1 }, ft: 1,    rv: 0.3,  dw: 0.12, adsr: [0.02, 0.2, 0.65, 0.7], algo: "climax", sweep: 1, col: [0.99, 0.83, 0.30] }, // warm-spark gold
@@ -39,6 +39,14 @@ export const DJ_SECTIONS = [
 /* Drum patterns — 16 sixteenth-note steps per bar; value = velocity 0..1 (0 = rest).
    Experimental electronic base: kick-driven foundation, claps on backbeat, off-beat hats. */
 export const DRUM_PATTERNS: Record<string, { kick: number[]; clap: number[]; hat: number[]; snare: number[] }> = {
+  // NEBULA — shimmering atmospheric pattern (DRIFT default). Sparse kicks, scattered ghost claps,
+  // constellation of soft hats that twinkle across the bar, occasional ghost-snare fleck.
+  nebula: {
+    kick:  [0.55, 0, 0, 0,  0, 0, 0, 0.3,   0, 0, 0, 0,  0.5, 0, 0, 0.25],
+    clap:  [0, 0, 0, 0.2,   0, 0, 0.35, 0,  0, 0, 0, 0,  0, 0, 0, 0.3],
+    hat:   [0.25, 0.1, 0.3, 0.12,  0.22, 0.15, 0.28, 0.1,  0.3, 0.08, 0.22, 0.18,  0.26, 0.12, 0.32, 0.2],
+    snare: [0, 0, 0, 0,  0, 0, 0, 0.18,  0, 0, 0, 0,  0, 0, 0.22, 0],
+  },
   drift: {
     kick:  [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
     clap:  [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],

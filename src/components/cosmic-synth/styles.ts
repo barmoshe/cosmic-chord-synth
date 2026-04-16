@@ -176,26 +176,11 @@ export const COSMIC_STYLES = `
           transform: scale(0.95);
         }
 
-        .cosmic-btn-auto, .cosmic-btn-seq {
+        .cosmic-btn-auto {
           flex-direction: column; gap: 3px;
           width: 56px; height: 56px; border-radius: 50%;
           font-family: 'Orbitron', monospace;
           color: #B4C9E0;
-        }
-        .cosmic-btn-seq {
-          background: rgba(232,121,249,0.1);
-          border-color: rgba(232,121,249,0.3);
-        }
-        .cosmic-btn-seq:hover {
-          background: rgba(232,121,249,0.18);
-          border-color: rgba(232,121,249,0.45);
-          color: #F5B0FB;
-        }
-        .cosmic-btn-seq .cosmic-btn-icon {
-          font-size: 18px; line-height: 1;
-        }
-        .cosmic-btn-seq .cosmic-btn-label {
-          font-size: 8px; letter-spacing: 0.15em; font-weight: 500;
         }
         .cosmic-btn-auto .cosmic-btn-icon {
           font-size: 16px; line-height: 1;
@@ -302,42 +287,6 @@ export const COSMIC_STYLES = `
           transform: scaleX(0); transform-origin: left;
           background: linear-gradient(90deg, #14B8A6, #22D3EE 50%, #818CF8);
           box-shadow: 0 0 8px rgba(34,211,238,0.4);
-        }
-
-        .cdj-meters { display: flex; flex-direction: column; gap: 4px; }
-        .cdj-meter { display: flex; align-items: center; gap: 8px; }
-        .cdj-meter-lbl {
-          font-family: 'Raleway', sans-serif;
-          font-size: 9px; font-weight: 600;
-          color: #7C95B5;
-          width: 10px;
-        }
-        .cdj-meter-bar {
-          flex: 1; height: 4px;
-          background: rgba(229,244,251,0.06);
-          border-radius: 2px; overflow: hidden;
-        }
-        .cdj-meter-fill {
-          height: 100%; width: 100%;
-          transform: scaleX(0); transform-origin: left;
-          transition: transform 0.03s linear;
-        }
-        .cdj-meter-fill.kick { background: linear-gradient(90deg, #FCD34D, #F59E0B); box-shadow: 0 0 6px rgba(252,211,77,0.55); }
-        .cdj-meter-fill.clap { background: linear-gradient(90deg, #818CF8, #A5B4FC); box-shadow: 0 0 6px rgba(129,140,248,0.5); }
-        .cdj-meter-fill.hat  { background: linear-gradient(90deg, #22D3EE, #67E8F9); box-shadow: 0 0 6px rgba(34,211,238,0.5); }
-
-        .cdj-grid { display: flex; justify-content: center; gap: 9px; padding-top: 3px; }
-        .cdj-grid-dot {
-          width: 7px; height: 7px; border-radius: 50%;
-          background: rgba(229,244,251,0.12);
-          border: 1px solid rgba(129,140,248,0.2);
-          transition: all 0.08s ease-out;
-        }
-        .cdj-grid-dot.active {
-          background: radial-gradient(circle at 30% 30%, #22D3EE, #818CF8 80%);
-          border-color: rgba(34,211,238,0.6);
-          box-shadow: 0 0 10px rgba(34,211,238,0.6);
-          transform: scale(1.25);
         }
 
         .cosmic-scale-group {

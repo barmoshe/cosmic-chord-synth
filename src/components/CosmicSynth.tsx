@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
-import CosmicSequencer from "./CosmicSequencer";
 
 import { SCALES, SCALE_ORDER, isMobile } from "./cosmic-synth/constants";
 import { m2f, noteColor } from "./cosmic-synth/helpers";
@@ -23,21 +22,16 @@ export default function CosmicSynth() {
   const [showUI, setShowUI] = useState(true);
   const [hintDismissed, setHintDismissed] = useState(false);
   const [warpProgress, setWarpProgress] = useState(0);
-  const [seqOpen, setSeqOpen] = useState(false);
 
   // DJ UI adapter — CosmicDjPanel installs itself here via onReady
   const djUiRef = useRef<DjUi>({
-    setPhase: () => {}, setNextPhase: () => {}, setProgress: () => {},
-    setBeat: () => {}, bumpKick: () => {}, bumpClap: () => {}, bumpHat: () => {},
+    setPhase: () => {}, setNextPhase: () => {}, setProgress: () => {}, setBeat: () => {},
   });
   const djUiProxy: DjUi = {
     setPhase: (p) => djUiRef.current.setPhase(p),
     setNextPhase: (p) => djUiRef.current.setNextPhase(p),
     setProgress: (v) => djUiRef.current.setProgress(v),
     setBeat: (b) => djUiRef.current.setBeat(b),
-    bumpKick: (v) => djUiRef.current.bumpKick(v),
-    bumpClap: (v) => djUiRef.current.bumpClap(v),
-    bumpHat: (v) => djUiRef.current.bumpHat(v),
   };
   const handleDjUiReady = useCallback((ui: DjUi) => { djUiRef.current = ui; }, []);
 
@@ -175,14 +169,6 @@ export default function CosmicSynth() {
               onReady={handleDjUiReady}
               bpm={94}
             />
-            <button
-              onTouchStart={(e) => { e.preventDefault(); setSeqOpen(true); }}
-              onClick={() => setSeqOpen(true)}
-              className="cosmic-btn cosmic-btn-seq"
-            >
-              <span className="cosmic-btn-icon">⎚</span>
-              <span className="cosmic-btn-label">SEQ</span>
-            </button>
           </div>
 
           <div className="cosmic-scale-group">
@@ -224,18 +210,6 @@ export default function CosmicSynth() {
         </>
       )}
 
-      {phase === "play" && (
-        <CosmicSequencer
-          visible={seqOpen}
-          onClose={() => setSeqOpen(false)}
-          audioRef={audioRef}
-          engineRef={engineRef}
-          scaleRef={scaleRef}
-          scales={SCALES}
-          noteColorFn={noteColor}
-          m2fFn={m2f}
-        />
-      )}
 
       <style>{COSMIC_STYLES}</style>
     </div>

@@ -129,6 +129,37 @@ export const HALO_FRAG = `
   }
 `;
 
+// Drum-star: colored icosahedron that glows brighter on pulse (drum hit).
+export const DRUM_STAR_VERT = `
+  varying vec3 vNormal;
+  uniform float uTime, uPulse;
+
+  void main() {
+    vNormal = normalize(normalMatrix * normal);
+    vec3 p = position;
+    // Breathe + pulse distortion
+    p += normal * (sin(p.x * 0.4 + uTime * 2.0) * 0.3 + uPulse * 1.6);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+  }
+`;
+
+export const DRUM_STAR_FRAG = `
+  uniform float uTime, uPulse;
+  uniform vec3 uColor;
+  varying vec3 vNormal;
+
+  void main() {
+    float rim = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
+    float core = pow(1.0 - rim, 2.0);
+    float pulseLift = uPulse * 2.5;
+    float energy = 0.8 + core * 1.8 + pow(rim, 2.0) * (1.2 + pulseLift) + pulseLift;
+    vec3 col = uColor * energy;
+    // Bright white flash at the peak of the pulse
+    col += vec3(1.0) * uPulse * uPulse * 0.6;
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
 export const PP_VERT = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`;
 
 export const BRIGHT_FRAG = `

@@ -9,9 +9,36 @@ export interface DjUi {
   setNextPhase: (p: string) => void;
   setProgress: (v: number) => void;    // 0..1 within section
   setBeat: (b: number) => void;        // 0..3 quarter-note within bar
-  bumpKick: (v: number) => void;       // 0..1 velocity for meter
-  bumpClap: (v: number) => void;
-  bumpHat: (v: number) => void;
+}
+
+type DrumLane = "kick" | "clap" | "hat" | "snare";
+
+// Per-bar pattern variation — jitters velocities, sprinkles occasional ghost hits on empty steps.
+// Intensity 0..1 controls how much drift is applied (higher = more lively).
+function variatePattern(
+  base: { kick: number[]; clap: number[]; hat: number[]; snare: number[] },
+  intensity: number,
+): { kick: number[]; clap: number[]; hat: number[]; snare: number[] } {
+  const jitter = (v: number) => v === 0 ? 0 : Math.max(0, Math.min(1, v * (1 + (Math.random() - 0.5) * 0.35 * intensity)));
+  const lanes: DrumLane[] = ["kick", "clap", "hat", "snare"];
+  const out: any = {};
+  const ghostChance = { kick: 0.05, clap: 0.07, hat: 0.18, snare: 0.06 } as Record<DrumLane, number>;
+  const ghostVel   = { kick: 0.35, clap: 0.25, hat: 0.2, snare: 0.18 } as Record<DrumLane, number>;
+  for (const lane of lanes) {
+    const src = base[lane];
+    const row = new Array(16);
+    for (let i = 0; i < 16; i++) {
+      if (src[i] > 0) {
+        row[i] = jitter(src[i]);
+      } else if (Math.random() < ghostChance[lane] * intensity) {
+        row[i] = ghostVel[lane] * (0.6 + Math.random() * 0.4);
+      } else {
+        row[i] = 0;
+      }
+    }
+    out[lane] = row;
+  }
+  return out;
 }
 
 const DJ_VOICE_IDS = ["dj-ml", "dj-bs", "dj-ar"] as const;
@@ -58,6 +85,12 @@ export function useDjAutoPlay(
     let cachedMatrix = buildMatrix(sn().notes);
     let cachedScale = scaleRef.current;
     let lastFilterVal = -1;
+
+    // Fresh variation recomputed at each bar boundary (step === 0); changes every 16 steps.
+    let currentPattern = variatePattern(
+      DRUM_PATTERNS[sec().drums] || DRUM_PATTERNS.nebula,
+      0.25 + sec().e,
+    );
 
     const pulseTimers: Record<DjVoiceId, ReturnType<typeof setTimeout> | null> = {
       "dj-ml": null, "dj-bs": null, "dj-ar": null,
@@ -151,53 +184,25 @@ export function useDjAutoPlay(
 
       // Step within bar (0..15), absolute step within section
       const step = dj.tis % 16;
-      const pattern = DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.drift;
 
-      // ── DRUMS (the spine) ──
-      const kv = pattern.kick[step];
-      if (kv > 0) {
-        try { audioRef.current.kick?.triggerAttackRelease("C1", "8n", time, kv); } catch {}
-        const eng = engineRef.current;
-        Draw.schedule(() => {
-          if (eng?.kickPulse) eng.kickPulse(kv);
-          ui.bumpKick(kv);
-        }, time);
+      // Regenerate the bar's pattern at each downbeat — dynamic drift bar-to-bar
+      if (step === 0) {
+        currentPattern = variatePattern(
+          DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula,
+          0.25 + E,
+        );
       }
-      const cv = pattern.clap[step];
-      if (cv > 0) {
-        try { audioRef.current.clap?.triggerAttackRelease("16n", time, cv); } catch {}
-        const eng = engineRef.current;
-        Draw.schedule(() => {
-          if (eng?.shockwave) eng.shockwave([0.51, 0.55, 0.97], 1.4);   // periwinkle shock
-          if (eng?.flash) eng.flash(0.18 * cv);
-          if (eng?.emitParticles) {
-            const n = Math.floor(6 + cv * 8);
-            for (let i = 0; i < n; i++) {
-              const a = (i / n) * Math.PI * 2;
-              eng.emitParticles(Math.cos(a) * 80, (Math.random() - 0.5) * 30, Math.sin(a) * 80, [0.65, 0.55, 0.98], 1, 0.5 + cv * 0.5);
-            }
-          }
-          ui.bumpClap(cv);
-        }, time);
-      }
-      const hv = pattern.hat[step];
-      if (hv > 0) {
-        try { audioRef.current.hihat?.triggerAttackRelease("32n", time, hv * 0.6); } catch {}
-        const eng = engineRef.current;
-        Draw.schedule(() => {
-          if (eng?.sparkleCloud) eng.sparkleCloud([0.13, 0.83, 0.93], Math.max(2, Math.floor(hv * 3)));  // cyan Aurora
-          ui.bumpHat(hv);
-        }, time);
-      }
-      const sv = pattern.snare[step];
-      if (sv > 0) {
-        try { audioRef.current.snare?.triggerAttackRelease("16n", time, sv); } catch {}
-        const eng = engineRef.current;
-        Draw.schedule(() => {
-          if (eng?.flash) eng.flash(0.22 * sv);
-          if (eng?.addRipple) eng.addRipple(30, 0, -30, [0.88, 0.94, 1]);   // cool white
-        }, time);
-      }
+
+      // ── DRUMS (all routed through the unified triggerDrum on the drum-stars) ──
+      const eng = engineRef.current;
+      const kv = currentPattern.kick[step];
+      if (kv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("kick", kv, true), time);
+      const cv = currentPattern.clap[step];
+      if (cv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("clap", cv, true), time);
+      const hv = currentPattern.hat[step];
+      if (hv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("hat", hv, true), time);
+      const sv = currentPattern.snare[step];
+      if (sv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("snare", sv, true), time);
 
       // ── UI beat & progress update (every quarter) ──
       if (step % 4 === 0) {

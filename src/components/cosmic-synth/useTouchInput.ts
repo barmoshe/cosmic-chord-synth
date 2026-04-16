@@ -33,6 +33,17 @@ export function useTouchInput(
       }, 200);
     }
 
+    // Returns true if the tap/click hit a drum-star (and triggered its drum). Caller skips noteOn.
+    function tryDrumTap(x: number, y: number): boolean {
+      const eng = engineRef.current;
+      if (!eng?.pickDrumStar || !eng?.triggerDrum) return false;
+      const name = eng.pickDrumStar(x, y);
+      if (!name) return false;
+      eng.triggerDrum(name, 0.9, false);
+      resetUIHide();
+      return true;
+    }
+
     function noteOn(id: any, x: number, y: number) {
       if (!audioRef.current) return;
       if (cleanupTimer) { clearTimeout(cleanupTimer); cleanupTimer = null; }
@@ -104,12 +115,39 @@ export function useTouchInput(
       }
     }
 
-    const onTS = (e: TouchEvent) => { e.preventDefault(); for (const t of Array.from(e.changedTouches)) noteOn(t.identifier, t.clientX, t.clientY); };
-    const onTM = (e: TouchEvent) => { e.preventDefault(); for (const t of Array.from(e.changedTouches)) noteMove(t.identifier, t.clientX, t.clientY); };
-    const onTE = (e: TouchEvent) => { for (const t of Array.from(e.changedTouches)) noteOff(t.identifier); };
-    const onMD = (e: MouseEvent) => noteOn("m", e.clientX, e.clientY);
-    const onMM = (e: MouseEvent) => { if (touchesRef.current.has("m")) noteMove("m", e.clientX, e.clientY); };
-    const onMU = () => noteOff("m");
+    const drumTapIds = new Set<any>();    // touches that hit a drum star — never create a note
+    const onTS = (e: TouchEvent) => {
+      e.preventDefault();
+      for (const t of Array.from(e.changedTouches)) {
+        if (tryDrumTap(t.clientX, t.clientY)) { drumTapIds.add(t.identifier); continue; }
+        noteOn(t.identifier, t.clientX, t.clientY);
+      }
+    };
+    const onTM = (e: TouchEvent) => {
+      e.preventDefault();
+      for (const t of Array.from(e.changedTouches)) {
+        if (drumTapIds.has(t.identifier)) continue;
+        noteMove(t.identifier, t.clientX, t.clientY);
+      }
+    };
+    const onTE = (e: TouchEvent) => {
+      for (const t of Array.from(e.changedTouches)) {
+        if (drumTapIds.delete(t.identifier)) continue;
+        noteOff(t.identifier);
+      }
+    };
+    const onMD = (e: MouseEvent) => {
+      if (tryDrumTap(e.clientX, e.clientY)) { drumTapIds.add("m"); return; }
+      noteOn("m", e.clientX, e.clientY);
+    };
+    const onMM = (e: MouseEvent) => {
+      if (drumTapIds.has("m")) return;
+      if (touchesRef.current.has("m")) noteMove("m", e.clientX, e.clientY);
+    };
+    const onMU = () => {
+      if (drumTapIds.delete("m")) return;
+      noteOff("m");
+    };
 
     cv.addEventListener("touchstart", onTS, { passive: false });
     cv.addEventListener("touchmove", onTM, { passive: false });
