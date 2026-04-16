@@ -154,14 +154,14 @@ export function useDjAutoPlay(
           try {
             audioRef.current.ld.triggerAttackRelease(m2f(midi), durS * 0.8, time, vel);
           } catch {}
+          const fx = ((midi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
+          const fy = (1 - E) * window.innerHeight;
+          pulseGlow("dj-ml", midi, fx, fy, Math.max(180, durS * 800));
           if (engineRef.current) {
             Draw.schedule(() => {
-              const fx = ((midi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
-              const fy = (1 - E) * window.innerHeight;
               const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
               engineRef.current.addRipple(wx, wy, wz, noteColor(midi));
               engineRef.current.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(6 + E * 16), E);
-              pulseGlow("dj-ml", midi, fx, fy, Math.max(180, durS * 800));
             }, time);
           }
         }
@@ -174,14 +174,14 @@ export function useDjAutoPlay(
           const bn = notes[prog[dj.ci] % notes.length];
           const bassMidi = 36 + bn;
           try { audioRef.current.bs.triggerAttackRelease(m2f(bassMidi), bC[0] * 0.12, time + 0.01, Math.min((0.2 + E * 0.5) * bC[1] * s.l.bs, 0.8)); } catch {}
+          const bx = window.innerWidth * 0.5;
+          const by = window.innerHeight * 0.85;
+          pulseGlow("dj-bs", bassMidi, bx, by, 280);
           if (engineRef.current) {
             Draw.schedule(() => {
-              const bx = window.innerWidth * 0.5;
-              const by = window.innerHeight * 0.85;
               const [wx, wy, wz] = engineRef.current.s2w(bx, by);
               engineRef.current.addRipple(wx, wy, wz, noteColor(bassMidi));
               engineRef.current.emitParticles(wx, wy, wz, noteColor(bassMidi), Math.floor(3 + E * 6), E * 0.7);
-              pulseGlow("dj-bs", bassMidi, bx, by, 280);
             }, time);
           }
         }
@@ -192,13 +192,13 @@ export function useDjAutoPlay(
         const an = getArpNote(dj.ac, dj.as, dj.am); dj.as++;
         const arpMidi = 60 + an;
         try { audioRef.current.ar.triggerAttackRelease(m2f(arpMidi), 0.1, time + 0.02, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
+        const ax = ((arpMidi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
+        const ay = window.innerHeight * 0.3;
+        pulseGlow("dj-ar", arpMidi, ax, ay, 160);
         if (engineRef.current) {
           Draw.schedule(() => {
-            const ax = ((arpMidi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
-            const ay = window.innerHeight * 0.3;
             const [wx, wy, wz] = engineRef.current.s2w(ax, ay);
             engineRef.current.emitParticles(wx, wy, wz, noteColor(arpMidi), Math.floor(2 + E * 5), E * 0.5);
-            pulseGlow("dj-ar", arpMidi, ax, ay, 160);
           }, time);
         }
       }
@@ -208,14 +208,14 @@ export function useDjAutoPlay(
         const cD = wPick(matrix[dj.deg]);
         const ctMidi = 60 + notes[cD % notes.length];
         try { audioRef.current.ld.triggerAttackRelease(m2f(ctMidi), 0.08, time + 0.03, Math.min((0.08 + E * 0.25) * s.l.ct, 0.6)); } catch {}
+        const cx = ((ctMidi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
+        const cy = window.innerHeight * 0.5;
+        pulseGlow("dj-ct", ctMidi, cx, cy, 200);
         if (engineRef.current) {
           Draw.schedule(() => {
-            const cx = ((ctMidi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
-            const cy = window.innerHeight * 0.5;
             const [wx, wy, wz] = engineRef.current.s2w(cx, cy);
             engineRef.current.addRipple(wx, wy, wz, noteColor(ctMidi));
             engineRef.current.emitParticles(wx, wy, wz, noteColor(ctMidi), Math.floor(3 + E * 6), E * 0.6);
-            pulseGlow("dj-ct", ctMidi, cx, cy, 200);
           }, time);
         }
       }
