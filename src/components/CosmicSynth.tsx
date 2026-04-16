@@ -26,12 +26,17 @@ export default function CosmicSynth() {
   // DJ UI adapter — CosmicDjPanel installs itself here via onReady
   const djUiRef = useRef<DjUi>({
     setPhase: () => {}, setNextPhase: () => {}, setProgress: () => {}, setBeat: () => {},
+    setStep: () => {}, onDrumHit: () => {}, setEnergy: () => {}, setBpm: () => {},
   });
   const djUiProxy: DjUi = {
     setPhase: (p) => djUiRef.current.setPhase(p),
     setNextPhase: (p) => djUiRef.current.setNextPhase(p),
     setProgress: (v) => djUiRef.current.setProgress(v),
     setBeat: (b) => djUiRef.current.setBeat(b),
+    setStep: (s, p) => djUiRef.current.setStep(s, p),
+    onDrumHit: (n, v) => djUiRef.current.onDrumHit(n, v),
+    setEnergy: (e) => djUiRef.current.setEnergy(e),
+    setBpm: (b) => djUiRef.current.setBpm(b),
   };
   const handleDjUiReady = useCallback((ui: DjUi) => { djUiRef.current = ui; }, []);
 
@@ -162,14 +167,12 @@ export default function CosmicSynth() {
             </div>
           )}
 
-          <div className="cosmic-dj-corner">
-            <CosmicDjPanel
-              autoPlay={autoPlay}
-              onToggle={() => setAutoPlay(p => !p)}
-              onReady={handleDjUiReady}
-              bpm={94}
-            />
-          </div>
+          <CosmicDjPanel
+            autoPlay={autoPlay}
+            onToggle={() => setAutoPlay(p => !p)}
+            onReady={handleDjUiReady}
+            bpm={94}
+          />
 
           <div className="cosmic-scale-group">
             <button

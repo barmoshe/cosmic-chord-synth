@@ -517,6 +517,7 @@ export function useThreeScene(
 
     function frame() {
       rafRef.current = requestAnimationFrame(frame);
+      const dt = clock.getDelta();
       const t = clock.getElapsedTime();
       const a = analysisRef.current;
       const fc = frameCount.current++;
@@ -538,10 +539,12 @@ export function useThreeScene(
       djFx.spinBoost *= 0.94;
       djFx.whipPhase *= 0.9;
 
-      // Drum stars — slow orbit drift + per-star pulse decay
+      // Drum stars — slow orbit drift + per-star pulse decay (time-based so
+      // the feel stays consistent at any frame-rate; matches the DJ conductor widget)
       drumGroup.rotation.y = t * 0.08;
+      const drumDecay = Math.exp(-dt * 10);
       for (const m of drumMeshes) {
-        m.userData.pulse *= 0.85;
+        m.userData.pulse *= drumDecay;
         const u = (m.material as THREE.ShaderMaterial).uniforms;
         u.uTime.value = t;
         u.uPulse.value = m.userData.pulse;

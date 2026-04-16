@@ -4,21 +4,26 @@ import { Draw } from "tone";
 import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES } from "./constants";
 import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
 
+export type DrumLane = "kick" | "clap" | "hat" | "snare";
+export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
+
 export interface DjUi {
   setPhase: (p: string) => void;
   setNextPhase: (p: string) => void;
   setProgress: (v: number) => void;    // 0..1 within section
   setBeat: (b: number) => void;        // 0..3 quarter-note within bar
+  setStep: (step: number, pattern: DrumPattern) => void;  // 16n tick + current bar's drum grid
+  onDrumHit: (name: DrumLane, vel: number) => void;       // fires in same frame as audio hit
+  setEnergy: (e: number) => void;                          // 0..1
+  setBpm: (bpm: number) => void;                           // transport bpm
 }
-
-type DrumLane = "kick" | "clap" | "hat" | "snare";
 
 // Per-bar pattern variation — jitters velocities, sprinkles occasional ghost hits on empty steps.
 // Intensity 0..1 controls how much drift is applied (higher = more lively).
 function variatePattern(
-  base: { kick: number[]; clap: number[]; hat: number[]; snare: number[] },
+  base: DrumPattern,
   intensity: number,
-): { kick: number[]; clap: number[]; hat: number[]; snare: number[] } {
+): DrumPattern {
   const jitter = (v: number) => v === 0 ? 0 : Math.max(0, Math.min(1, v * (1 + (Math.random() - 0.5) * 0.35 * intensity)));
   const lanes: DrumLane[] = ["kick", "clap", "hat", "snare"];
   const out: any = {};
@@ -65,6 +70,7 @@ export function useDjAutoPlay(
       } catch {}
       DJ_VOICE_IDS.forEach(id => touchesRef.current.delete(id));
       ui.setPhase(""); ui.setNextPhase(""); ui.setProgress(0); ui.setBeat(0);
+      ui.setEnergy(0);
       return;
     }
 
@@ -161,6 +167,7 @@ export function useDjAutoPlay(
     if (transport.state !== "started") {
       transport.bpm.value = 94;
     }
+    ui.setBpm(transport.bpm.value);
 
     dj.iv = transport.scheduleRepeat((time) => {
       if (!audioRef.current || !dj.on) return;
@@ -196,6 +203,9 @@ export function useDjAutoPlay(
       // ── DRUMS — routed through the unified triggerDrum on the drum-stars.
       //   Audio fires synchronously here at the precise transport `time`;
       //   triggerDrum defers visuals to the matching frame internally via Tone.Draw.
+      //   We ALSO schedule a parallel Tone.Draw for the DJ conductor widget so that
+      //   the beat grid row-flashes land on the exact same frame as the audio hit
+      //   AND the drum-star pulse — this is what keeps the widget and stars in sync.
       const eng = engineRef.current;
       const kv = currentPattern.kick[step];
       if (kv > 0 && eng?.triggerDrum) eng.triggerDrum("kick", kv, true, time);
@@ -206,6 +216,16 @@ export function useDjAutoPlay(
       const sv = currentPattern.snare[step];
       if (sv > 0 && eng?.triggerDrum) eng.triggerDrum("snare", sv, true, time);
 
+      // ── UI step cursor + drum-hit dispatch (every 16n) ──
+      const barPattern = currentPattern;
+      Draw.schedule(() => {
+        ui.setStep(step, barPattern);
+        if (kv > 0) ui.onDrumHit("kick", kv);
+        if (cv > 0) ui.onDrumHit("clap", cv);
+        if (hv > 0) ui.onDrumHit("hat", hv);
+        if (sv > 0) ui.onDrumHit("snare", sv);
+      }, time);
+
       // ── UI beat & progress update (every quarter) ──
       if (step % 4 === 0) {
         const beat = (step / 4) | 0;
@@ -214,6 +234,10 @@ export function useDjAutoPlay(
       if (step % 2 === 0) {
         const prog01 = dj.tis / (s.bars * 16);
         Draw.schedule(() => ui.setProgress(prog01), time);
+      }
+      if (step === 0) {
+        const energy = E;
+        Draw.schedule(() => ui.setEnergy(energy), time);
       }
 
       // ── Advance tick and handle section boundary ──
