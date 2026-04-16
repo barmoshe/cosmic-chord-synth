@@ -647,7 +647,7 @@ export default function CosmicSequencer({
           animation: cseqStarTwinkle 2s ease-in-out infinite;
         }
         .cseq-title {
-          font-size: 12px; font-weight: 700; letter-spacing: 0.25em;
+          font-size: 13px; font-weight: 700; letter-spacing: 0.25em;
           background: linear-gradient(90deg, #00f0ff, #a855f7, #ff00e6);
           background-size: 200% 100%;
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -655,82 +655,82 @@ export default function CosmicSequencer({
         }
         @keyframes cosmicGradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         .cseq-scale-badge {
-          font-size: 7px; letter-spacing: 0.15em;
-          padding: 3px 10px; border-radius: 12px;
-          background: rgba(168,85,247,0.06);
-          border: 1px solid rgba(168,85,247,0.15);
-          color: rgba(168,85,247,0.6);
+          font-size: 9px; letter-spacing: 0.15em;
+          padding: 4px 12px; border-radius: 12px;
+          background: rgba(168,85,247,0.1);
+          border: 1px solid rgba(168,85,247,0.2);
+          color: rgba(168,85,247,0.8);
         }
         .cseq-close-btn {
           all: unset; cursor: pointer;
-          width: 32px; height: 32px; border-radius: 50%;
+          width: 34px; height: 34px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 14px; color: rgba(255,255,255,0.2);
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.04);
+          font-size: 15px; color: rgba(255,255,255,0.4);
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
           transition: all 0.2s;
         }
-        .cseq-close-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+        .cseq-close-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
 
         .cseq-transport {
           display: flex; align-items: center; gap: 14px;
           padding: 10px 20px;
-          border-bottom: 1px solid rgba(100,60,200,0.06);
+          border-bottom: 1px solid rgba(100,60,200,0.08);
           flex-wrap: wrap;
           position: relative; z-index: 1;
         }
         .cseq-play-btn {
           all: unset; cursor: pointer;
-          width: 40px; height: 40px; border-radius: 50%;
+          width: 42px; height: 42px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(0,240,255,0.04);
-          border: 1.5px solid rgba(0,240,255,0.15);
+          background: rgba(0,240,255,0.06);
+          border: 1.5px solid rgba(0,240,255,0.2);
           transition: all 0.3s;
         }
-        .cseq-play-btn:hover { background: rgba(0,240,255,0.08); border-color: rgba(0,240,255,0.3); }
+        .cseq-play-btn:hover { background: rgba(0,240,255,0.1); border-color: rgba(0,240,255,0.4); }
         .cseq-play-btn.active {
-          background: rgba(255,68,102,0.08);
-          border-color: rgba(255,68,102,0.3);
-          box-shadow: 0 0 20px rgba(255,68,102,0.15);
+          background: rgba(255,68,102,0.1);
+          border-color: rgba(255,68,102,0.4);
+          box-shadow: 0 0 20px rgba(255,68,102,0.2);
         }
-        .cseq-play-icon { font-size: 14px; color: rgba(0,240,255,0.7); }
+        .cseq-play-icon { font-size: 15px; color: rgba(0,240,255,0.9); }
         .cseq-play-btn.active .cseq-play-icon { color: #ff4466; }
 
         .cseq-bpm-group { display: flex; align-items: center; gap: 6px; }
         .cseq-adj-btn {
           all: unset; cursor: pointer;
-          width: 26px; height: 26px; border-radius: 8px;
+          width: 28px; height: 28px; border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          font-size: 14px; color: rgba(255,255,255,0.25);
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.04);
+          font-size: 15px; color: rgba(255,255,255,0.45);
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
           font-family: 'Raleway', sans-serif;
           transition: all 0.15s;
         }
-        .cseq-adj-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+        .cseq-adj-btn:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
         .cseq-bpm-display {
           cursor: pointer;
           display: flex; flex-direction: column; align-items: center;
-          padding: 4px 14px; border-radius: 10px;
-          background: rgba(0,240,255,0.03);
-          border: 1px solid rgba(0,240,255,0.08);
-          min-width: 50px;
+          padding: 5px 16px; border-radius: 10px;
+          background: rgba(0,240,255,0.05);
+          border: 1px solid rgba(0,240,255,0.12);
+          min-width: 52px;
         }
-        .cseq-bpm-val { font-size: 16px; color: rgba(0,240,255,0.8); font-weight: 700; }
-        .cseq-bpm-lbl { font-size: 7px; letter-spacing: 0.2em; color: rgba(255,255,255,0.2); }
+        .cseq-bpm-val { font-size: 17px; color: rgba(0,240,255,0.95); font-weight: 700; }
+        .cseq-bpm-lbl { font-size: 8px; letter-spacing: 0.2em; color: rgba(255,255,255,0.35); }
 
         .cseq-swing-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-        .cseq-lbl { font-size: 7px; letter-spacing: 0.15em; color: rgba(255,255,255,0.2); }
-        .cseq-val { font-size: 9px; color: rgba(0,240,255,0.4); min-width: 28px; text-align: right; }
+        .cseq-lbl { font-size: 9px; letter-spacing: 0.15em; color: rgba(255,255,255,0.4); }
+        .cseq-val { font-size: 10px; color: rgba(0,240,255,0.7); min-width: 30px; text-align: right; }
         .cseq-slider {
-          width: 65px; height: 3px;
+          width: 70px; height: 4px;
           -webkit-appearance: none; appearance: none;
-          background: rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.08);
           border-radius: 2px; outline: none;
         }
         .cseq-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 12px; height: 12px; border-radius: 50%;
+          width: 14px; height: 14px; border-radius: 50%;
           background: radial-gradient(circle, #00f0ff, rgba(0,240,255,0.5));
           border: none; cursor: pointer;
           box-shadow: 0 0 10px rgba(0,240,255,0.4);
@@ -743,57 +743,58 @@ export default function CosmicSequencer({
 
         .cseq-sidebar {
           display: flex; flex-direction: column;
-          width: 85px; flex-shrink: 0;
+          width: 90px; flex-shrink: 0;
           padding: 0;
-          border-right: 1px solid rgba(100,60,200,0.06);
+          border-right: 1px solid rgba(100,60,200,0.08);
           overflow-y: auto;
         }
         .cseq-section-label {
-          font-size: 7px; letter-spacing: 0.2em;
-          color: rgba(255,255,255,0.15);
-          padding: 8px 8px 4px;
-          border-top: 1px solid rgba(100,60,200,0.06);
+          font-size: 9px; letter-spacing: 0.2em;
+          color: rgba(255,255,255,0.35);
+          padding: 10px 8px 5px;
+          border-top: 1px solid rgba(100,60,200,0.08);
         }
         .cseq-section-label:first-child { border-top: none; padding-top: 10px; }
 
         .cseq-track-hdr {
-          height: 34px;
+          height: 36px;
           display: flex; align-items: center;
-          padding: 0 6px; gap: 3px;
+          padding: 0 6px; gap: 4px;
           cursor: pointer;
-          border-left: 2px solid transparent;
+          border-left: 3px solid transparent;
           transition: all 0.15s;
           flex-shrink: 0;
         }
         .cseq-track-hdr.active {
           border-left-color: var(--tc);
-          background: rgba(var(--tcr), 0.06);
+          background: rgba(var(--tcr), 0.1);
         }
-        .cseq-track-hdr:hover { background: rgba(255,255,255,0.02); }
+        .cseq-track-hdr:hover { background: rgba(255,255,255,0.03); }
         .cseq-track-name {
-          font-size: 7px; letter-spacing: 0.1em;
-          color: var(--tc); opacity: 0.7; flex: 1;
+          font-size: 9px; letter-spacing: 0.1em;
+          color: var(--tc); opacity: 0.9; flex: 1;
+          font-weight: 600;
         }
-        .cseq-track-ctrls { display: flex; gap: 2px; }
+        .cseq-track-ctrls { display: flex; gap: 3px; }
         .cseq-ms {
           all: unset; cursor: pointer;
-          width: 14px; height: 13px; border-radius: 3px;
-          font-size: 6px; font-weight: 700;
+          width: 16px; height: 15px; border-radius: 4px;
+          font-size: 7px; font-weight: 700;
           display: flex; align-items: center; justify-content: center;
-          color: rgba(255,255,255,0.15);
-          background: rgba(255,255,255,0.02);
+          color: rgba(255,255,255,0.3);
+          background: rgba(255,255,255,0.03);
           transition: all 0.15s;
           font-family: 'Orbitron', monospace;
         }
-        .cseq-ms.on { color: #ff4466; background: rgba(255,68,102,0.12); }
-        .cseq-ms.solo.on { color: #ffee00; background: rgba(255,238,0,0.12); }
+        .cseq-ms.on { color: #ff4466; background: rgba(255,68,102,0.15); }
+        .cseq-ms.solo.on { color: #ffee00; background: rgba(255,238,0,0.15); }
         .cseq-oct {
-          display: flex; align-items: center; gap: 2px;
-          font-size: 7px; color: rgba(255,255,255,0.2);
+          display: flex; align-items: center; gap: 3px;
+          font-size: 9px; color: rgba(255,255,255,0.4);
         }
         .cseq-oct button {
           all: unset; cursor: pointer;
-          font-size: 8px; color: rgba(255,255,255,0.25); padding: 0 2px;
+          font-size: 10px; color: rgba(255,255,255,0.4); padding: 0 3px;
           font-family: 'Raleway', sans-serif;
         }
 
@@ -803,170 +804,170 @@ export default function CosmicSequencer({
         }
         .cseq-grid { display: flex; flex-direction: column; min-width: max-content; }
         .cseq-step-nums {
-          display: flex; height: 18px; gap: 2px; padding: 6px 0 2px;
+          display: flex; height: 20px; gap: 2px; padding: 6px 0 2px;
           position: sticky; top: 0; z-index: 2;
           background: rgba(4,2,18,0.95);
         }
         .cseq-snum {
           width: 32px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          font-size: 6px; color: rgba(255,255,255,0.1);
+          font-size: 8px; color: rgba(255,255,255,0.2);
         }
-        .cseq-snum.beat { color: rgba(255,255,255,0.2); }
+        .cseq-snum.beat { color: rgba(255,255,255,0.4); }
         .cseq-snum.active { color: #00f0ff; text-shadow: 0 0 8px rgba(0,240,255,0.6); }
 
         .cseq-grid-sep {
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(168,85,247,0.15), transparent);
+          background: linear-gradient(90deg, transparent, rgba(168,85,247,0.2), transparent);
           margin: 4px 0;
         }
 
-        .cseq-row { display: flex; gap: 2px; height: 34px; align-items: stretch; }
+        .cseq-row { display: flex; gap: 2px; height: 36px; align-items: stretch; }
 
         .cseq-step {
           width: 32px; flex-shrink: 0;
-          border-radius: 5px;
-          background: rgba(255,255,255,0.01);
-          border: 1px solid rgba(255,255,255,0.02);
+          border-radius: 6px;
+          background: rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.03);
           cursor: pointer;
           transition: all 0.1s;
           position: relative;
           overflow: hidden;
           display: flex; align-items: center; justify-content: center;
         }
-        .cseq-step.beat { background: rgba(255,255,255,0.018); }
-        .cseq-step:hover { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.06); }
+        .cseq-step.beat { background: rgba(255,255,255,0.025); }
+        .cseq-step:hover { background: rgba(255,255,255,0.045); border-color: rgba(255,255,255,0.08); }
         .cseq-step.on {
-          background: rgba(var(--scr), calc(0.06 + var(--sv) * 0.18));
-          border-color: rgba(var(--scr), 0.2);
-          box-shadow: inset 0 0 12px rgba(var(--scr), 0.06);
+          background: rgba(var(--scr), calc(0.08 + var(--sv) * 0.2));
+          border-color: rgba(var(--scr), 0.3);
+          box-shadow: inset 0 0 12px rgba(var(--scr), 0.08);
         }
         .cseq-step.on.drum {
-          background: rgba(var(--scr), calc(0.1 + var(--sv) * 0.25));
-          border-color: rgba(var(--scr), 0.35);
+          background: rgba(var(--scr), calc(0.12 + var(--sv) * 0.28));
+          border-color: rgba(var(--scr), 0.4);
         }
         .cseq-step.on.playing {
-          background: rgba(var(--scr), calc(0.2 + var(--sv) * 0.35));
-          border-color: rgba(var(--scr), 0.6);
-          box-shadow: 0 0 18px rgba(var(--scr), 0.25), inset 0 0 12px rgba(var(--scr), 0.1);
+          background: rgba(var(--scr), calc(0.22 + var(--sv) * 0.38));
+          border-color: rgba(var(--scr), 0.7);
+          box-shadow: 0 0 18px rgba(var(--scr), 0.3), inset 0 0 12px rgba(var(--scr), 0.12);
         }
         .cseq-step.playing:not(.on) {
-          border-color: rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.02);
+          border-color: rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.03);
         }
         .cseq-step.pulse {
           animation: cseqPulse 0.3s ease-out;
         }
 
         .cseq-drum-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: radial-gradient(circle, var(--sc), rgba(var(--scr), 0.4));
-          box-shadow: 0 0 6px rgba(var(--scr), 0.3);
+          width: 10px; height: 10px; border-radius: 50%;
+          background: radial-gradient(circle, var(--sc), rgba(var(--scr), 0.5));
+          box-shadow: 0 0 8px rgba(var(--scr), 0.4);
         }
         .cseq-step.playing .cseq-drum-dot {
-          width: 10px; height: 10px;
-          box-shadow: 0 0 12px rgba(var(--scr), 0.6);
+          width: 12px; height: 12px;
+          box-shadow: 0 0 14px rgba(var(--scr), 0.7);
         }
 
         .cseq-step-fill {
           position: absolute; bottom: 0; left: 2px; right: 2px;
-          background: linear-gradient(to top, rgba(var(--scr), 0.5), rgba(var(--scr), 0.1));
+          background: linear-gradient(to top, rgba(var(--scr), 0.6), rgba(var(--scr), 0.15));
           border-radius: 2px 2px 0 0;
           transition: height 0.15s;
         }
-        .cseq-note-lbl { font-size: 7px; color: var(--sc); opacity: 0.8; z-index: 1; }
-        .cseq-vel-lbl { font-size: 6px; color: rgba(255,255,255,0.35); z-index: 1; }
+        .cseq-note-lbl { font-size: 9px; color: var(--sc); opacity: 0.9; z-index: 1; font-weight: 600; }
+        .cseq-vel-lbl { font-size: 8px; color: rgba(255,255,255,0.55); z-index: 1; }
 
         .cseq-toolbar {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 8px 14px 12px;
-          border-top: 1px solid rgba(100,60,200,0.06);
-          flex-wrap: wrap; gap: 6px;
+          padding: 10px 16px 14px;
+          border-top: 1px solid rgba(100,60,200,0.08);
+          flex-wrap: wrap; gap: 8px;
           position: relative; z-index: 1;
         }
-        .cseq-modes { display: flex; align-items: center; gap: 5px; }
+        .cseq-modes { display: flex; align-items: center; gap: 6px; }
         .cseq-mode-btn {
           all: unset; cursor: pointer;
-          padding: 4px 9px; border-radius: 6px;
+          padding: 5px 11px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
-          font-size: 7px; letter-spacing: 0.08em;
-          color: rgba(255,255,255,0.25);
-          background: rgba(255,255,255,0.015);
-          border: 1px solid rgba(255,255,255,0.03);
+          font-size: 9px; letter-spacing: 0.08em;
+          color: rgba(255,255,255,0.4);
+          background: rgba(255,255,255,0.025);
+          border: 1px solid rgba(255,255,255,0.06);
           transition: all 0.15s;
-          display: flex; align-items: center; gap: 3px;
+          display: flex; align-items: center; gap: 4px;
         }
-        .cseq-mode-btn:hover { background: rgba(255,255,255,0.04); }
+        .cseq-mode-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); }
         .cseq-mode-btn.active {
           color: #00f0ff;
-          background: rgba(0,240,255,0.05);
-          border-color: rgba(0,240,255,0.15);
+          background: rgba(0,240,255,0.08);
+          border-color: rgba(0,240,255,0.2);
         }
 
-        .cseq-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+        .cseq-actions { display: flex; gap: 5px; flex-wrap: wrap; }
         .cseq-act {
           all: unset; cursor: pointer;
-          padding: 4px 9px; border-radius: 6px;
+          padding: 5px 11px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
-          font-size: 7px; letter-spacing: 0.06em;
-          color: rgba(255,255,255,0.25);
-          background: rgba(255,255,255,0.015);
-          border: 1px solid rgba(255,255,255,0.03);
+          font-size: 9px; letter-spacing: 0.06em;
+          color: rgba(255,255,255,0.4);
+          background: rgba(255,255,255,0.025);
+          border: 1px solid rgba(255,255,255,0.06);
           transition: all 0.15s;
         }
-        .cseq-act:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45); }
+        .cseq-act:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.65); }
         .cseq-act.preset {
-          color: rgba(168,85,247,0.4);
-          border-color: rgba(168,85,247,0.1);
+          color: rgba(168,85,247,0.7);
+          border-color: rgba(168,85,247,0.15);
         }
-        .cseq-act.preset:hover { background: rgba(168,85,247,0.06); }
+        .cseq-act.preset:hover { background: rgba(168,85,247,0.1); color: rgba(168,85,247,0.9); }
 
         .cseq-presets {
-          position: absolute; bottom: 50px; right: 14px;
+          position: absolute; bottom: 54px; right: 14px;
           background: rgba(8,4,26,0.98);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(168,85,247,0.15);
+          border: 1px solid rgba(168,85,247,0.2);
           border-radius: 14px;
-          padding: 8px;
+          padding: 10px;
           display: flex; flex-direction: column; gap: 2px;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(100,40,200,0.1);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(100,40,200,0.15);
           z-index: 5;
           animation: cseqFade 0.2s ease-out;
         }
         .cseq-presets-title {
-          font-size: 8px; letter-spacing: 0.15em;
-          color: rgba(168,85,247,0.4);
-          padding: 4px 12px 8px;
-          border-bottom: 1px solid rgba(168,85,247,0.08);
+          font-size: 10px; letter-spacing: 0.15em;
+          color: rgba(168,85,247,0.7);
+          padding: 5px 14px 10px;
+          border-bottom: 1px solid rgba(168,85,247,0.12);
         }
         .cseq-preset-item {
           all: unset; cursor: pointer;
-          padding: 10px 18px; border-radius: 8px;
+          padding: 12px 20px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
-          font-size: 9px; letter-spacing: 0.1em;
-          color: rgba(255,255,255,0.35);
+          font-size: 11px; letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.55);
           transition: all 0.15s;
         }
         .cseq-preset-item:hover {
-          background: rgba(168,85,247,0.08);
-          color: rgba(168,85,247,0.8);
+          background: rgba(168,85,247,0.1);
+          color: rgba(168,85,247,0.95);
         }
 
-        .cseq-grid-scroll::-webkit-scrollbar { width: 3px; height: 3px; }
+        .cseq-grid-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .cseq-grid-scroll::-webkit-scrollbar-track { background: transparent; }
-        .cseq-grid-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+        .cseq-grid-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
         @media (max-width: 600px) {
           .cseq-panel { max-height: 92vh; }
-          .cseq-sidebar { width: 65px; }
-          .cseq-step { width: 28px; }
-          .cseq-row { height: 30px; }
+          .cseq-sidebar { width: 72px; }
+          .cseq-step { width: 30px; }
+          .cseq-row { height: 32px; }
           .cseq-transport { gap: 8px; padding: 8px 14px; }
           .cseq-swing-group { margin-left: 0; }
-          .cseq-toolbar { padding: 6px 10px 10px; }
-          .cseq-track-hdr { padding: 0 4px; height: 30px; }
+          .cseq-toolbar { padding: 8px 12px 12px; }
+          .cseq-track-hdr { padding: 0 4px; height: 32px; }
           .cseq-oct { display: none !important; }
-          .cseq-section-label { font-size: 6px; padding: 6px 4px 2px; }
+          .cseq-section-label { font-size: 8px; padding: 7px 4px 3px; }
         }
       `}</style>
     </div>
