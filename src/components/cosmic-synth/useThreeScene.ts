@@ -376,9 +376,9 @@ export function useThreeScene(
       ripples.push({ mesh: rMesh, active: false, life: 0, scaleMult: 1, startOp: 0.6, maxLife: 60 });
     }
 
-    function addRipple(x: number, y: number, z: number, col: number[]) {
+    function addRipple(x: number, y: number, z: number, col: number[], intensity = 1) {
       const r = ripples.find(r => !r.active); if (!r) return;
-      r.active = true; r.life = 0; r.scaleMult = 1; r.startOp = 0.6; r.maxLife = 60;
+      r.active = true; r.life = 0; r.scaleMult = intensity; r.startOp = 0.6 * intensity; r.maxLife = 60;
       r.mesh.visible = true;
       r.mesh.position.set(x, y, z); r.mesh.scale.setScalar(1);
       (r.mesh.material as THREE.MeshBasicMaterial).color.setRGB(col[0], col[1], col[2]);
@@ -482,22 +482,30 @@ export function useThreeScene(
       // Audio — precise transport time when called from auto-DJ, immediate for user taps
       audioRef.current?.triggerDrum?.(name, v, audioTime);
 
-      const pulseBoost = auto ? 1 : 1.3;
+      // Auto-DJ visuals intentionally subdued — the pattern repeats constantly,
+      // so we dial back pulse, particles, ripple, kick flash and spin boost to
+      // avoid overstimulating the galaxy. User taps stay punchy.
+      const pulseBoost = auto ? 0.5 : 1.3;
+      const particleCount = auto ? 3 + Math.floor(v * 4) : 6 + Math.floor(v * 10);
+      const particleVel = auto ? 0.3 + v * 0.2 : 0.6 + v * 0.4;
+      const rippleIntensity = auto ? 0.4 : 1;
       const runVisuals = () => {
         m.userData.pulse = Math.max(m.userData.pulse, v * pulseBoost);
         m.getWorldPosition(_tmpWP);
-        emitParticles(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col, 6 + Math.floor(v * 10), 0.6 + v * 0.4);
-        addRipple(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col);
+        emitParticles(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col, particleCount, particleVel);
+        addRipple(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col, rippleIntensity);
         if (name === "kick") {
-          const f = 0.2 * v;
+          const f = (auto ? 0.07 : 0.2) * v;
           if (f > flashIntensity.current) flashIntensity.current = f;
-          djFx.spinBoost = Math.min(djFx.spinBoost + 0.18 * v, 0.6);
+          const boost = (auto ? 0.05 : 0.18) * v;
+          const cap = auto ? 0.2 : 0.6;
+          djFx.spinBoost = Math.min(djFx.spinBoost + boost, cap);
         }
       };
       if (audioTime !== undefined) Tone.Draw.schedule(runVisuals, audioTime);
       else runVisuals();
 
-      haptic(name === "kick" ? 15 : 6);
+      if (!auto) haptic(name === "kick" ? 15 : 6);
     }
 
     engineRef.current = {

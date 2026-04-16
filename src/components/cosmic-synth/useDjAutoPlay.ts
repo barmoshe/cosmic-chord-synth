@@ -275,8 +275,8 @@ export function useDjAutoPlay(
         if (eng) {
           Draw.schedule(() => {
             const [wx, wy, wz] = eng.s2w(bx, by);
-            eng.addRipple(wx, wy, wz, noteColor(bassMidi));
-            eng.emitParticles(wx, wy, wz, noteColor(bassMidi), Math.floor(3 + E * 5), E * 0.7);
+            eng.addRipple(wx, wy, wz, noteColor(bassMidi), 0.45);
+            eng.emitParticles(wx, wy, wz, noteColor(bassMidi), Math.floor(1 + E * 3), E * 0.4);
           }, time);
         }
       }
@@ -299,8 +299,8 @@ export function useDjAutoPlay(
           if (eng) {
             Draw.schedule(() => {
               const [wx, wy, wz] = eng.s2w(fx, fy);
-              eng.addRipple(wx, wy, wz, noteColor(midi));
-              eng.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(5 + E * 12), E);
+              eng.addRipple(wx, wy, wz, noteColor(midi), 0.45);
+              eng.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(2 + E * 5), E * 0.55);
             }, time);
           }
         }
@@ -318,7 +318,7 @@ export function useDjAutoPlay(
         if (eng) {
           Draw.schedule(() => {
             const [wx, wy, wz] = eng.s2w(ax, ay);
-            eng.emitParticles(wx, wy, wz, noteColor(arpMidi), Math.floor(2 + E * 5), E * 0.5);
+            eng.emitParticles(wx, wy, wz, noteColor(arpMidi), Math.floor(1 + E * 2), E * 0.3);
           }, time);
         }
       }
