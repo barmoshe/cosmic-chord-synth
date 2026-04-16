@@ -101,7 +101,7 @@ export default function CosmicSynth() {
 
   /* ── JSX ── */
   return (
-    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#1f0d0a", touchAction: "none" }}>
+    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#162540", touchAction: "none" }}>
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
 

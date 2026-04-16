@@ -56,42 +56,42 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Solar Flare palette — warm ember background with cream typography */
-    --background: 15 35% 8%;
-    --foreground: 35 100% 92%;
+    /* Glacial Aurora 2026 — lifted aurora-navy with teal/cyan/periwinkle accents */
+    --background: 217 50% 17%;
+    --foreground: 200 70% 94%;
 
-    --card: 15 30% 12%;
-    --card-foreground: 35 100% 92%;
+    --card: 217 45% 20%;
+    --card-foreground: 200 70% 94%;
 
-    --popover: 15 30% 12%;
-    --popover-foreground: 35 100% 92%;
+    --popover: 217 45% 20%;
+    --popover-foreground: 200 70% 94%;
 
-    --primary: 30 100% 64%;
-    --primary-foreground: 15 35% 8%;
+    --primary: 173 80% 40%;
+    --primary-foreground: 217 50% 12%;
 
-    --secondary: 20 25% 18%;
-    --secondary-foreground: 35 100% 92%;
+    --secondary: 232 90% 75%;
+    --secondary-foreground: 217 50% 12%;
 
-    --muted: 20 25% 18%;
-    --muted-foreground: 30 40% 72%;
+    --muted: 220 30% 28%;
+    --muted-foreground: 215 30% 70%;
 
-    --accent: 1 100% 68%;
-    --accent-foreground: 35 100% 92%;
+    --accent: 187 85% 53%;
+    --accent-foreground: 217 50% 12%;
 
-    --destructive: 8 90% 55%;
-    --destructive-foreground: 35 100% 92%;
+    --destructive: 351 95% 71%;
+    --destructive-foreground: 217 50% 12%;
 
-    --border: 20 30% 22%;
-    --input: 20 30% 22%;
-    --ring: 30 100% 64%;
-    --sidebar-background: 15 30% 12%;
-    --sidebar-foreground: 35 100% 92%;
-    --sidebar-primary: 30 100% 64%;
-    --sidebar-primary-foreground: 15 35% 8%;
-    --sidebar-accent: 20 25% 18%;
-    --sidebar-accent-foreground: 35 100% 92%;
-    --sidebar-border: 20 30% 22%;
-    --sidebar-ring: 30 100% 64%;
+    --border: 220 35% 30%;
+    --input: 220 35% 30%;
+    --ring: 173 80% 40%;
+    --sidebar-background: 217 45% 20%;
+    --sidebar-foreground: 200 70% 94%;
+    --sidebar-primary: 173 80% 40%;
+    --sidebar-primary-foreground: 217 50% 12%;
+    --sidebar-accent: 220 30% 28%;
+    --sidebar-accent-foreground: 200 70% 94%;
+    --sidebar-border: 220 35% 30%;
+    --sidebar-ring: 187 85% 53%;
   }
 }
 

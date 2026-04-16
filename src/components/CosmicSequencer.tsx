@@ -25,17 +25,16 @@ export interface SeqTrack {
 }
 
 const TRACK_DEFS: Omit<SeqTrack, "steps">[] = [
-  // Drum tracks (Solar Flare warm spectrum)
-  { id: "kick",  label: "KICK",  color: "#ff3d2e", colorRgb: "255,61,46",   synth: "kick",  muted: false, solo: false, octave: 2, isDrum: true },
-  { id: "snare", label: "SNARE", color: "#ffa552", colorRgb: "255,165,82",  synth: "snare", muted: false, solo: false, octave: 3, isDrum: true },
-  { id: "hihat", label: "HAT",   color: "#ffd166", colorRgb: "255,209,102", synth: "hihat", muted: false, solo: false, octave: 5, isDrum: true },
-  { id: "clap",  label: "CLAP",  color: "#ff5e5b", colorRgb: "255,94,91",   synth: "clap",  muted: false, solo: false, octave: 3, isDrum: true },
-  // Melodic tracks
-  { id: "lead", label: "LEAD", color: "#ffb347", colorRgb: "255,179,71",  synth: "ld", muted: false, solo: false, octave: 5, isDrum: false },
-  { id: "bass", label: "BASS", color: "#7a1f6b", colorRgb: "122,31,107",  synth: "bs", muted: false, solo: false, octave: 3, isDrum: false },
-  { id: "arp",  label: "ARP",  color: "#ff8f3d", colorRgb: "255,143,61",  synth: "ar", muted: false, solo: false, octave: 5, isDrum: false },
-  // Single cool spark to give the warm palette tension
-  { id: "pad",  label: "PAD",  color: "#48cae4", colorRgb: "72,202,228",  synth: "pd", muted: false, solo: false, octave: 4, isDrum: false },
+  // Drum tracks (Glacial Aurora — cool spectrum + gold/rose for impact, no orange/red)
+  { id: "kick",  label: "KICK",  color: "#fb7185", colorRgb: "251,113,133", synth: "kick",  muted: false, solo: false, octave: 2, isDrum: true },
+  { id: "snare", label: "SNARE", color: "#fcd34d", colorRgb: "252,211,77",  synth: "snare", muted: false, solo: false, octave: 3, isDrum: true },
+  { id: "hihat", label: "HAT",   color: "#5eead4", colorRgb: "94,234,212",  synth: "hihat", muted: false, solo: false, octave: 5, isDrum: true },
+  { id: "clap",  label: "CLAP",  color: "#e879f9", colorRgb: "232,121,249", synth: "clap",  muted: false, solo: false, octave: 3, isDrum: true },
+  // Melodic tracks (aurora trio + lavender)
+  { id: "lead", label: "LEAD", color: "#22d3ee", colorRgb: "34,211,238",  synth: "ld", muted: false, solo: false, octave: 5, isDrum: false },
+  { id: "bass", label: "BASS", color: "#818cf8", colorRgb: "129,140,248", synth: "bs", muted: false, solo: false, octave: 3, isDrum: false },
+  { id: "arp",  label: "ARP",  color: "#14b8a6", colorRgb: "20,184,166",  synth: "ar", muted: false, solo: false, octave: 5, isDrum: false },
+  { id: "pad",  label: "PAD",  color: "#a78bfa", colorRgb: "167,139,250", synth: "pd", muted: false, solo: false, octave: 4, isDrum: false },
 ];
 
 function makeEmptySteps(count: number): SeqStep[] {
@@ -601,7 +600,7 @@ export default function CosmicSequencer({
       </div>
 
       <style>{`
-        /* ── Sequencer "Solar Flare" theme ── */
+        /* ── Sequencer "Glacial Aurora 2026" theme ── */
         .cseq-overlay {
           position: fixed; inset: 0; z-index: 50;
           display: flex; align-items: flex-end; justify-content: center;
@@ -618,11 +617,11 @@ export default function CosmicSequencer({
         .cseq-panel {
           width: 100%; max-width: 960px;
           max-height: 88vh;
-          background: rgba(35,16,12,0.97);
-          border: 1px solid rgba(255,179,71,0.14);
+          background: rgba(22,37,64,0.95);
+          border: 1px solid rgba(34,211,238,0.18);
           border-bottom: none;
           border-radius: 24px 24px 0 0;
-          box-shadow: 0 -10px 80px rgba(255,94,91,0.18), 0 -2px 40px rgba(255,179,71,0.08), inset 0 1px 0 rgba(255,241,214,0.05);
+          box-shadow: 0 -10px 80px rgba(34,211,238,0.18), 0 -2px 40px rgba(129,140,248,0.1), inset 0 1px 0 rgba(229,244,251,0.05);
           display: flex; flex-direction: column;
           overflow: hidden;
           animation: cseqSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -633,32 +632,32 @@ export default function CosmicSequencer({
         .cseq-bg-stars {
           position: absolute; inset: 0; pointer-events: none; overflow: hidden;
           background:
-            radial-gradient(1px 1px at 10% 20%, rgba(255,179,71,0.4) 0%, transparent 100%),
-            radial-gradient(1px 1px at 30% 60%, rgba(255,94,91,0.3) 0%, transparent 100%),
-            radial-gradient(1px 1px at 50% 10%, rgba(255,209,102,0.3) 0%, transparent 100%),
-            radial-gradient(1px 1px at 70% 80%, rgba(72,202,228,0.3) 0%, transparent 100%),
-            radial-gradient(1px 1px at 90% 40%, rgba(255,143,61,0.3) 0%, transparent 100%),
-            radial-gradient(200px 200px at 20% 30%, rgba(255,94,91,0.05) 0%, transparent 100%),
-            radial-gradient(300px 300px at 80% 70%, rgba(255,179,71,0.04) 0%, transparent 100%);
+            radial-gradient(1px 1px at 10% 20%, rgba(34,211,238,0.4) 0%, transparent 100%),
+            radial-gradient(1px 1px at 30% 60%, rgba(129,140,248,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 50% 10%, rgba(252,211,77,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 70% 80%, rgba(94,234,212,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 90% 40%, rgba(232,121,249,0.3) 0%, transparent 100%),
+            radial-gradient(200px 200px at 20% 30%, rgba(34,211,238,0.05) 0%, transparent 100%),
+            radial-gradient(300px 300px at 80% 70%, rgba(129,140,248,0.05) 0%, transparent 100%);
           animation: cseqNebula 8s ease-in-out infinite;
         }
 
         .cseq-header {
           display: flex; align-items: center; justify-content: space-between;
           padding: 16px 20px 12px;
-          border-bottom: 1px solid rgba(255,179,71,0.1);
+          border-bottom: 1px solid rgba(34,211,238,0.12);
           position: relative; z-index: 1;
         }
         .cseq-title-group { display: flex; align-items: center; gap: 10px; }
         .cseq-nebula-icon {
           font-size: 16px;
-          background: linear-gradient(135deg, #FFB347, #FF5E5B, #FFD166);
+          background: linear-gradient(135deg, #22D3EE, #818CF8, #FCD34D);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           animation: cseqStarTwinkle 2s ease-in-out infinite;
         }
         .cseq-title {
           font-size: 13px; font-weight: 700; letter-spacing: 0.25em;
-          background: linear-gradient(90deg, #FFB347, #FF5E5B, #FFD166);
+          background: linear-gradient(90deg, #22D3EE, #818CF8, #FCD34D);
           background-size: 200% 100%;
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           animation: cosmicGradient 4s ease infinite;
@@ -667,25 +666,25 @@ export default function CosmicSequencer({
         .cseq-scale-badge {
           font-size: 9px; letter-spacing: 0.15em;
           padding: 4px 12px; border-radius: 12px;
-          background: rgba(255,94,91,0.1);
-          border: 1px solid rgba(255,94,91,0.28);
-          color: #F5C99A;
+          background: rgba(129,140,248,0.12);
+          border: 1px solid rgba(129,140,248,0.3);
+          color: #B4C9E0;
         }
         .cseq-close-btn {
           all: unset; cursor: pointer;
           width: 34px; height: 34px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          font-size: 15px; color: #D4A574;
-          background: rgba(255,241,214,0.04);
-          border: 1px solid rgba(255,241,214,0.1);
+          font-size: 15px; color: #7C95B5;
+          background: rgba(229,244,251,0.04);
+          border: 1px solid rgba(229,244,251,0.1);
           transition: all 0.2s;
         }
-        .cseq-close-btn:hover { background: rgba(255,241,214,0.1); color: #FFF1D6; }
+        .cseq-close-btn:hover { background: rgba(229,244,251,0.1); color: #E5F4FB; }
 
         .cseq-transport {
           display: flex; align-items: center; gap: 14px;
           padding: 10px 20px;
-          border-bottom: 1px solid rgba(255,179,71,0.1);
+          border-bottom: 1px solid rgba(34,211,238,0.12);
           flex-wrap: wrap;
           position: relative; z-index: 1;
         }
@@ -693,57 +692,57 @@ export default function CosmicSequencer({
           all: unset; cursor: pointer;
           width: 42px; height: 42px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(255,179,71,0.08);
-          border: 1.5px solid rgba(255,179,71,0.3);
+          background: rgba(34,211,238,0.08);
+          border: 1.5px solid rgba(34,211,238,0.3);
           transition: all 0.3s;
         }
-        .cseq-play-btn:hover { background: rgba(255,179,71,0.14); border-color: rgba(255,179,71,0.5); }
+        .cseq-play-btn:hover { background: rgba(34,211,238,0.14); border-color: rgba(34,211,238,0.5); }
         .cseq-play-btn.active {
-          background: rgba(255,61,46,0.12);
-          border-color: rgba(255,61,46,0.5);
-          box-shadow: 0 0 20px rgba(255,61,46,0.3);
+          background: rgba(251,113,133,0.14);
+          border-color: rgba(251,113,133,0.5);
+          box-shadow: 0 0 20px rgba(251,113,133,0.3);
         }
-        .cseq-play-icon { font-size: 15px; color: #FFB347; }
-        .cseq-play-btn.active .cseq-play-icon { color: #FF3D2E; }
+        .cseq-play-icon { font-size: 15px; color: #22D3EE; }
+        .cseq-play-btn.active .cseq-play-icon { color: #FB7185; }
 
         .cseq-bpm-group { display: flex; align-items: center; gap: 6px; }
         .cseq-adj-btn {
           all: unset; cursor: pointer;
           width: 28px; height: 28px; border-radius: 8px;
           display: flex; align-items: center; justify-content: center;
-          font-size: 15px; color: #D4A574;
-          background: rgba(255,241,214,0.04);
-          border: 1px solid rgba(255,241,214,0.1);
+          font-size: 15px; color: #7C95B5;
+          background: rgba(229,244,251,0.04);
+          border: 1px solid rgba(229,244,251,0.1);
           font-family: 'Raleway', sans-serif;
           transition: all 0.15s;
         }
-        .cseq-adj-btn:hover { background: rgba(255,241,214,0.1); color: #FFF1D6; }
+        .cseq-adj-btn:hover { background: rgba(229,244,251,0.1); color: #E5F4FB; }
         .cseq-bpm-display {
           cursor: pointer;
           display: flex; flex-direction: column; align-items: center;
           padding: 5px 16px; border-radius: 10px;
-          background: rgba(255,179,71,0.08);
-          border: 1px solid rgba(255,179,71,0.2);
+          background: rgba(34,211,238,0.08);
+          border: 1px solid rgba(34,211,238,0.25);
           min-width: 52px;
         }
-        .cseq-bpm-val { font-size: 17px; color: #FFB347; font-weight: 700; }
-        .cseq-bpm-lbl { font-size: 8px; letter-spacing: 0.2em; color: #D4A574; }
+        .cseq-bpm-val { font-size: 17px; color: #22D3EE; font-weight: 700; }
+        .cseq-bpm-lbl { font-size: 8px; letter-spacing: 0.2em; color: #7C95B5; }
 
         .cseq-swing-group { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-        .cseq-lbl { font-size: 9px; letter-spacing: 0.15em; color: #D4A574; }
-        .cseq-val { font-size: 10px; color: #FFB347; min-width: 30px; text-align: right; }
+        .cseq-lbl { font-size: 9px; letter-spacing: 0.15em; color: #7C95B5; }
+        .cseq-val { font-size: 10px; color: #22D3EE; min-width: 30px; text-align: right; }
         .cseq-slider {
           width: 70px; height: 4px;
           -webkit-appearance: none; appearance: none;
-          background: rgba(255,241,214,0.1);
+          background: rgba(229,244,251,0.1);
           border-radius: 2px; outline: none;
         }
         .cseq-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
           width: 14px; height: 14px; border-radius: 50%;
-          background: radial-gradient(circle, #FFB347, rgba(255,179,71,0.5));
+          background: radial-gradient(circle, #22D3EE, rgba(34,211,238,0.5));
           border: none; cursor: pointer;
-          box-shadow: 0 0 10px rgba(255,179,71,0.5);
+          box-shadow: 0 0 10px rgba(34,211,238,0.5);
         }
 
         .cseq-grid-container {
@@ -755,14 +754,14 @@ export default function CosmicSequencer({
           display: flex; flex-direction: column;
           width: 90px; flex-shrink: 0;
           padding: 0;
-          border-right: 1px solid rgba(255,179,71,0.1);
+          border-right: 1px solid rgba(34,211,238,0.12);
           overflow-y: auto;
         }
         .cseq-section-label {
           font-size: 9px; letter-spacing: 0.2em;
-          color: #D4A574;
+          color: #7C95B5;
           padding: 10px 8px 5px;
-          border-top: 1px solid rgba(255,179,71,0.1);
+          border-top: 1px solid rgba(34,211,238,0.12);
         }
         .cseq-section-label:first-child { border-top: none; padding-top: 10px; }
 
@@ -779,7 +778,7 @@ export default function CosmicSequencer({
           border-left-color: var(--tc);
           background: rgba(var(--tcr), 0.12);
         }
-        .cseq-track-hdr:hover { background: rgba(255,241,214,0.04); }
+        .cseq-track-hdr:hover { background: rgba(229,244,251,0.04); }
         .cseq-track-name {
           font-size: 9px; letter-spacing: 0.1em;
           color: var(--tc); opacity: 0.95; flex: 1;
@@ -791,20 +790,20 @@ export default function CosmicSequencer({
           width: 16px; height: 15px; border-radius: 4px;
           font-size: 7px; font-weight: 700;
           display: flex; align-items: center; justify-content: center;
-          color: #A8825F;
-          background: rgba(255,241,214,0.04);
+          color: #5A7295;
+          background: rgba(229,244,251,0.04);
           transition: all 0.15s;
           font-family: 'Orbitron', monospace;
         }
-        .cseq-ms.on { color: #FF3D2E; background: rgba(255,61,46,0.18); }
-        .cseq-ms.solo.on { color: #FFD166; background: rgba(255,209,102,0.2); }
+        .cseq-ms.on { color: #FB7185; background: rgba(251,113,133,0.18); }
+        .cseq-ms.solo.on { color: #FCD34D; background: rgba(252,211,77,0.2); }
         .cseq-oct {
           display: flex; align-items: center; gap: 3px;
-          font-size: 9px; color: #D4A574;
+          font-size: 9px; color: #7C95B5;
         }
         .cseq-oct button {
           all: unset; cursor: pointer;
-          font-size: 10px; color: #D4A574; padding: 0 3px;
+          font-size: 10px; color: #7C95B5; padding: 0 3px;
           font-family: 'Raleway', sans-serif;
         }
 
@@ -816,19 +815,19 @@ export default function CosmicSequencer({
         .cseq-step-nums {
           display: flex; height: 20px; gap: 2px; padding: 6px 0 2px;
           position: sticky; top: 0; z-index: 2;
-          background: rgba(35,16,12,0.95);
+          background: rgba(22,37,64,0.95);
         }
         .cseq-snum {
           width: 32px; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
-          font-size: 8px; color: #8A6550;
+          font-size: 8px; color: #4A5F7A;
         }
-        .cseq-snum.beat { color: #D4A574; }
-        .cseq-snum.active { color: #FFB347; text-shadow: 0 0 8px rgba(255,179,71,0.7); }
+        .cseq-snum.beat { color: #7C95B5; }
+        .cseq-snum.active { color: #22D3EE; text-shadow: 0 0 8px rgba(34,211,238,0.7); }
 
         .cseq-grid-sep {
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,179,71,0.25), transparent);
+          background: linear-gradient(90deg, transparent, rgba(34,211,238,0.25), transparent);
           margin: 4px 0;
         }
 
@@ -837,16 +836,16 @@ export default function CosmicSequencer({
         .cseq-step {
           width: 32px; flex-shrink: 0;
           border-radius: 6px;
-          background: rgba(255,241,214,0.025);
-          border: 1px solid rgba(255,241,214,0.05);
+          background: rgba(229,244,251,0.025);
+          border: 1px solid rgba(229,244,251,0.05);
           cursor: pointer;
           transition: all 0.1s;
           position: relative;
           overflow: hidden;
           display: flex; align-items: center; justify-content: center;
         }
-        .cseq-step.beat { background: rgba(255,241,214,0.04); }
-        .cseq-step:hover { background: rgba(255,241,214,0.07); border-color: rgba(255,241,214,0.12); }
+        .cseq-step.beat { background: rgba(229,244,251,0.04); }
+        .cseq-step:hover { background: rgba(229,244,251,0.07); border-color: rgba(229,244,251,0.12); }
         .cseq-step.on {
           background: rgba(var(--scr), calc(0.08 + var(--sv) * 0.2));
           border-color: rgba(var(--scr), 0.3);
@@ -862,8 +861,8 @@ export default function CosmicSequencer({
           box-shadow: 0 0 18px rgba(var(--scr), 0.3), inset 0 0 12px rgba(var(--scr), 0.12);
         }
         .cseq-step.playing:not(.on) {
-          border-color: rgba(255,241,214,0.15);
-          background: rgba(255,241,214,0.05);
+          border-color: rgba(229,244,251,0.15);
+          background: rgba(229,244,251,0.05);
         }
         .cseq-step.pulse {
           animation: cseqPulse 0.3s ease-out;
@@ -886,12 +885,12 @@ export default function CosmicSequencer({
           transition: height 0.15s;
         }
         .cseq-note-lbl { font-size: 9px; color: var(--sc); opacity: 0.95; z-index: 1; font-weight: 600; }
-        .cseq-vel-lbl { font-size: 8px; color: #F5C99A; z-index: 1; }
+        .cseq-vel-lbl { font-size: 8px; color: #B4C9E0; z-index: 1; }
 
         .cseq-toolbar {
           display: flex; align-items: center; justify-content: space-between;
           padding: 10px 16px 14px;
-          border-top: 1px solid rgba(255,179,71,0.1);
+          border-top: 1px solid rgba(34,211,238,0.12);
           flex-wrap: wrap; gap: 8px;
           position: relative; z-index: 1;
         }
@@ -901,17 +900,17 @@ export default function CosmicSequencer({
           padding: 5px 11px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
           font-size: 9px; letter-spacing: 0.08em;
-          color: #D4A574;
-          background: rgba(255,241,214,0.04);
-          border: 1px solid rgba(255,241,214,0.08);
+          color: #7C95B5;
+          background: rgba(229,244,251,0.04);
+          border: 1px solid rgba(229,244,251,0.08);
           transition: all 0.15s;
           display: flex; align-items: center; gap: 4px;
         }
-        .cseq-mode-btn:hover { background: rgba(255,241,214,0.08); color: #F5C99A; }
+        .cseq-mode-btn:hover { background: rgba(229,244,251,0.08); color: #B4C9E0; }
         .cseq-mode-btn.active {
-          color: #FFB347;
-          background: rgba(255,179,71,0.12);
-          border-color: rgba(255,179,71,0.32);
+          color: #22D3EE;
+          background: rgba(34,211,238,0.12);
+          border-color: rgba(34,211,238,0.32);
         }
 
         .cseq-actions { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -920,52 +919,52 @@ export default function CosmicSequencer({
           padding: 5px 11px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
           font-size: 9px; letter-spacing: 0.06em;
-          color: #D4A574;
-          background: rgba(255,241,214,0.04);
-          border: 1px solid rgba(255,241,214,0.08);
+          color: #7C95B5;
+          background: rgba(229,244,251,0.04);
+          border: 1px solid rgba(229,244,251,0.08);
           transition: all 0.15s;
         }
-        .cseq-act:hover { background: rgba(255,241,214,0.08); color: #F5C99A; }
+        .cseq-act:hover { background: rgba(229,244,251,0.08); color: #B4C9E0; }
         .cseq-act.preset {
-          color: #FF8A85;
-          border-color: rgba(255,138,133,0.25);
+          color: #E879F9;
+          border-color: rgba(232,121,249,0.28);
         }
-        .cseq-act.preset:hover { background: rgba(255,138,133,0.15); color: #FFB0AB; }
+        .cseq-act.preset:hover { background: rgba(232,121,249,0.15); color: #F5B0FB; }
 
         .cseq-presets {
           position: absolute; bottom: 54px; right: 14px;
-          background: rgba(35,16,12,0.98);
+          background: rgba(22,37,64,0.98);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,138,133,0.3);
+          border: 1px solid rgba(232,121,249,0.32);
           border-radius: 14px;
           padding: 10px;
           display: flex; flex-direction: column; gap: 2px;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(255,94,91,0.2);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px rgba(34,211,238,0.2);
           z-index: 5;
           animation: cseqFade 0.2s ease-out;
         }
         .cseq-presets-title {
           font-size: 10px; letter-spacing: 0.15em;
-          color: #FF8A85;
+          color: #E879F9;
           padding: 5px 14px 10px;
-          border-bottom: 1px solid rgba(255,138,133,0.2);
+          border-bottom: 1px solid rgba(232,121,249,0.22);
         }
         .cseq-preset-item {
           all: unset; cursor: pointer;
           padding: 12px 20px; border-radius: 8px;
           font-family: 'Orbitron', monospace;
           font-size: 11px; letter-spacing: 0.1em;
-          color: #F5C99A;
+          color: #B4C9E0;
           transition: all 0.15s;
         }
         .cseq-preset-item:hover {
-          background: rgba(255,138,133,0.15);
-          color: #FFB0AB;
+          background: rgba(232,121,249,0.15);
+          color: #F5B0FB;
         }
 
         .cseq-grid-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .cseq-grid-scroll::-webkit-scrollbar-track { background: transparent; }
-        .cseq-grid-scroll::-webkit-scrollbar-thumb { background: rgba(255,241,214,0.12); border-radius: 2px; }
+        .cseq-grid-scroll::-webkit-scrollbar-thumb { background: rgba(229,244,251,0.12); border-radius: 2px; }
 
         @media (max-width: 600px) {
           .cseq-panel { max-height: 92vh; }

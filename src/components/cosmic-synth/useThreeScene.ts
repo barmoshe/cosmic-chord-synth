@@ -25,7 +25,7 @@ export function useThreeScene(
     const PR = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x1a0a08, 0.00008);
+    scene.fog = new THREE.FogExp2(0x0F1B2D, 0.00008);
     const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 12000);
     camera.position.z = 650;
 
@@ -34,7 +34,7 @@ export function useThreeScene(
     renderer.setPixelRatio(PR);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.4;
-    renderer.setClearColor(0x1a0a08);
+    renderer.setClearColor(0x0F1B2D);
 
     // ── Background star field — distant fixed stars ──
     const bgStarCount = isMobile ? 2000 : 4000;
@@ -51,10 +51,10 @@ export function useThreeScene(
       bgPos[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
       bgPos[i * 3 + 1] = Math.sin(phi) * Math.sin(theta) * r;
       bgPos[i * 3 + 2] = Math.cos(phi) * r;
-      // Realistic star temperature colors
+      // Aurora-cool star temperature colors (no red/orange)
       const temp = Math.random();
-      if (temp < 0.1) { bgCol[i*3]=1; bgCol[i*3+1]=0.6; bgCol[i*3+2]=0.3; } // red/orange
-      else if (temp < 0.3) { bgCol[i*3]=1; bgCol[i*3+1]=0.9; bgCol[i*3+2]=0.7; } // warm white
+      if (temp < 0.1) { bgCol[i*3]=0.5; bgCol[i*3+1]=0.95; bgCol[i*3+2]=0.85; } // aurora mint
+      else if (temp < 0.3) { bgCol[i*3]=0.95; bgCol[i*3+1]=0.85; bgCol[i*3+2]=0.7; } // peach-cream
       else if (temp < 0.7) { bgCol[i*3]=0.9; bgCol[i*3+1]=0.92; bgCol[i*3+2]=1; } // white
       else { bgCol[i*3]=0.7; bgCol[i*3+1]=0.8; bgCol[i*3+2]=1; } // blue-white
       const b = 0.3 + Math.random() * 0.7;
@@ -95,22 +95,22 @@ export function useThreeScene(
 
       gPos[i * 3] = x; gPos[i * 3 + 1] = y; gPos[i * 3 + 2] = z;
 
-      // Realistic star colors — core is warm/yellow, arms are blue/white, scattered red giants
+      // Aurora star colors — core is gold-cream, arms are cyan/blue, scattered gold giants (no red)
       const coreInfluence = Math.exp(-radius * 0.004);
-      const isRedGiant = Math.random() < 0.03;
+      const isGoldGiant = Math.random() < 0.03;
       const isBlueGiant = Math.random() < 0.06 && radius > 200;
 
       let r: number, g: number, b: number;
-      if (isRedGiant) {
-        r = 1; g = 0.4 + Math.random() * 0.2; b = 0.1 + Math.random() * 0.1;
+      if (isGoldGiant) {
+        r = 0.99; g = 0.83 + Math.random() * 0.1; b = 0.30 + Math.random() * 0.15;
       } else if (isBlueGiant) {
-        r = 0.6 + Math.random() * 0.2; g = 0.7 + Math.random() * 0.2; b = 1;
+        r = 0.5 + Math.random() * 0.2; g = 0.75 + Math.random() * 0.2; b = 1;
       } else {
-        // Mix between warm core and cool arm stars
+        // Mix between gold core and cyan arm stars
         const temp = coreInfluence * 0.8 + Math.random() * 0.3;
-        r = 0.8 + temp * 0.2;
-        g = 0.7 + (1 - temp) * 0.3;
-        b = 0.5 + (1 - temp) * 0.5;
+        r = 0.55 + temp * 0.35;
+        g = 0.78 + (1 - temp) * 0.18;
+        b = 0.85 + (1 - temp) * 0.15;
       }
 
       const brightness = (0.3 + Math.random() * 0.7) * (0.5 + coreInfluence * 1.5);

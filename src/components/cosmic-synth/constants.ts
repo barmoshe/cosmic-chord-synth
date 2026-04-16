@@ -20,8 +20,8 @@ export const PARTICLE_POOL = isMobile ? 150 : 300;
 export const RIPPLE_POOL = 12;
 export const FFT_BARS = 32;
 export const SMOOTH = 0.14;
-// Solar Flare palette: amber, coral, gold, plum, ember, single cool sky spark for tension
-export const PAL: number[][] = [[1.0, 0.70, 0.28], [1.0, 0.37, 0.36], [1.0, 0.82, 0.40], [0.48, 0.13, 0.42], [1.0, 0.24, 0.18], [0.28, 0.79, 0.89]];
+// Glacial Aurora 2026: teal, cyan, periwinkle, mint, lavender, single gold warm-spark for tension
+export const PAL: number[][] = [[0.08, 0.72, 0.65], [0.13, 0.83, 0.93], [0.51, 0.55, 0.97], [0.37, 0.92, 0.83], [0.65, 0.55, 0.98], [0.99, 0.83, 0.30]];
 export const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
 /* DJ Arrangement */
