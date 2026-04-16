@@ -180,9 +180,20 @@ export default function CosmicSequencer({
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   useEffect(() => { swingRef.current = swing; }, [swing]);
 
-  // Play engine
-  const startPlayback = useCallback(() => {
+  // Play engine — uses Tone.Transport for reliable iOS scheduling
+  const startPlayback = useCallback(async () => {
     if (playingRef.current) return;
+
+    // Ensure audio context is running (critical for iOS)
+    try {
+      if (Tone.getContext().state !== "running") {
+        await Tone.start();
+        await Tone.getContext().resume();
+      }
+    } catch (e) {
+      console.warn("Audio context resume failed:", e);
+    }
+
     playingRef.current = true;
     setPlaying(true);
     stepRef.current = -1;
@@ -198,6 +209,7 @@ export default function CosmicSequencer({
       const trks = tracksRef.current;
       const anySolo = trks.some(t => t.solo);
       const sn = scales[scaleRef.current]?.notes || [0, 2, 4, 5, 7, 9, 11];
+      const now = Tone.now();
 
       for (const track of trks) {
         if (track.muted) continue;
@@ -207,20 +219,20 @@ export default function CosmicSequencer({
 
         try {
           if (track.isDrum) {
-            // Trigger drum synths
             const drumSynth = audioRef.current?.[track.synth];
             if (drumSynth) {
               if (track.synth === "kick") {
-                drumSynth.triggerAttackRelease("C1", "8n", undefined, s.vel);
+                // MembraneSynth: triggerAttackRelease(note, duration, time?, velocity?)
+                drumSynth.triggerAttackRelease("C1", "8n", now, s.vel);
               } else if (track.synth === "hihat") {
-                drumSynth.triggerAttackRelease("C4", "32n", undefined, s.vel * 0.6);
+                // MetalSynth: triggerAttackRelease(duration, time?, velocity?) — NO note param
+                drumSynth.triggerAttackRelease("32n", now, s.vel * 0.6);
               } else {
-                // snare, clap are NoiseSynth — no pitch
-                drumSynth.triggerAttackRelease("16n", undefined, s.vel);
+                // NoiseSynth (snare, clap): triggerAttackRelease(duration, time?, velocity?)
+                drumSynth.triggerAttackRelease("16n", now, s.vel);
               }
             }
           } else {
-            // Melodic
             const noteIdx = s.note % sn.length;
             const midi = track.octave * 12 + sn[noteIdx];
             const freq = m2fFn(midi);
@@ -228,13 +240,13 @@ export default function CosmicSequencer({
             const synth = audioRef.current?.[track.synth];
             if (synth) {
               if (track.synth === "pd") {
-                synth.triggerAttackRelease(freq, dur * 3, undefined, s.vel * 0.4);
+                synth.triggerAttackRelease(freq, dur * 3, now, s.vel * 0.4);
               } else {
-                synth.triggerAttackRelease(freq, dur, undefined, s.vel);
+                synth.triggerAttackRelease(freq, dur, now, s.vel);
               }
             }
             if (track.synth === "ld" && audioRef.current?.sb) {
-              audioRef.current.sb.triggerAttackRelease(m2fFn(midi - 12), dur, undefined, s.vel * 0.4);
+              audioRef.current.sb.triggerAttackRelease(m2fFn(midi - 12), dur, now, s.vel * 0.4);
             }
 
             // Visuals for melodic
@@ -260,7 +272,9 @@ export default function CosmicSequencer({
             const col = drumColors[track.synth] || [1, 1, 1];
             engineRef.current.emitParticles(wx, 0, wz, col, Math.floor(3 + s.vel * 6), s.vel * 0.7);
           }
-        } catch {}
+        } catch (e) {
+          console.warn("Seq note error:", e);
+        }
       }
 
       const baseInterval = (60 / bpmRef.current / 4) * 1000;
