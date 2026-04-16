@@ -1,4 +1,7 @@
 import type * as Tone from "tone";
+import type { DrumName } from "./constants";
+
+export type { DrumName };
 
 export interface AnalysisData {
   bass: number;
@@ -34,29 +37,36 @@ export interface EngineInterface {
   s2w: (sx: number, sy: number) => [number, number, number];
 }
 
+export interface LeadEnvelope {
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+}
+
 export interface AudioEngine {
-  ld: Tone.PolySynth;
-  sb: Tone.PolySynth;
-  pd: Tone.PolySynth;
-  bs: Tone.PolySynth;
-  ar: Tone.PolySynth;
-  dn: Tone.PolySynth;
-  kick: Tone.MembraneSynth;
-  snare: Tone.NoiseSynth;
-  hihat: Tone.MetalSynth;
-  clap: Tone.NoiseSynth;
-  fi: Tone.Filter;
-  pf: Tone.Filter;
-  bf: Tone.Filter;
-  af: Tone.Filter;
-  df: Tone.Filter;
-  rv: Tone.Freeverb;
-  dl: Tone.FeedbackDelay;
-  ch: Tone.Chorus;
-  mc: Tone.Compressor;
-  ml: Tone.Limiter;
-  fft: Tone.FFT;
-  lfo: Tone.LFO;
+  start(): Promise<boolean>;
+  dispose(): void;
+  isReady(): boolean;
+
+  noteOn(midi: number, velocity: number, x: number, y: number): void;
+  noteOff(midi: number): void;
+  releaseAllLead(time?: number): void;
+
+  triggerDrum(name: DrumName, velocity: number, time?: number): void;
+  triggerLead(midi: number, time: number, velocity: number, duration?: Tone.Unit.Time): void;
+  triggerPadChord(midis: number[], time: number, velocity: number, duration?: Tone.Unit.Time): void;
+  triggerBass(midi: number, time: number, velocity: number, duration?: Tone.Unit.Time): void;
+  triggerArp(midi: number, time: number, velocity: number, duration?: Tone.Unit.Time): void;
+  startDrone(): void;
+  stopDrone(time?: number): void;
+
+  setFilterCutoff(hz: number, rampTime?: number): void;
+  setPadVolume(db: number, rampTime?: number, time?: number): void;
+  setPadFilter(hz: number, rampTime?: number): void;
+  setReverbWet(w: number, rampTime?: number): void;
+  setDelayWet(w: number, rampTime?: number): void;
+  setLeadEnvelope(env: LeadEnvelope): void;
 }
 
 export interface DjState {

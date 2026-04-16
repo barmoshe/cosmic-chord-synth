@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import * as Tone from "tone";
 import { SCALES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, isMobile } from "./constants";
 import { m2f, quantize, noteColor, haptic } from "./helpers";
+import type { AudioEngine } from "./types";
 
 export function useTouchInput(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,
-  audioRef: React.MutableRefObject<any>,
+  audioEngine: React.MutableRefObject<AudioEngine | null>,
   engineRef: React.MutableRefObject<any>,
   touchesRef: React.MutableRefObject<Map<any, any>>,
   scaleRef: React.MutableRefObject<string>,
@@ -16,31 +17,22 @@ export function useTouchInput(
     const cv = canvasRef.current;
     if (!cv || phase !== "play") return;
 
-    // Throttle filter rampTo — only when value changes significantly
-    let lastFilterFreq = 0;
-    // Minimum interval between note changes during drag to prevent voice pileup
     let lastNoteChangeTime = 0;
-    const MIN_NOTE_CHANGE_INTERVAL = 0.06; // 60ms between note changes
+    const MIN_NOTE_CHANGE_INTERVAL = 0.06;
 
-    // Coalesce touchmove events to one processed move per finger per animation frame
     const pendingMoves = new Map<any, { x: number; y: number }>();
     let rafHandle: number | null = null;
 
-    // Safety cleanup: release all voices when no touches are active
     let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
     function scheduleVoiceCleanup() {
       if (cleanupTimer) clearTimeout(cleanupTimer);
       cleanupTimer = setTimeout(() => {
-        if (touchesRef.current.size === 0 && audioRef.current) {
-          try {
-            audioRef.current.ld.releaseAll(Tone.now());
-            audioRef.current.sb.releaseAll(Tone.now());
-          } catch {}
+        if (touchesRef.current.size === 0) {
+          audioEngine.current?.releaseAllLead(Tone.now());
         }
       }, 120);
     }
 
-    // Returns true if the tap/click hit a drum-star (and triggered its drum). Caller skips noteOn.
     function tryDrumTap(x: number, y: number): boolean {
       const eng = engineRef.current;
       if (!eng?.pickDrumStar || !eng?.triggerDrum) return false;
@@ -52,23 +44,14 @@ export function useTouchInput(
     }
 
     function noteOn(id: any, x: number, y: number) {
-      if (!audioRef.current) return;
+      if (!audioEngine.current?.isReady()) return;
       if (cleanupTimer) { clearTimeout(cleanupTimer); cleanupTimer = null; }
       resetUIHide();
       const sn = SCALES[scaleRef.current].notes;
       const midi = quantize(Math.round(BASE_MIDI + (x / window.innerWidth) * MIDI_RANGE), sn);
-      const freq = m2f(midi);
       const brightness = 1 - y / window.innerHeight;
       const vel = 0.25 + brightness * 0.45;
-      const cut = 300 + brightness * 5500;
-      const now = Tone.now();
-      try {
-        audioRef.current.ld.triggerAttack(freq, now, vel);
-        audioRef.current.sb.triggerAttack(m2f(midi - 12), now, vel * 0.5);
-        audioRef.current.fi.frequency.rampTo(cut, 0.08);
-        audioRef.current.pd.volume.rampTo(-28, 0.05);
-        audioRef.current.pd.volume.rampTo(-20, 0.4, now + 0.1);
-      } catch {}
+      audioEngine.current.noteOn(midi, vel, x, y);
       haptic(12);
       const col = noteColor(midi);
       if (engineRef.current) {
@@ -76,37 +59,29 @@ export function useTouchInput(
         engineRef.current.addRipple(wx, wy, wz, col);
         engineRef.current.emitParticles(wx, wy, wz, col, isMobile ? 15 : 30, vel);
       }
-      touchesRef.current.set(id, { midi, freq, subFreq: m2f(midi - 12), x, y, note: NOTE_NAMES[midi % 12] });
+      touchesRef.current.set(id, { midi, freq: m2f(midi), subFreq: m2f(midi - 12), x, y, note: NOTE_NAMES[midi % 12] });
     }
 
     function processMove(id: any, x: number, y: number) {
-      if (!audioRef.current || !touchesRef.current.has(id)) return;
+      if (!audioEngine.current?.isReady() || !touchesRef.current.has(id)) return;
       const prev = touchesRef.current.get(id);
       const sn = SCALES[scaleRef.current].notes;
       const midi = quantize(Math.round(BASE_MIDI + (x / window.innerWidth) * MIDI_RANGE), sn);
-      const freq = m2f(midi);
       if (midi !== prev.midi) {
         const now = Tone.now();
-        // Throttle rapid note changes during drag to prevent voice pileup
         if (now - lastNoteChangeTime < MIN_NOTE_CHANGE_INTERVAL) return;
         lastNoteChangeTime = now;
         const brightness = 1 - y / window.innerHeight;
-        const subFreq = m2f(midi - 12);
-        try {
-          // Release old note and attack new one with enough offset for voice recycling
-          audioRef.current.ld.triggerRelease(prev.freq, now);
-          audioRef.current.sb.triggerRelease(prev.subFreq, now);
-          audioRef.current.ld.triggerAttack(freq, now + 0.03, 0.2 + brightness * 0.35);
-          audioRef.current.sb.triggerAttack(subFreq, now + 0.03, 0.18);
-        } catch {}
+        audioEngine.current.noteOff(prev.midi);
+        audioEngine.current.noteOn(midi, 0.2 + brightness * 0.35, x, y);
         haptic(6);
-        prev.midi = midi; prev.freq = freq; prev.subFreq = subFreq; prev.note = NOTE_NAMES[midi % 12];
+        prev.midi = midi;
+        prev.freq = m2f(midi);
+        prev.subFreq = m2f(midi - 12);
+        prev.note = NOTE_NAMES[midi % 12];
       }
       const newCut = 300 + (1 - y / window.innerHeight) * 5500;
-      if (Math.abs(newCut - lastFilterFreq) > 150) {
-        lastFilterFreq = newCut;
-        try { audioRef.current.fi.frequency.rampTo(newCut, 0.08); } catch {}
-      }
+      audioEngine.current.setFilterCutoff(newCut, 0.08);
       prev.x = x; prev.y = y;
     }
 
@@ -123,20 +98,12 @@ export function useTouchInput(
 
     function noteOff(id: any) {
       const info = touchesRef.current.get(id);
-      if (info && audioRef.current) {
-        try {
-          audioRef.current.ld.triggerRelease(info.freq, Tone.now());
-          audioRef.current.sb.triggerRelease(info.subFreq, Tone.now());
-        } catch {}
-      }
+      if (info) audioEngine.current?.noteOff(info.midi);
       touchesRef.current.delete(id);
-      // When all touches are gone, schedule a safety releaseAll to free any stuck voices
-      if (touchesRef.current.size === 0) {
-        scheduleVoiceCleanup();
-      }
+      if (touchesRef.current.size === 0) scheduleVoiceCleanup();
     }
 
-    const drumTapIds = new Set<any>();    // touches that hit a drum star — never create a note
+    const drumTapIds = new Set<any>();
     const onTS = (e: TouchEvent) => {
       e.preventDefault();
       for (const t of Array.from(e.changedTouches)) {
@@ -185,5 +152,5 @@ export function useTouchInput(
       cv.removeEventListener("mousedown", onMD); cv.removeEventListener("mousemove", onMM);
       cv.removeEventListener("mouseup", onMU); cv.removeEventListener("mouseleave", onMU);
     };
-  }, [phase, resetUIHide]);
+  }, [phase, resetUIHide, audioEngine, engineRef, touchesRef, scaleRef, canvasRef]);
 }

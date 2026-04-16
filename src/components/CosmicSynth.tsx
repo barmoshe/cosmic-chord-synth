@@ -62,22 +62,28 @@ export default function CosmicSynth() {
   useEffect(() => { scaleRef.current = scale; }, [scale]);
 
   /* ── Hooks ── */
-  const { audioRef, analysisRef, fftBuffer, initAudio, disposeAudio, analyze } = useAudioEngine();
+  const { engine, analysisRef, fftBuffer, analyze, dispose } = useAudioEngine();
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
-  useThreeScene(canvasRef, audioRef, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
-  useTouchInput(canvasRef, audioRef, engineRef, touchesRef, scaleRef, phase, resetUIHide);
+  useThreeScene(canvasRef, engine, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
+  useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
-  useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, djUiProxy, touchesRef);
+  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef);
 
   /* ── Cleanup audio on unmount ── */
-  useEffect(() => () => { disposeAudio(); }, [disposeAudio]);
+  useEffect(() => () => { dispose(); }, [dispose]);
 
-  /* ── Audio Start ── */
-  const handleStart = useCallback(async () => {
+  /* ── Audio Start ──
+     iOS Safari links the browser's user-activation token to the Promise returned
+     by the FIRST audio API call made synchronously inside a gesture handler.
+     We must NOT:
+       - construct a new Tone.Context (orphans the activation)
+       - await Tone.start() before the synchronous body finishes
+     We MUST call Tone.start() synchronously and attach subsequent work via .then. */
+  const handleStart = useCallback(() => {
     if (startedRef.current) return;
     startedRef.current = true;
 
-    // Start warp animation immediately (setInterval runs between awaits)
+    // Warp animation runs independently of audio — safe to start immediately.
     setPhase("warp");
     warpState.current = { on: true, t: 0 };
     let wp = 0;
@@ -91,21 +97,25 @@ export default function CosmicSynth() {
       }
     }, 25);
 
-    // Audio init — context creation, start, and resume all in the
-    // direct gesture handler call stack (required by browser autoplay policy)
-    try {
-      const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.05 : 0.1 });
-      Tone.setContext(ctx);
-      await Tone.start();
-      if (Tone.getContext().state !== "running") {
-        await Tone.getContext().resume();
-      }
-      if (!initAudio()) setAudioOk(false);
-    } catch (e) {
-      console.error("Audio start error:", e);
-      setAudioOk(false);
-    }
-  }, [initAudio]);
+    // Synchronous unlock: Tone.start() resume()s the default context under the
+    // gesture's activation. Do NOT await here — the .then runs as a microtask
+    // after the unlock resolves.
+    Tone.start()
+      .then(async () => {
+        const ctx = Tone.getContext();
+        if (ctx.state !== "running") {
+          await ctx.rawContext.resume();
+        }
+        ctx.latencyHint = "interactive";
+        ctx.lookAhead = isMobile ? 0.05 : 0.1;
+        const ok = await engine.current!.start();
+        if (!ok) setAudioOk(false);
+      })
+      .catch((e) => {
+        console.error("Audio start error:", e);
+        setAudioOk(false);
+      });
+  }, [engine]);
 
   /* ── Scale Controls ── */
   const changeScale = useCallback((newScale: string) => {

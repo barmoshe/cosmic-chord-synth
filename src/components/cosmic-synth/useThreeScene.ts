@@ -480,13 +480,7 @@ export function useThreeScene(
       if (!m) return;
 
       // Audio — precise transport time when called from auto-DJ, immediate for user taps
-      try {
-        const a = audioRef.current;
-        if (name === "kick")       a?.kick?.triggerAttackRelease("C1", "8n", audioTime, v);
-        else if (name === "snare") a?.snare?.triggerAttackRelease("16n", audioTime, v);
-        else if (name === "hat")   a?.hihat?.triggerAttackRelease("C2", "32n", audioTime, v * 0.6);
-        else if (name === "clap")  a?.clap?.triggerAttackRelease("16n", audioTime, v);
-      } catch {}
+      audioRef.current?.triggerDrum?.(name, v, audioTime);
 
       const pulseBoost = auto ? 1 : 1.3;
       const runVisuals = () => {

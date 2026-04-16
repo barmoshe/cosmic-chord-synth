@@ -3,6 +3,7 @@ import * as Tone from "tone";
 import { Draw } from "tone";
 import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES } from "./constants";
 import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
+import type { AudioEngine } from "./types";
 
 export type DrumLane = "kick" | "clap" | "hat" | "snare";
 export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
@@ -51,7 +52,7 @@ type DjVoiceId = typeof DJ_VOICE_IDS[number];
 
 export function useDjAutoPlay(
   autoPlay: boolean,
-  audioRef: React.MutableRefObject<any>,
+  audioEngine: React.MutableRefObject<AudioEngine | null>,
   engineRef: React.MutableRefObject<any>,
   scaleRef: React.MutableRefObject<string>,
   djState: React.MutableRefObject<any>,
@@ -60,14 +61,11 @@ export function useDjAutoPlay(
 ) {
   useEffect(() => {
     const dj = djState.current;
-    if (!autoPlay || !audioRef.current) {
+    const audio = audioEngine.current;
+    if (!autoPlay || !audio?.isReady()) {
       dj.on = false;
       if (dj.iv != null) { Tone.getTransport().clear(dj.iv); dj.iv = null; }
-      try {
-        audioRef.current?.ld?.releaseAll(); audioRef.current?.sb?.releaseAll();
-        audioRef.current?.pd?.releaseAll(); audioRef.current?.bs?.releaseAll();
-        audioRef.current?.ar?.releaseAll();
-      } catch {}
+      audio?.releaseAllLead();
       DJ_VOICE_IDS.forEach(id => touchesRef.current.delete(id));
       ui.setPhase(""); ui.setNextPhase(""); ui.setProgress(0); ui.setBeat(0);
       ui.setEnergy(0);
@@ -139,12 +137,10 @@ export function useDjAutoPlay(
 
       dj.tf = s.ft; dj.te = s.e;
       dj.am = pick(ARP_MODES); dj.as = 0;
-      try {
-        const [at, dc, su, rl] = s.adsr;
-        audioRef.current.ld.set({ envelope: { attack: at, decay: dc, sustain: su, release: rl } });
-        audioRef.current.rv.wet.rampTo(s.rv, 1);
-        audioRef.current.dl.wet.rampTo(s.dw, 1);
-      } catch {}
+      const [at, dc, su, rl] = s.adsr;
+      audio.setLeadEnvelope({ attack: at, decay: dc, sustain: su, release: rl });
+      audio.setReverbWet(s.rv, 1);
+      audio.setDelayWet(s.dw, 1);
 
       if (scaleRef.current !== cachedScale) {
         cachedMatrix = buildMatrix(sn().notes);
@@ -178,7 +174,7 @@ export function useDjAutoPlay(
     ui.setBpm(transport.bpm.value);
 
     dj.iv = transport.scheduleRepeat((time) => {
-      if (!audioRef.current || !dj.on) return;
+      if (!audio.isReady() || !dj.on) return;
       const s = sec();
       const scNotes = sn().notes;
       const chords = sn().chords;
@@ -194,7 +190,7 @@ export function useDjAutoPlay(
       const filterVal = Math.round(200 + dj.cf * 5800);
       if (Math.abs(filterVal - lastFilterVal) > 100) {
         lastFilterVal = filterVal;
-        try { audioRef.current.fi.frequency.rampTo(filterVal, 0.3); } catch {}
+        audio.setFilterCutoff(filterVal, 0.3);
       }
 
       // Step within bar (0..15), absolute step within section
@@ -261,12 +257,9 @@ export function useDjAutoPlay(
         dj.ct = 0; dj.ci = (dj.ci + 1) % prog.length;
         dj.ac = chords[prog[dj.ci] % chords.length] || [];
         if (s.l.pd > 0) {
-          try {
-            audioRef.current.pd.releaseAll(time);
-            const padFreqs = dj.ac.map((n: number) => m2f(48 + n));
-            audioRef.current.pd.triggerAttack(padFreqs, time + 0.02, 0.08 + E * 0.12 * s.l.pd);
-            audioRef.current.pf.frequency.rampTo(400 + E * 2500, 0.8);
-          } catch {}
+          const padMidis = dj.ac.map((n: number) => 48 + n);
+          audio.triggerPadChord(padMidis, time + 0.02, 0.08 + E * 0.12 * s.l.pd);
+          audio.setPadFilter(400 + E * 2500, 0.8);
         }
       }
 
@@ -274,9 +267,7 @@ export function useDjAutoPlay(
       if (s.l.bs > 0 && step % 4 === 0) {
         const bn = scNotes[prog[dj.ci] % scNotes.length];
         const bassMidi = 36 + bn;
-        try {
-          audioRef.current.bs.triggerAttackRelease(m2f(bassMidi), "4n", time + 0.01, Math.min(0.25 + E * 0.5, 0.8) * s.l.bs);
-        } catch {}
+        audio.triggerBass(bassMidi, time + 0.01, Math.min(0.25 + E * 0.5, 0.8) * s.l.bs, "4n");
         const bx = window.innerWidth * 0.5;
         const by = window.innerHeight * 0.85;
         pulseGlow("dj-bs", bassMidi, bx, by, 280);
@@ -300,7 +291,7 @@ export function useDjAutoPlay(
           dj.oct = E > 0.75 ? 5 : 4;
           const midi = dj.oct * 12 + scNotes[di % scNotes.length];
           const vel = Math.min((0.1 + E * 0.55) * s.l.ml, 0.8);
-          try { audioRef.current.ld.triggerAttackRelease(m2f(midi), "8n", time, vel); } catch {}
+          audio.triggerLead(midi, time, vel, "8n");
           const fx = ((midi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
           const fy = (1 - E) * window.innerHeight;
           pulseGlow("dj-ml", midi, fx, fy, 220);
@@ -319,7 +310,7 @@ export function useDjAutoPlay(
       if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % 3 === 0) {
         const an = getArpNote(dj.ac, dj.as, dj.am); dj.as++;
         const arpMidi = 60 + an;
-        try { audioRef.current.ar.triggerAttackRelease(m2f(arpMidi), "16n", time + 0.02, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
+        audio.triggerArp(arpMidi, time + 0.02, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7), "16n");
         const ax = ((arpMidi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
         const ay = window.innerHeight * 0.3;
         pulseGlow("dj-ar", arpMidi, ax, ay, 160);
