@@ -8,8 +8,26 @@ export function useAudioEngine() {
   const analysisRef = useRef({ bass: 0, mid: 0, treble: 0, high: 0, vol: 0, pitch: 0 });
   const fftBuffer = useRef(new Float32Array(128));
 
+  function disposeAudio() {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      a.dn.releaseAll();
+      a.ld.dispose(); a.sb.dispose(); a.pd.dispose(); a.bs.dispose();
+      a.ar.dispose(); a.dn.dispose();
+      a.kick.dispose(); a.snare.dispose(); a.hihat.dispose(); a.clap.dispose();
+      a.fi.dispose(); a.pf.dispose(); a.bf.dispose(); a.af.dispose(); a.df.dispose();
+      a.rv.dispose(); a.dl.dispose(); a.ad.dispose(); a.ch.dispose();
+      a.mc.dispose(); a.ml.dispose();
+      a.fft.dispose(); a.lfo.dispose();
+    } catch {}
+    audioRef.current = null;
+  }
+
   function initAudio() {
     try {
+      // Dispose previous nodes if reinitializing (hot reload, double-tap)
+      disposeAudio();
       // ── Master bus: gentle glue compressor into a brick-wall limiter ──
       const masterComp = new Tone.Compressor({ threshold: -18, ratio: 3, attack: 0.003, release: 0.1, knee: 6 });
       const masterLimiter = new Tone.Limiter(-1);
@@ -113,7 +131,7 @@ export function useAudioEngine() {
         ld: lead, sb: sub, pd: pad, bs: bass, ar: arp, dn: drone,
         kick, snare, hihat, clap,
         fi: mainFilter, pf: padFilter, bf: bassFilter, af: arpFilter, df: droneFilter,
-        rv: sharedReverb, dl: delay, ch: chorus,
+        rv: sharedReverb, dl: delay, ad: arpDelay, ch: chorus,
         mc: masterComp, ml: masterLimiter,
         fft, lfo,
       };
@@ -151,5 +169,5 @@ export function useAudioEngine() {
     a.pitch += (maxI / len - a.pitch) * 0.08;
   }
 
-  return { audioRef, analysisRef, fftBuffer, initAudio, analyze };
+  return { audioRef, analysisRef, fftBuffer, initAudio, disposeAudio, analyze };
 }

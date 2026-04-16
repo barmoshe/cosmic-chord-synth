@@ -64,7 +64,7 @@ export function useTouchInput(
         audioRef.current.sb.triggerAttack(m2f(midi - 12), now, vel * 0.5);
         audioRef.current.fi.frequency.rampTo(cut, 0.08);
         audioRef.current.pd.volume.rampTo(-28, 0.05);
-        setTimeout(() => { try { audioRef.current.pd.volume.rampTo(-20, 0.4); } catch {} }, 100);
+        audioRef.current.pd.volume.rampTo(-20, 0.4, now + 0.1);
       } catch {}
       haptic(12);
       const col = noteColor(midi);

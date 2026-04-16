@@ -61,17 +61,23 @@ export default function CosmicSynth() {
   useEffect(() => { scaleRef.current = scale; }, [scale]);
 
   /* ── Hooks ── */
-  const { audioRef, analysisRef, fftBuffer, initAudio, analyze } = useAudioEngine();
+  const { audioRef, analysisRef, fftBuffer, initAudio, disposeAudio, analyze } = useAudioEngine();
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
   useThreeScene(canvasRef, audioRef, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
   useTouchInput(canvasRef, audioRef, engineRef, touchesRef, scaleRef, phase, resetUIHide);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
   useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, djUiProxy, touchesRef);
 
+  /* ── Cleanup audio on unmount ── */
+  useEffect(() => () => { disposeAudio(); }, [disposeAudio]);
+
   /* ── Audio Start ── */
+  const startedRef = useRef(false);
   const handleStart = useCallback(async () => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     try {
-      const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.04 : 0.03 });
+      const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.05 : 0.1 });
       Tone.setContext(ctx);
       await Tone.start();
       if (Tone.getContext().state !== "running") {

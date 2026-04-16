@@ -108,10 +108,13 @@ export function useDjAutoPlay(
         midi, freq: m2f(midi), subFreq: m2f(midi - 12),
         x, y, note: NOTE_NAMES[((midi % 12) + 12) % 12],
       });
-      pulseTimers[id] = setTimeout(() => {
+      // Schedule glow removal via Tone.Draw for frame-aligned cleanup
+      const removeTime = Tone.now() + durMs / 1000;
+      Draw.schedule(() => {
         touchesRef.current.delete(id);
         pulseTimers[id] = null;
-      }, durMs);
+      }, removeTime);
+      pulseTimers[id] = null;
     }
 
     function advanceSection() {
