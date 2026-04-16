@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import * as Tone from "tone";
 
 /* ═══════════════════════════════════════════════
    TYPES
