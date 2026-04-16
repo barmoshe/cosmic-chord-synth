@@ -1690,14 +1690,14 @@ export default function CosmicSynth() {
       )}
 
       <style>{`
-        /* ── Cosmic Design System ── */
+        /* ── Cosmic Design System v2 — Improved Readability ── */
         @keyframes cosmicGradient {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
         @keyframes cosmicPulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.7; }
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
         }
         @keyframes cosmicFloat {
           0%, 100% { transform: translateY(0px); }
@@ -1717,7 +1717,7 @@ export default function CosmicSynth() {
           100% { left: 200%; }
         }
         @keyframes cosmicWarpPulse {
-          0%, 100% { opacity: 0.5; }
+          0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
         }
 
@@ -1734,7 +1734,7 @@ export default function CosmicSynth() {
         }
         .cosmic-logo {
           font-family: 'Orbitron', monospace;
-          font-size: clamp(26px, 7vw, 58px);
+          font-size: clamp(28px, 7vw, 58px);
           font-weight: 900;
           letter-spacing: 0.22em;
           background: linear-gradient(135deg, #00f0ff 0%, #a855f7 30%, #ff00e6 60%, #ffee00 100%);
@@ -1750,14 +1750,14 @@ export default function CosmicSynth() {
         }
         .cosmic-line {
           width: clamp(30px, 8vw, 80px); height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
         }
         .cosmic-subtitle {
           font-family: 'Raleway', sans-serif;
-          font-size: clamp(8px, 1.6vw, 12px);
+          font-size: clamp(10px, 1.8vw, 14px);
           font-weight: 300;
           letter-spacing: 0.35em;
-          color: rgba(255,255,255,0.35);
+          color: rgba(255,255,255,0.55);
         }
         .cosmic-cta {
           position: relative;
@@ -1767,16 +1767,16 @@ export default function CosmicSynth() {
         }
         .cosmic-cta span {
           font-family: 'Orbitron', monospace;
-          font-size: clamp(10px, 2vw, 14px);
+          font-size: clamp(11px, 2.2vw, 15px);
           font-weight: 400;
           letter-spacing: 0.3em;
-          color: rgba(0,240,255,0.6);
+          color: rgba(0,240,255,0.8);
           animation: cosmicPulse 2.5s ease-in-out infinite;
         }
         .cosmic-cta-ring {
           position: absolute;
           width: 100px; height: 100px;
-          border: 1px solid rgba(0,240,255,0.15);
+          border: 1px solid rgba(0,240,255,0.2);
           border-radius: 50%;
           animation: cosmicRing 3s ease-in-out infinite;
         }
@@ -1789,15 +1789,15 @@ export default function CosmicSynth() {
         }
         .cosmic-warp-text {
           font-family: 'Orbitron', monospace;
-          font-size: clamp(10px, 2vw, 14px);
+          font-size: clamp(11px, 2.2vw, 15px);
           font-weight: 400;
           letter-spacing: 0.4em;
-          color: rgba(0,240,255,0.5);
+          color: rgba(0,240,255,0.7);
           animation: cosmicWarpPulse 1s ease-in-out infinite;
         }
         .cosmic-warp-bar {
-          width: clamp(180px, 50vw, 350px); height: 2px;
-          background: rgba(255,255,255,0.06);
+          width: clamp(180px, 50vw, 350px); height: 3px;
+          background: rgba(255,255,255,0.08);
           border-radius: 2px; overflow: hidden;
         }
         .cosmic-warp-fill {
@@ -1816,28 +1816,28 @@ export default function CosmicSynth() {
         }
         .cosmic-header-title {
           font-family: 'Orbitron', monospace;
-          font-size: clamp(10px, 1.8vw, 14px);
-          font-weight: 400;
+          font-size: clamp(11px, 2vw, 15px);
+          font-weight: 500;
           letter-spacing: 0.35em;
-          background: linear-gradient(90deg, rgba(0,240,255,0.7), rgba(168,85,247,0.6));
+          background: linear-gradient(90deg, rgba(0,240,255,0.9), rgba(168,85,247,0.8));
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           margin-bottom: 4px;
         }
         .cosmic-header-sub {
           font-family: 'Raleway', sans-serif;
-          font-size: 9px; font-weight: 300;
+          font-size: 11px; font-weight: 300;
           letter-spacing: 0.2em;
-          color: rgba(255,255,255,0.2);
+          color: rgba(255,255,255,0.4);
         }
 
         .cosmic-hint {
           position: fixed; bottom: 16%; left: 0; right: 0; z-index: 10;
           text-align: center;
           font-family: 'Raleway', sans-serif;
-          font-size: clamp(10px, 1.6vw, 13px);
+          font-size: clamp(11px, 1.8vw, 14px);
           font-weight: 300;
           letter-spacing: 0.25em;
-          color: rgba(255,255,255,0.15);
+          color: rgba(255,255,255,0.35);
           pointer-events: none;
           animation: cosmicPulse 3.5s ease-in-out infinite;
         }
@@ -1845,17 +1845,17 @@ export default function CosmicSynth() {
         .cosmic-btn {
           all: unset;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.03);
+          background: rgba(255,255,255,0.05);
           backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255,255,255,0.06);
-          box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.1);
+          box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
           cursor: pointer; touch-action: none;
           user-select: none; -webkit-user-select: none;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .cosmic-btn:hover {
-          background: rgba(255,255,255,0.06);
-          border-color: rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.08);
+          border-color: rgba(255,255,255,0.16);
         }
         .cosmic-btn:active {
           transform: scale(0.95);
@@ -1863,63 +1863,63 @@ export default function CosmicSynth() {
 
         .cosmic-btn-auto, .cosmic-btn-seq {
           flex-direction: column; gap: 3px;
-          width: 52px; height: 52px; border-radius: 50%;
+          width: 56px; height: 56px; border-radius: 50%;
           font-family: 'Orbitron', monospace;
-          color: rgba(255,255,255,0.35);
+          color: rgba(255,255,255,0.6);
         }
         .cosmic-btn-seq {
-          background: rgba(168,85,247,0.04);
-          border-color: rgba(168,85,247,0.12);
+          background: rgba(168,85,247,0.08);
+          border-color: rgba(168,85,247,0.2);
         }
         .cosmic-btn-seq:hover {
-          background: rgba(168,85,247,0.1);
-          border-color: rgba(168,85,247,0.25);
-          color: rgba(168,85,247,0.8);
+          background: rgba(168,85,247,0.14);
+          border-color: rgba(168,85,247,0.35);
+          color: rgba(168,85,247,0.9);
         }
         .cosmic-btn-auto .cosmic-btn-icon {
-          font-size: 14px; line-height: 1;
+          font-size: 16px; line-height: 1;
         }
         .cosmic-btn-auto .cosmic-btn-label {
-          font-size: 7px; letter-spacing: 0.15em; font-weight: 400;
+          font-size: 8px; letter-spacing: 0.15em; font-weight: 500;
         }
         .cosmic-btn-auto.active {
           color: #00f0ff;
-          background: rgba(0,240,255,0.08);
-          border-color: rgba(0,240,255,0.25);
-          box-shadow: 0 0 30px rgba(0,240,255,0.1), inset 0 0 15px rgba(0,240,255,0.05);
+          background: rgba(0,240,255,0.1);
+          border-color: rgba(0,240,255,0.35);
+          box-shadow: 0 0 30px rgba(0,240,255,0.15), inset 0 0 15px rgba(0,240,255,0.05);
         }
 
         .cosmic-btn-arrow {
-          width: 34px; height: 34px; border-radius: 50%;
+          width: 38px; height: 38px; border-radius: 50%;
           font-family: 'Raleway', sans-serif;
-          font-size: 16px; font-weight: 300;
-          color: rgba(255,255,255,0.3);
+          font-size: 18px; font-weight: 300;
+          color: rgba(255,255,255,0.5);
         }
 
         .cosmic-auto-group {
-          position: fixed; bottom: 24px; left: 24px; z-index: 10;
-          display: flex; flex-direction: column; align-items: center; gap: 8px;
+          position: fixed; bottom: 28px; left: 24px; z-index: 10;
+          display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
         .cosmic-section-tag {
           font-family: 'Orbitron', monospace;
-          font-size: 8px; letter-spacing: 0.18em;
-          color: rgba(0,240,255,0.4);
-          padding: 3px 10px;
-          background: rgba(0,240,255,0.04);
-          border: 1px solid rgba(0,240,255,0.1);
+          font-size: 9px; letter-spacing: 0.18em;
+          color: rgba(0,240,255,0.7);
+          padding: 4px 12px;
+          background: rgba(0,240,255,0.06);
+          border: 1px solid rgba(0,240,255,0.15);
           border-radius: 10px;
         }
 
         .cosmic-scale-group {
-          position: fixed; bottom: 24px; right: 24px; z-index: 10;
+          position: fixed; bottom: 28px; right: 24px; z-index: 10;
           display: flex; align-items: center; gap: 12px;
         }
         .cosmic-scale-label {
           font-family: 'Orbitron', monospace;
-          font-size: clamp(10px, 1.8vw, 13px);
-          font-weight: 400;
+          font-size: clamp(11px, 2vw, 14px);
+          font-weight: 500;
           letter-spacing: 0.22em;
-          color: rgba(255,255,255,0.45);
+          color: rgba(255,255,255,0.7);
           min-width: 65px; text-align: center;
         }
 
@@ -1943,11 +1943,11 @@ export default function CosmicSynth() {
           bottom: 80px !important; left: 50% !important;
           transform: translateX(-50%) !important;
           z-index: 20 !important;
-          padding: 14px 28px !important;
+          padding: 16px 30px !important;
           border-radius: 24px !important;
           font-family: 'Raleway', sans-serif !important;
-          font-size: 12px !important;
-          color: rgba(0,240,255,0.6) !important;
+          font-size: 13px !important;
+          color: rgba(0,240,255,0.8) !important;
           letter-spacing: 0.08em !important;
         }
 
@@ -1956,8 +1956,8 @@ export default function CosmicSynth() {
           transform: translateX(-50%);
           z-index: 15;
           font-family: 'Raleway', sans-serif;
-          font-size: 10px;
-          color: rgba(255,100,100,0.4);
+          font-size: 11px;
+          color: rgba(255,120,120,0.7);
           letter-spacing: 0.1em;
         }
       `}</style>
