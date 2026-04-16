@@ -18,6 +18,9 @@ export function useTouchInput(
 
     // Throttle filter rampTo — only when value changes significantly
     let lastFilterFreq = 0;
+    // Minimum interval between note changes during drag to prevent voice pileup
+    let lastNoteChangeTime = 0;
+    const MIN_NOTE_CHANGE_INTERVAL = 0.06; // 60ms between note changes
 
     // Coalesce touchmove events to one processed move per finger per animation frame
     const pendingMoves = new Map<any, { x: number; y: number }>();
@@ -84,14 +87,17 @@ export function useTouchInput(
       const freq = m2f(midi);
       if (midi !== prev.midi) {
         const now = Tone.now();
+        // Throttle rapid note changes during drag to prevent voice pileup
+        if (now - lastNoteChangeTime < MIN_NOTE_CHANGE_INTERVAL) return;
+        lastNoteChangeTime = now;
         const brightness = 1 - y / window.innerHeight;
         const subFreq = m2f(midi - 12);
         try {
           // Release old note and attack new one with enough offset for voice recycling
           audioRef.current.ld.triggerRelease(prev.freq, now);
           audioRef.current.sb.triggerRelease(prev.subFreq, now);
-          audioRef.current.ld.triggerAttack(freq, now + 0.02, 0.2 + brightness * 0.35);
-          audioRef.current.sb.triggerAttack(subFreq, now + 0.02, 0.18);
+          audioRef.current.ld.triggerAttack(freq, now + 0.03, 0.2 + brightness * 0.35);
+          audioRef.current.sb.triggerAttack(subFreq, now + 0.03, 0.18);
         } catch {}
         haptic(6);
         prev.midi = midi; prev.freq = freq; prev.subFreq = subFreq; prev.note = NOTE_NAMES[midi % 12];

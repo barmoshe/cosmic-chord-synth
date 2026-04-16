@@ -1,7 +1,7 @@
 import { useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { m2f } from "./helpers";
-import { SMOOTH } from "./constants";
+import { SMOOTH, isMobile } from "./constants";
 
 export function useAudioEngine() {
   const audioRef = useRef<any>(null);
@@ -41,18 +41,20 @@ export function useAudioEngine() {
 
       const mainFilter = new Tone.Filter({ type: "lowpass", frequency: 4500, rolloff: -12 });
       const delay = new Tone.FeedbackDelay({ delayTime: "8n.", feedback: 0.18, wet: 0.1 });
-      const chorus = new Tone.Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: 0.12 }).start();
+      const chorus = new Tone.Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: isMobile ? 0 : 0.12 }).start();
 
-      // ── Lead — lighter Synth instead of FMSynth (2 osc/voice instead of 4) ──
+      // ── Lead — lighter on mobile (single sawtooth vs fat) ──
       const lead = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4,
-        oscillator: { type: "fatsawtooth", spread: 20, count: 2 } as any,
+        maxPolyphony: isMobile ? 3 : 4,
+        oscillator: isMobile
+          ? { type: "sawtooth" }
+          : { type: "fatsawtooth", spread: 20, count: 2 },
         envelope: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.35 },
       } as any);
       lead.volume.value = -10;
 
       const sub = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 3, oscillator: { type: "sine" },
+        maxPolyphony: isMobile ? 2 : 3, oscillator: { type: "sine" },
         envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.3 },
       } as any);
       sub.volume.value = -18;
@@ -64,7 +66,7 @@ export function useAudioEngine() {
       // ── Pad — routed through shared reverb ──
       const padFilter = new Tone.Filter({ type: "lowpass", frequency: 1200, rolloff: -12 });
       const pad = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "sine" },
+        maxPolyphony: isMobile ? 3 : 6, oscillator: { type: "sine" },
         envelope: { attack: 0.5, decay: 0.6, sustain: 0.6, release: 1.0 },
       } as any);
       pad.volume.value = -22; pad.connect(padFilter); padFilter.connect(sharedReverb);
@@ -72,7 +74,7 @@ export function useAudioEngine() {
       // ── Bass — dry output (bass doesn't need reverb, keeps it punchy) ──
       const bassFilter = new Tone.Filter({ type: "lowpass", frequency: 800, rolloff: -24 });
       const bass = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, oscillator: { type: "square" },
+        maxPolyphony: isMobile ? 2 : 4, oscillator: { type: "square" },
         envelope: { attack: 0.02, decay: 0.12, sustain: 0.6, release: 0.3 },
       } as any);
       bass.volume.value = -14; bass.connect(bassFilter); bassFilter.connect(masterComp);
@@ -81,7 +83,7 @@ export function useAudioEngine() {
       const arpFilter = new Tone.Filter({ type: "lowpass", frequency: 3000, rolloff: -12 });
       const arpDelay = new Tone.FeedbackDelay({ delayTime: "16n", feedback: 0.2, wet: 0.15 });
       const arp = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "triangle" },
+        maxPolyphony: isMobile ? 3 : 6, oscillator: { type: "triangle" },
         envelope: { attack: 0.01, decay: 0.08, sustain: 0.15, release: 0.25 },
       } as any);
       arp.volume.value = -18; arp.connect(arpFilter); arpFilter.connect(arpDelay); arpDelay.connect(sharedReverb);
