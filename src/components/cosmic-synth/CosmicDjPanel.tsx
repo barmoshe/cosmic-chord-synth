@@ -51,6 +51,9 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   const energyArcEl = useRef<SVGCircleElement>(null);
   const ringEl = useRef<HTMLDivElement>(null);
   const phaseRef = useRef<string>("");
+  // Version counter bumped on every setStep — lets the RAF loop detect pattern
+  // reseeds (from applySection) even when step value is unchanged.
+  const patternVersionRef = useRef(0);
   const cellEls = useRef<Record<DrumLane, (HTMLDivElement | null)[]>>({
     kick: Array(16).fill(null), clap: Array(16).fill(null), hat: Array(16).fill(null), snare: Array(16).fill(null),
   });
@@ -67,6 +70,7 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
     setStep: (step, pattern) => {
       stepRef.current = step;
       patternRef.current = pattern;
+      patternVersionRef.current++;
     },
     onDrumHit: (name, vel) => {
       lanePulseRef.current[name] = Math.max(lanePulseRef.current[name], vel);
@@ -94,7 +98,10 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
-    let lastStep = -1;
+    // -2 sentinel so the first setStep(-1, pattern) seed from applySection
+    // counts as a change and paints the cells immediately.
+    let lastStep = -2;
+    let lastPatternVersion = -1;
 
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
@@ -140,10 +147,12 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
         }
       }
 
-      // Step cursor — only update DOM when step actually changes (cheap, O(16) writes)
+      // Step cursor — only update DOM when step or pattern changes (cheap, O(16) writes)
       const step = stepRef.current;
-      if (step !== lastStep) {
+      const patternVersion = patternVersionRef.current;
+      if (step !== lastStep || patternVersion !== lastPatternVersion) {
         lastStep = step;
+        lastPatternVersion = patternVersion;
         const pat = patternRef.current;
         for (const lane of LANES) {
           const row = cellEls.current[lane];

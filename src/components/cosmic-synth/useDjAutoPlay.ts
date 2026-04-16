@@ -123,11 +123,16 @@ export function useDjAutoPlay(
     function applySection() {
       const s = sec();
       const next = DJ_SECTIONS[s === DJ_SECTIONS[DJ_SECTIONS.length - 1] ? 1 : (DJ_SECTIONS.indexOf(s) + 1) % DJ_SECTIONS.length];
-      Draw.schedule(() => {
-        ui.setPhase(s.name);
-        ui.setNextPhase(next.name);
-        ui.setProgress(0);
-      }, Tone.now());
+      // UI state changes (phase/progress) are not audio-timed and must fire even
+      // if the audio context is still unlocking — call directly, not through Tone.Draw.
+      ui.setPhase(s.name);
+      ui.setNextPhase(next.name);
+      ui.setProgress(0);
+      ui.setEnergy(s.e);
+      // Seed the beat grid with this section's pattern immediately so the widget
+      // shows its shape on toggle, before the first audio tick lands.
+      currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + s.e);
+      ui.setStep(-1, currentPattern);
 
       dj.tf = s.ft; dj.te = s.e;
       dj.am = pick(ARP_MODES); dj.as = 0;
