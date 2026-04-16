@@ -4,6 +4,7 @@ export const GALAXY_VERT = `
   varying vec3 vColor;
   varying float vAlpha;
   varying float vDist;
+  varying float vTwinkle;
   uniform float uTime, uPixelRatio, uBass, uTreble, uVol, uFlash;
 
   void main() {
@@ -17,7 +18,12 @@ export const GALAXY_VERT = `
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     vDist = -mv.z;
-    gl_PointSize = max(aSize * (1.0 + uTreble * 0.4 + uFlash * 0.3) * uPixelRatio * (300.0 / -mv.z), 0.5);
+
+    // Per-star scintillation — a cheap atmospheric-like twinkle, decorrelated by aRand
+    vTwinkle = 0.85 + 0.15 * sin(uTime * (1.4 + aRand * 2.7) + aRand * 6.2831);
+
+    float pxSize = aSize * (1.0 + uTreble * 0.4 + uFlash * 0.3) * uPixelRatio * (300.0 / -mv.z);
+    gl_PointSize = max(pxSize * vTwinkle, 0.5);
     gl_Position = projectionMatrix * mv;
     vAlpha = 0.7 + uVol * 0.3;
   }
@@ -27,22 +33,31 @@ export const GALAXY_FRAG = `
   varying vec3 vColor;
   varying float vAlpha;
   varying float vDist;
+  varying float vTwinkle;
   uniform float uVol;
 
   void main() {
-    float d = length(gl_PointCoord - 0.5);
+    vec2 pc = gl_PointCoord - 0.5;
+    float d = length(pc);
     if (d > 0.5) discard;
 
-    // Airy disk diffraction pattern for realistic star rendering
-    float core = exp(-d * 8.0) * 0.7;
-    float inner = exp(-d * 4.0) * 0.25;
-    float outer = exp(-d * 2.0) * 0.08;
-    float spikes = (1.0 - smoothstep(0.0, 0.03, abs(gl_PointCoord.x - 0.5))) * 0.15 +
-                   (1.0 - smoothstep(0.0, 0.03, abs(gl_PointCoord.y - 0.5))) * 0.15;
-    spikes *= exp(-d * 3.0);
-    float alpha = smoothstep(0.5, 0.01, d) * vAlpha;
+    // Airy-disc-style core: tight gaussian centre + soft halo + far outer falloff
+    float core  = exp(-d * d * 64.0);          // pinpoint centre
+    float halo  = exp(-d * 7.0) * 0.32;        // soft halo
+    float outer = exp(-d * 2.5) * 0.08;        // gentle outer fade
 
-    vec3 col = vColor * (1.0 + core * (0.5 + uVol * 0.6)) + inner * 0.2 + outer * 0.05 + spikes * vColor;
+    // 4-point diffraction spikes — anisotropic falloff, smoother than the old smoothstep
+    float spikeH = (1.0 - smoothstep(0.0, 0.045, abs(pc.y))) * exp(-abs(pc.x) * 5.5);
+    float spikeV = (1.0 - smoothstep(0.0, 0.045, abs(pc.x))) * exp(-abs(pc.y) * 5.5);
+    float spikes = (spikeH + spikeV) * 0.45;
+
+    float alpha = smoothstep(0.5, 0.0, d) * vAlpha;
+
+    // Bright stars get a small chromatic spike-tint (cool blue-white) — keeps colored stars colorful
+    vec3 spikeTint = vColor * 0.6 + vec3(0.05, 0.08, 0.12);
+    vec3 col = vColor * (core * (1.4 + uVol * 0.7) * vTwinkle + halo + outer);
+    col += spikes * spikeTint;
+
     gl_FragColor = vec4(col, alpha);
   }
 `;
@@ -154,16 +169,20 @@ export const HALO_FRAG = `
   }
 `;
 
-// Drum-star: colored icosahedron that glows brighter on pulse (drum hit).
+// Drum-star: colored icosahedron with plasma surface + limb darkening; brightens on pulse.
 export const DRUM_STAR_VERT = `
   varying vec3 vNormal;
+  varying vec3 vPosition;
   uniform float uTime, uPulse;
 
   void main() {
     vNormal = normalize(normalMatrix * normal);
     vec3 p = position;
-    // Breathe + pulse distortion
-    p += normal * (sin(p.x * 0.4 + uTime * 2.0) * 0.3 + uPulse * 1.6);
+    // Breathe + pulse distortion (multi-axis = organic)
+    float breathe = sin(p.x * 0.4 + uTime * 2.0) * 0.18
+                  + cos(p.y * 0.5 - uTime * 1.6) * 0.14;
+    p += normal * (breathe + uPulse * 1.4);
+    vPosition = position;       // undisplaced — keeps plasma anchored to the surface
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
 `;
@@ -172,15 +191,37 @@ export const DRUM_STAR_FRAG = `
   uniform float uTime, uPulse;
   uniform vec3 uColor;
   varying vec3 vNormal;
+  varying vec3 vPosition;
+
+  // Two-octave plasma — convective cells on the small icosahedron surface
+  float plasma(vec3 p, float t) {
+    float a = sin(p.x * 0.45 + t * 0.7) * cos(p.y * 0.51 - t * 0.5) * sin(p.z * 0.38 + t * 0.4);
+    float b = sin(p.x * 1.20 - t * 0.3) * cos(p.y * 0.95 + t * 0.65) * sin(p.z * 0.83 - t * 0.5);
+    return a * 0.65 + b * 0.35;
+  }
 
   void main() {
-    float rim = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
-    float core = pow(1.0 - rim, 2.0);
-    float pulseLift = uPulse * 2.5;
-    float energy = 0.8 + core * 1.8 + pow(rim, 2.0) * (1.2 + pulseLift) + pulseLift;
-    vec3 col = uColor * energy;
-    // Bright white flash at the peak of the pulse
-    col += vec3(1.0) * uPulse * uPulse * 0.6;
+    vec3 N = normalize(vNormal);
+    float NdotV = clamp(dot(N, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+    float rim = 1.0 - NdotV;
+
+    // Surface granulation — drifting hot cells across the disc
+    float cells = plasma(vPosition, uTime) * 0.5 + 0.5;
+    float granule = pow(cells, 1.4);
+    vec3 hot = mix(uColor, vec3(1.0, 0.93, 0.78), granule * (0.4 + uPulse * 0.5));
+
+    // Limb darkening — sphere reads as 3D, not a flat disc
+    float limb = mix(0.5, 1.0, pow(NdotV, 0.7));
+
+    // Tight warm corona at the rim — lifts on pulse
+    float corona = pow(rim, 3.0) * (0.55 + uPulse * 1.6);
+
+    float pulseLift = uPulse * 1.4;
+    float surface = 0.5 + granule * 0.30 + pulseLift * 0.4;
+
+    vec3 col = hot * surface * limb + uColor * corona;
+    // Bright white pop at the peak of the pulse
+    col += vec3(1.0) * uPulse * uPulse * 0.55;
     gl_FragColor = vec4(col, 1.0);
   }
 `;
