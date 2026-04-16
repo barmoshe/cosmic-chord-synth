@@ -1,5 +1,5 @@
 export const COSMIC_STYLES = `
-        /* ── Cosmic Design System v2 — Improved Readability ── */
+        /* ── Cosmic Design System v3 — "Solar Flare" warm-ember theme ── */
         @keyframes cosmicGradient {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -33,7 +33,7 @@ export const COSMIC_STYLES = `
         .cosmic-splash {
           position: fixed; inset: 0; z-index: 100;
           display: flex; align-items: center; justify-content: center;
-          background: radial-gradient(ellipse at center, rgba(2,0,16,0.85) 0%, rgba(0,0,0,0.95) 100%);
+          background: radial-gradient(ellipse at center, rgba(45,18,12,0.85) 0%, rgba(20,8,6,0.95) 100%);
           backdrop-filter: blur(8px);
           cursor: pointer; touch-action: none;
         }
@@ -46,27 +46,27 @@ export const COSMIC_STYLES = `
           font-size: clamp(28px, 7vw, 58px);
           font-weight: 900;
           letter-spacing: 0.22em;
-          background: linear-gradient(135deg, #00f0ff 0%, #a855f7 30%, #ff00e6 60%, #ffee00 100%);
+          background: linear-gradient(135deg, #FFB347 0%, #FF5E5B 35%, #7A1F6B 70%, #FFD166 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-size: 300% 100%;
           animation: cosmicGradient 6s ease infinite;
           text-align: center;
-          filter: drop-shadow(0 0 30px rgba(0,240,255,0.3));
+          filter: drop-shadow(0 0 30px rgba(255,179,71,0.35));
         }
         .cosmic-subtitle-group {
           display: flex; align-items: center; gap: 16px;
         }
         .cosmic-line {
           width: clamp(30px, 8vw, 80px); height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,241,214,0.35), transparent);
         }
         .cosmic-subtitle {
           font-family: 'Raleway', sans-serif;
           font-size: clamp(10px, 1.8vw, 14px);
           font-weight: 300;
           letter-spacing: 0.35em;
-          color: rgba(255,255,255,0.55);
+          color: #F5C99A;
         }
         .cosmic-cta {
           position: relative;
@@ -79,13 +79,13 @@ export const COSMIC_STYLES = `
           font-size: clamp(11px, 2.2vw, 15px);
           font-weight: 400;
           letter-spacing: 0.3em;
-          color: rgba(0,240,255,0.8);
+          color: #FFB347;
           animation: cosmicPulse 2.5s ease-in-out infinite;
         }
         .cosmic-cta-ring {
           position: absolute;
           width: 100px; height: 100px;
-          border: 1px solid rgba(0,240,255,0.2);
+          border: 1px solid rgba(255,179,71,0.25);
           border-radius: 50%;
           animation: cosmicRing 3s ease-in-out infinite;
         }
@@ -93,7 +93,7 @@ export const COSMIC_STYLES = `
         .cosmic-warp {
           position: fixed; inset: 0; z-index: 100;
           display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
-          background: radial-gradient(ellipse at center, rgba(2,0,16,0.7) 0%, rgba(0,0,0,0.9) 100%);
+          background: radial-gradient(ellipse at center, rgba(45,18,12,0.7) 0%, rgba(20,8,6,0.9) 100%);
           backdrop-filter: blur(4px);
         }
         .cosmic-warp-text {
@@ -101,20 +101,20 @@ export const COSMIC_STYLES = `
           font-size: clamp(11px, 2.2vw, 15px);
           font-weight: 400;
           letter-spacing: 0.4em;
-          color: rgba(0,240,255,0.7);
+          color: #FFB347;
           animation: cosmicWarpPulse 1s ease-in-out infinite;
         }
         .cosmic-warp-bar {
           width: clamp(180px, 50vw, 350px); height: 3px;
-          background: rgba(255,255,255,0.08);
+          background: rgba(255,241,214,0.1);
           border-radius: 2px; overflow: hidden;
         }
         .cosmic-warp-fill {
           height: 100%;
-          background: linear-gradient(90deg, #00f0ff, #ff00e6);
+          background: linear-gradient(90deg, #FFB347, #FF5E5B);
           border-radius: 2px;
           transition: width 0.1s linear;
-          box-shadow: 0 0 12px rgba(0,240,255,0.4);
+          box-shadow: 0 0 12px rgba(255,179,71,0.45);
         }
 
         .cosmic-header {
@@ -128,7 +128,7 @@ export const COSMIC_STYLES = `
           font-size: clamp(11px, 2vw, 15px);
           font-weight: 500;
           letter-spacing: 0.35em;
-          background: linear-gradient(90deg, rgba(0,240,255,0.9), rgba(168,85,247,0.8));
+          background: linear-gradient(90deg, #FFB347, #FF5E5B);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           margin-bottom: 4px;
         }
@@ -136,7 +136,7 @@ export const COSMIC_STYLES = `
           font-family: 'Raleway', sans-serif;
           font-size: 11px; font-weight: 300;
           letter-spacing: 0.2em;
-          color: rgba(255,255,255,0.4);
+          color: #D4A574;
         }
 
         .cosmic-hint {
@@ -147,30 +147,30 @@ export const COSMIC_STYLES = `
           font-size: clamp(11px, 1.8vw, 14px);
           font-weight: 300;
           letter-spacing: 0.25em;
-          color: rgba(255,255,255,0.35);
+          color: #D4A574;
           pointer-events: none;
           animation: cosmicPulse 3.5s ease-in-out infinite;
         }
         .cosmic-hint-detail {
           font-size: clamp(9px, 1.4vw, 11px);
           letter-spacing: 0.15em;
-          color: rgba(255,255,255,0.22);
+          color: #A8825F;
         }
 
         .cosmic-btn {
           all: unset;
           display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.05);
+          background: rgba(255,241,214,0.05);
           backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255,255,255,0.1);
-          box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,241,214,0.12);
+          box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,241,214,0.06);
           cursor: pointer; touch-action: none;
           user-select: none; -webkit-user-select: none;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .cosmic-btn:hover {
-          background: rgba(255,255,255,0.08);
-          border-color: rgba(255,255,255,0.16);
+          background: rgba(255,241,214,0.09);
+          border-color: rgba(255,241,214,0.2);
         }
         .cosmic-btn:active {
           transform: scale(0.95);
@@ -180,16 +180,16 @@ export const COSMIC_STYLES = `
           flex-direction: column; gap: 3px;
           width: 56px; height: 56px; border-radius: 50%;
           font-family: 'Orbitron', monospace;
-          color: rgba(255,255,255,0.6);
+          color: #F5C99A;
         }
         .cosmic-btn-seq {
-          background: rgba(168,85,247,0.08);
-          border-color: rgba(168,85,247,0.2);
+          background: rgba(255,94,91,0.1);
+          border-color: rgba(255,94,91,0.28);
         }
         .cosmic-btn-seq:hover {
-          background: rgba(168,85,247,0.14);
-          border-color: rgba(168,85,247,0.35);
-          color: rgba(168,85,247,0.9);
+          background: rgba(255,94,91,0.18);
+          border-color: rgba(255,94,91,0.45);
+          color: #FF8A85;
         }
         .cosmic-btn-seq .cosmic-btn-icon {
           font-size: 18px; line-height: 1;
@@ -204,10 +204,10 @@ export const COSMIC_STYLES = `
           font-size: 8px; letter-spacing: 0.15em; font-weight: 500;
         }
         .cosmic-btn-auto.active {
-          color: #00f0ff;
-          background: rgba(0,240,255,0.1);
-          border-color: rgba(0,240,255,0.35);
-          box-shadow: 0 0 30px rgba(0,240,255,0.15), inset 0 0 15px rgba(0,240,255,0.05);
+          color: #FFB347;
+          background: rgba(255,179,71,0.12);
+          border-color: rgba(255,179,71,0.4);
+          box-shadow: 0 0 30px rgba(255,179,71,0.22), inset 0 0 15px rgba(255,179,71,0.08);
           animation: cosmicPulse 2s ease-in-out infinite;
         }
 
@@ -215,7 +215,7 @@ export const COSMIC_STYLES = `
           width: 38px; height: 38px; border-radius: 50%;
           font-family: 'Raleway', sans-serif;
           font-size: 18px; font-weight: 300;
-          color: rgba(255,255,255,0.5);
+          color: #D4A574;
         }
 
         .cosmic-auto-group {
@@ -225,10 +225,10 @@ export const COSMIC_STYLES = `
         .cosmic-section-tag {
           font-family: 'Orbitron', monospace;
           font-size: 9px; letter-spacing: 0.18em;
-          color: rgba(0,240,255,0.7);
+          color: #FFB347;
           padding: 4px 12px;
-          background: rgba(0,240,255,0.06);
-          border: 1px solid rgba(0,240,255,0.15);
+          background: rgba(255,179,71,0.08);
+          border: 1px solid rgba(255,179,71,0.22);
           border-radius: 10px;
         }
 
@@ -241,7 +241,7 @@ export const COSMIC_STYLES = `
           font-size: clamp(11px, 2vw, 14px);
           font-weight: 500;
           letter-spacing: 0.22em;
-          color: rgba(255,255,255,0.7);
+          color: #F5C99A;
           min-width: 65px; text-align: center;
         }
 
@@ -253,9 +253,9 @@ export const COSMIC_STYLES = `
           font-size: clamp(28px, 6vw, 52px);
           font-weight: 900;
           letter-spacing: 0.3em;
-          background: linear-gradient(135deg, #00f0ff, #a855f7, #ff00e6);
+          background: linear-gradient(135deg, #FFB347, #FF5E5B, #7A1F6B);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 0 20px rgba(0,240,255,0.4));
+          filter: drop-shadow(0 0 20px rgba(255,179,71,0.45));
           pointer-events: none;
           animation: cosmicPulse 1.5s ease-out forwards;
         }
@@ -267,7 +267,7 @@ export const COSMIC_STYLES = `
           z-index: 15;
           font-family: 'Raleway', sans-serif;
           font-size: 11px;
-          color: rgba(255,120,120,0.7);
+          color: #FF8A75;
           letter-spacing: 0.1em;
         }
 
@@ -277,7 +277,7 @@ export const COSMIC_STYLES = `
           font-size: 9px;
           font-weight: 300;
           letter-spacing: 0.2em;
-          color: rgba(255,255,255,0.12);
+          color: #8A6550;
           pointer-events: none;
           text-transform: uppercase;
         }
@@ -307,8 +307,8 @@ export const COSMIC_STYLES = `
         }
         .cosmic-energy-fill {
           height: 100%;
-          background: linear-gradient(90deg, #00f0ff, #a855f7, #ff00e6);
+          background: linear-gradient(90deg, #FFB347, #FF5E5B, #FFD166);
           transition: width 0.3s ease-out;
-          box-shadow: 0 0 8px rgba(0,240,255,0.4), 0 0 16px rgba(168,85,247,0.2);
+          box-shadow: 0 0 8px rgba(255,179,71,0.5), 0 0 16px rgba(255,94,91,0.25);
         }
 `;
