@@ -484,7 +484,7 @@ export function useThreeScene(
         const a = audioRef.current;
         if (name === "kick")       a?.kick?.triggerAttackRelease("C1", "8n", audioTime, v);
         else if (name === "snare") a?.snare?.triggerAttackRelease("16n", audioTime, v);
-        else if (name === "hat")   a?.hihat?.triggerAttackRelease("32n", audioTime, v * 0.6);
+        else if (name === "hat")   a?.hihat?.triggerAttackRelease("C2", "32n", audioTime, v * 0.6);
         else if (name === "clap")  a?.clap?.triggerAttackRelease("16n", audioTime, v);
       } catch {}
 
