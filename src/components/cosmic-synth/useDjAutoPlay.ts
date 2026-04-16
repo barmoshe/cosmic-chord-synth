@@ -193,16 +193,18 @@ export function useDjAutoPlay(
         );
       }
 
-      // ── DRUMS (all routed through the unified triggerDrum on the drum-stars) ──
+      // ── DRUMS — routed through the unified triggerDrum on the drum-stars.
+      //   Audio fires synchronously here at the precise transport `time`;
+      //   triggerDrum defers visuals to the matching frame internally via Tone.Draw.
       const eng = engineRef.current;
       const kv = currentPattern.kick[step];
-      if (kv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("kick", kv, true), time);
+      if (kv > 0 && eng?.triggerDrum) eng.triggerDrum("kick", kv, true, time);
       const cv = currentPattern.clap[step];
-      if (cv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("clap", cv, true), time);
+      if (cv > 0 && eng?.triggerDrum) eng.triggerDrum("clap", cv, true, time);
       const hv = currentPattern.hat[step];
-      if (hv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("hat", hv, true), time);
+      if (hv > 0 && eng?.triggerDrum) eng.triggerDrum("hat", hv, true, time);
       const sv = currentPattern.snare[step];
-      if (sv > 0 && eng?.triggerDrum) Draw.schedule(() => eng.triggerDrum("snare", sv, true), time);
+      if (sv > 0 && eng?.triggerDrum) eng.triggerDrum("snare", sv, true, time);
 
       // ── UI beat & progress update (every quarter) ──
       if (step % 4 === 0) {

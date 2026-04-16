@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import * as THREE from "three";
+import * as Tone from "tone";
 import { isMobile, GALAXY_COUNT, PARTICLE_POOL, RIPPLE_POOL, FFT_BARS, SCALES, PAL, DRUM_STARS, DRUM_ORBIT_R, type DrumName } from "./constants";
 import { clamp, haptic } from "./helpers";
 import { GALAXY_VERT, GALAXY_FRAG, PARTICLE_VERT, PARTICLE_FRAG, STAR_VERT, STAR_FRAG, HALO_FRAG, DRUM_STAR_VERT, DRUM_STAR_FRAG, PP_VERT, BRIGHT_FRAG, BLUR_FRAG, COMPOSITE_FRAG } from "./shaders";
@@ -470,36 +471,37 @@ export function useThreeScene(
     }
 
     // ── Drum-star trigger — unified path for both auto-DJ and user taps ──
+    // Audio plays at `audioTime` if given (precise transport scheduling), else now.
+    // Visuals are deferred to the matching frame via Tone.Draw so they sync with audio.
     const _tmpWP = new THREE.Vector3();
-    function triggerDrum(name: DrumName, vel: number, auto = false) {
+    function triggerDrum(name: DrumName, vel: number, auto = false, audioTime?: number) {
       const v = clamp(vel, 0, 1);
       const m = drumMeshes.find(d => d.userData.name === name);
       if (!m) return;
 
-      // Audio
+      // Audio — precise transport time when called from auto-DJ, immediate for user taps
       try {
         const a = audioRef.current;
-        if (name === "kick")       a?.kick?.triggerAttackRelease("C1", "8n", undefined, v);
-        else if (name === "snare") a?.snare?.triggerAttackRelease("16n", undefined, v);
-        else if (name === "hat")   a?.hihat?.triggerAttackRelease("32n", undefined, v * 0.6);
-        else if (name === "clap")  a?.clap?.triggerAttackRelease("16n", undefined, v);
+        if (name === "kick")       a?.kick?.triggerAttackRelease("C1", "8n", audioTime, v);
+        else if (name === "snare") a?.snare?.triggerAttackRelease("16n", audioTime, v);
+        else if (name === "hat")   a?.hihat?.triggerAttackRelease("32n", audioTime, v * 0.6);
+        else if (name === "clap")  a?.clap?.triggerAttackRelease("16n", audioTime, v);
       } catch {}
 
-      // Visual pulse on the star
       const pulseBoost = auto ? 1 : 1.3;
-      m.userData.pulse = Math.max(m.userData.pulse, v * pulseBoost);
-
-      // Burst from the star's world position
-      m.getWorldPosition(_tmpWP);
-      emitParticles(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col, 6 + Math.floor(v * 10), 0.6 + v * 0.4);
-      addRipple(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col);
-
-      // Kick gets a small full-scene flash + gentle spin boost
-      if (name === "kick") {
-        const f = 0.2 * v;
-        if (f > flashIntensity.current) flashIntensity.current = f;
-        djFx.spinBoost = Math.min(djFx.spinBoost + 0.18 * v, 0.6);
-      }
+      const runVisuals = () => {
+        m.userData.pulse = Math.max(m.userData.pulse, v * pulseBoost);
+        m.getWorldPosition(_tmpWP);
+        emitParticles(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col, 6 + Math.floor(v * 10), 0.6 + v * 0.4);
+        addRipple(_tmpWP.x, _tmpWP.y, _tmpWP.z, m.userData.col);
+        if (name === "kick") {
+          const f = 0.2 * v;
+          if (f > flashIntensity.current) flashIntensity.current = f;
+          djFx.spinBoost = Math.min(djFx.spinBoost + 0.18 * v, 0.6);
+        }
+      };
+      if (audioTime !== undefined) Tone.Draw.schedule(runVisuals, audioTime);
+      else runVisuals();
 
       haptic(name === "kick" ? 15 : 6);
     }
