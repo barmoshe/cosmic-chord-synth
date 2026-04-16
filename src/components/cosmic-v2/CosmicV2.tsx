@@ -103,31 +103,43 @@ export default function CosmicV2() {
 
   useEffect(() => () => { dispose(); }, [dispose]);
 
-  // Start audio on user gesture — same pattern as v1 (iOS Safari requires sync resume)
-  const handleStart = useCallback(async () => {
+  // Start audio on user gesture. The sync resume + Tone.start() calls MUST run
+  // in the gesture call stack (no awaits) — iOS Safari links the user-activation
+  // token to the synchronous portion and loses it across await points.
+  const handleStart = useCallback(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    try {
-      const rawCtx = Tone.getContext().rawContext as AudioContext;
-      if (rawCtx.state !== "running") {
-        await rawCtx.resume().catch(() => undefined);
-      }
-      await Tone.start();
-      const ok = await engine.current!.start();
-      if (ok) {
-        engine.current!.startDrone();
-        setAudioReady(true);
-        setReady(true);
-      }
-      setPhase("play");
-      // Ask gyro permission on mobile; best-effort
-      if (/Mobi|Android|iPhone/.test(navigator.userAgent)) {
-        gyro.requestPermission().catch(() => undefined);
-      }
-      useV2Prefs.getState().setOnboarded(true);
-    } catch (e) {
-      console.error("v2 audio start failed", e);
-      setPhase("play"); // show scene anyway (visual-only)
+
+    // Optimistic UI: flip to play immediately so the splash dismisses even if
+    // the AudioContext never unlocks (desktop dev, denied autoplay, etc.).
+    setPhase("play");
+    useV2Prefs.getState().setOnboarded(true);
+
+    // --- SYNCHRONOUS unlock (must run in the gesture call stack) ---
+    const rawCtx = Tone.getContext().rawContext as AudioContext;
+    const rawResume = rawCtx.state !== "running"
+      ? rawCtx.resume().catch(() => undefined)
+      : Promise.resolve();
+    const toneStart = Tone.start();
+    // --- end sync unlock ---
+
+    Promise.all([rawResume, toneStart])
+      .then(() => engine.current!.start())
+      .then((ok) => {
+        if (ok) {
+          engine.current!.startDrone();
+          setAudioReady(true);
+          setReady(true);
+        }
+      })
+      .catch((e) => {
+        console.error("v2 audio start failed", e);
+      });
+
+    // Ask gyro permission on iOS; best-effort. Must be in gesture on iOS too,
+    // but we can fire-and-forget because gyro is non-critical.
+    if (/iPhone|iPad/.test(navigator.userAgent)) {
+      gyro.requestPermission().catch(() => undefined);
     }
   }, [engine, gyro, setReady]);
 
