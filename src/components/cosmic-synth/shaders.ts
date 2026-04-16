@@ -86,11 +86,14 @@ export const STAR_VERT = `
 
   void main() {
     vNormal = normalize(normalMatrix * normal);
-    // Organic distortion
+    // Multi-octave breathing — softer than the old single-axis pulse
     vec3 p = position;
-    p += normal * sin(p.x * 0.3 + uTime * 2.0) * uBass * 2.0;
-    p += normal * cos(p.y * 0.4 + uTime * 1.5) * uBass * 1.5;
-    vPosition = p;
+    float breathe = sin(p.x * 0.3 + uTime * 1.2) * 0.5
+                  + cos(p.y * 0.4 + uTime * 0.9) * 0.35
+                  + sin(p.z * 0.5 - uTime * 1.1) * 0.25;
+    p += normal * breathe * (0.35 + uBass * 1.0);
+    // Pass undisplaced position so surface plasma stays anchored as the star breathes
+    vPosition = position;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
 `;
@@ -100,20 +103,42 @@ export const STAR_FRAG = `
   varying vec3 vNormal;
   varying vec3 vPosition;
 
+  // Cheap layered-trig "plasma" — convincing convective granulation without snoise cost
+  float plasma(vec3 p, float t) {
+    float a = sin(p.x * 0.18 + t * 0.5) * cos(p.y * 0.21 - t * 0.4) * sin(p.z * 0.16 + t * 0.3);
+    float b = sin(p.x * 0.42 - t * 0.2) * cos(p.y * 0.37 + t * 0.6) * sin(p.z * 0.31 - t * 0.45);
+    float c = sin(p.x * 0.91 + t * 1.1) * cos(p.y * 0.83 + t * 0.95) * sin(p.z * 0.79 - t * 0.85);
+    return a * 0.55 + b * 0.30 + c * 0.15;
+  }
+
   void main() {
-    float rim = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
-    // Glacial Aurora 2026: teal → cyan → periwinkle
-    vec3 c1 = vec3(0.08, 0.72, 0.65);
-    vec3 c2 = vec3(0.13, 0.83, 0.93);
-    vec3 c3 = vec3(0.51, 0.55, 0.97);
-    vec3 color = mix(c1, mix(c2, c3, uPitch), sin(uTime * 0.4 + uPitch * 4.0) * 0.5 + 0.5);
+    vec3 N = normalize(vNormal);
+    float NdotV = clamp(dot(N, vec3(0.0, 0.0, 1.0)), 0.0, 1.0);
+    float rim = 1.0 - NdotV;
 
-    float energy = pow(rim, 1.5) * (2.5 + uBass * 5.0) + 0.6 + uBass * 0.5;
-    // Inner glow
-    float inner = 1.0 - rim;
-    energy += inner * inner * (0.3 + uBass * 0.8);
+    // Warm palette — amber → coral → magenta, drifts with pitch + slow time
+    vec3 c1 = vec3(1.00, 0.65, 0.20);   // amber
+    vec3 c2 = vec3(0.99, 0.42, 0.34);   // coral
+    vec3 c3 = vec3(0.92, 0.30, 0.55);   // magenta
+    float mixT = clamp(uPitch + sin(uTime * 0.3) * 0.2, 0.0, 1.0);
+    vec3 base = mix(c1, mix(c2, c3, mixT), mixT);
 
-    gl_FragColor = vec4(color * energy, 1.0);
+    // Convective cells — bright spots that drift across the surface
+    float cells = plasma(vPosition, uTime) * 0.5 + 0.5;
+    float granule = pow(cells, 1.6);
+    vec3 hotSpot = mix(base, vec3(1.0, 0.92, 0.72), granule * (0.45 + uBass * 0.35));
+
+    // Limb darkening — real stellar discs dim toward the edges
+    float limb = mix(0.55, 1.0, pow(NdotV, 0.6));
+
+    // Tight warm corona at the rim, lifts on bass
+    float corona = pow(rim, 4.0) * (0.55 + uBass * 1.0);
+
+    // Calmer surface than before — soft glow, not a flash
+    float surface = 0.45 + granule * 0.30 + uBass * 0.30;
+
+    vec3 col = hotSpot * surface * limb + base * corona;
+    gl_FragColor = vec4(col, 1.0);
   }
 `;
 
@@ -123,9 +148,9 @@ export const HALO_FRAG = `
 
   void main() {
     float rim = pow(max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0), 2.0);
-    // Halo: cyan ↔ orchid (cool-on-cool tension)
-    vec3 c = mix(vec3(0.13, 0.83, 0.93), vec3(0.91, 0.47, 0.98), sin(uTime * 0.2) * 0.5 + 0.5);
-    gl_FragColor = vec4(c, rim * (0.35 + uBass * 0.65));
+    // Warm halo — amber ↔ magenta
+    vec3 c = mix(vec3(1.0, 0.55, 0.25), vec3(0.92, 0.30, 0.55), sin(uTime * 0.2) * 0.5 + 0.5);
+    gl_FragColor = vec4(c, rim * (0.22 + uBass * 0.45));
   }
 `;
 
