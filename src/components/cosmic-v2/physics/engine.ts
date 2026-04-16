@@ -16,10 +16,16 @@ export interface PhysicsConfig {
 export const DEFAULT_CONFIG: PhysicsConfig = {
   gravityStrength: 260,
   dragFactor: 0.998,
-  softening: 4,
+  // Larger softening kills close-approach force spikes that were popping
+  // moons to huge velocities and making them teleport.
+  softening: 10,
   proximityThreshold: 14,
-  bounds: 600,
+  bounds: 620,
 };
+
+// Hard ceiling on per-body speed — prevents a single unlucky integration step
+// from hurling a body across the scene in one frame.
+const MAX_SPEED = 140;
 
 let nextId = 1;
 
@@ -268,25 +274,39 @@ export class PhysicsEngine {
       b.vel[0] = (b.vel[0] + b.acc[0] * dt) * drag;
       b.vel[1] = (b.vel[1] + b.acc[1] * dt) * drag;
       b.vel[2] = (b.vel[2] + b.acc[2] * dt) * drag;
+
+      // Clamp per-body speed so a force spike can't teleport the body.
+      const sp2 = b.vel[0] * b.vel[0] + b.vel[1] * b.vel[1] + b.vel[2] * b.vel[2];
+      if (sp2 > MAX_SPEED * MAX_SPEED) {
+        const s = MAX_SPEED / Math.sqrt(sp2);
+        b.vel[0] *= s; b.vel[1] *= s; b.vel[2] *= s;
+      }
+
       b.pos[0] += b.vel[0] * dt;
       b.pos[1] += b.vel[1] * dt;
       b.pos[2] += b.vel[2] * dt;
 
       b.age += dt;
 
-      // Soft bounds — reflect toward core if body escapes
+      // Soft bounds — apply a radial spring when the body overshoots instead
+      // of hard-reflecting, which was visibly popping the position each tick.
       const distSq = b.pos[0] * b.pos[0] + b.pos[1] * b.pos[1] + b.pos[2] * b.pos[2];
       if (distSq > bounds * bounds) {
         const d = Math.sqrt(distSq);
+        const overshoot = d - bounds;
         const nx = b.pos[0] / d, ny = b.pos[1] / d, nz = b.pos[2] / d;
-        b.pos[0] = nx * bounds;
-        b.pos[1] = ny * bounds;
-        b.pos[2] = nz * bounds;
-        // Reflect velocity toward core, damped
+        // Pull acceleration back toward origin, scaled by how far past bounds.
+        const pull = 8 * overshoot;
+        b.vel[0] -= nx * pull * dt;
+        b.vel[1] -= ny * pull * dt;
+        b.vel[2] -= nz * pull * dt;
+        // Damp outward component to bleed energy without a discontinuity.
         const vdotn = b.vel[0] * nx + b.vel[1] * ny + b.vel[2] * nz;
-        b.vel[0] = (b.vel[0] - 2 * vdotn * nx) * 0.6;
-        b.vel[1] = (b.vel[1] - 2 * vdotn * ny) * 0.6;
-        b.vel[2] = (b.vel[2] - 2 * vdotn * nz) * 0.6;
+        if (vdotn > 0) {
+          b.vel[0] -= vdotn * nx * 0.4;
+          b.vel[1] -= vdotn * ny * 0.4;
+          b.vel[2] -= vdotn * nz * 0.4;
+        }
       }
 
       // Orbit phase (XZ plane) — fires on angle crossing 0 or π (2 notes/orbit)

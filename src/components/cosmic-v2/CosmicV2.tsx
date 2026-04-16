@@ -200,13 +200,13 @@ export default function CosmicV2() {
       physics.applyField({
         pos: worldPos,
         radius: 220,
-        strength: 900,
+        strength: 380,
         mode: "attract",
         ttl: 1.4,
         age: 0,
       });
     } else {
-      const flick: Vec3 = [(Math.random() - 0.5) * 60, 0, (Math.random() - 0.5) * 60];
+      const flick: Vec3 = [(Math.random() - 0.5) * 30, 0, (Math.random() - 0.5) * 30];
       physics.spawnSpark(worldPos, flick, [0.95, 0.85, 0.35], degree, 5);
     }
   }, [phase, scaleId, touchMode, physics]);
