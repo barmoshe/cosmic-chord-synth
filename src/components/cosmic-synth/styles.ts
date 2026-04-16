@@ -247,18 +247,6 @@ export const COSMIC_STYLES = `
           animation: cosmicPulse 1.5s ease-out forwards;
         }
 
-        .cosmic-gyro-prompt {
-          position: fixed !important;
-          bottom: 80px !important; left: 50% !important;
-          transform: translateX(-50%) !important;
-          z-index: 20 !important;
-          padding: 16px 30px !important;
-          border-radius: 24px !important;
-          font-family: 'Raleway', sans-serif !important;
-          font-size: 13px !important;
-          color: rgba(0,240,255,0.8) !important;
-          letter-spacing: 0.08em !important;
-        }
 
         .cosmic-error {
           position: fixed; top: 65px; left: 50%;

@@ -7,7 +7,6 @@ import { m2f, noteColor } from "./cosmic-synth/helpers";
 import { COSMIC_STYLES } from "./cosmic-synth/styles";
 import { useAudioEngine } from "./cosmic-synth/useAudioEngine";
 import { useSetupEffects } from "./cosmic-synth/useSetupEffects";
-import { useGyroscope } from "./cosmic-synth/useGyroscope";
 import { useThreeScene } from "./cosmic-synth/useThreeScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
@@ -22,7 +21,6 @@ export default function CosmicSynth() {
   const [flash, setFlash] = useState("");
   const [showUI, setShowUI] = useState(true);
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [gyroPrompt, setGyroPrompt] = useState(false);
   const [djSection, setDjSection] = useState("");
   const [warpProgress, setWarpProgress] = useState(0);
   const [seqOpen, setSeqOpen] = useState(false);
@@ -34,7 +32,6 @@ export default function CosmicSynth() {
   const scaleRef = useRef("pentatonic");
   const glowsRef = useRef(new Map());
   const glowContainerRef = useRef<HTMLDivElement>(null);
-  const gyroRef = useRef({ on: false, beta: 0, gamma: 0, alpha: 0, accelX: 0, accelY: 0, accelZ: 0, shake: 0, lastShakeTime: 0 });
   const hideTimerRef = useRef<any>(null);
   const flashIntensity = useRef(0);
   const warpState = useRef({ on: false, t: 0 });
@@ -51,8 +48,7 @@ export default function CosmicSynth() {
   /* ── Hooks ── */
   const { audioRef, analysisRef, fftBuffer, initAudio, analyze } = useAudioEngine();
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
-  const { grantGyro } = useGyroscope(phase, gyroRef, scaleRef, flashIntensity, engineRef, setScale, setFlash, setGyroPrompt);
-  useThreeScene(canvasRef, audioRef, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, gyroRef, frameCount, rafRef, analyze);
+  useThreeScene(canvasRef, audioRef, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
   useTouchInput(canvasRef, audioRef, engineRef, touchesRef, scaleRef, phase, resetUIHide);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
   useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, setDjSection);
@@ -146,11 +142,11 @@ export default function CosmicSynth() {
         <>
           <div className="cosmic-header" style={{ opacity: showUI ? 1 : 0 }}>
             <div className="cosmic-header-title">COSMIC SYNTH</div>
-            <div className="cosmic-header-sub">Touch · Tilt · Shake</div>
+            <div className="cosmic-header-sub">Touch to Play</div>
           </div>
 
           {!hintDismissed && (
-            <div className="cosmic-hint">Touch to play · Tilt to explore · Shake to change scale</div>
+            <div className="cosmic-hint">Touch to play · Use arrows to change scale</div>
           )}
 
           <div className="cosmic-auto-group">
@@ -195,18 +191,6 @@ export default function CosmicSynth() {
 
           {flash && <div className="cosmic-flash">{flash}</div>}
 
-          {gyroPrompt && (
-            <button
-              onTouchStart={(e) => { e.preventDefault(); grantGyro(); }}
-              onClick={() => grantGyro()}
-              className="cosmic-btn cosmic-gyro-prompt"
-            >
-              🌀 Allow motion controls
-              <span style={{ display: "block", fontSize: 9, opacity: 0.5, marginTop: 4 }}>
-                Tilt · Rotate · Shake
-              </span>
-            </button>
-          )}
 
           {!audioOk && (
             <div className="cosmic-error">Audio unavailable — visual only</div>
