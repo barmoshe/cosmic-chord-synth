@@ -51,7 +51,7 @@ export default function CosmicSynth() {
   useThreeScene(canvasRef, audioRef, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
   useTouchInput(canvasRef, audioRef, engineRef, touchesRef, scaleRef, phase, resetUIHide);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
-  useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, setDjSection);
+  useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, setDjSection, touchesRef);
 
   /* ── Audio Start ── */
   const handleStart = useCallback(async () => {

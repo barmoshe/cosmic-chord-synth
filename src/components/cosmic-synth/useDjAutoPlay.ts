@@ -1,8 +1,11 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
 import { Draw } from "tone";
-import { SCALES, SCALE_ORDER, PROGS, DJ_SECTIONS, RHY, BASS_PAT, ARP_MODES, BASE_MIDI, MIDI_RANGE } from "./constants";
+import { SCALES, SCALE_ORDER, PROGS, DJ_SECTIONS, RHY, BASS_PAT, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES } from "./constants";
 import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
+
+const DJ_VOICE_IDS = ["dj-ml", "dj-bs", "dj-ar", "dj-ct"] as const;
+type DjVoiceId = typeof DJ_VOICE_IDS[number];
 
 export function useDjAutoPlay(
   autoPlay: boolean,
@@ -11,6 +14,7 @@ export function useDjAutoPlay(
   scaleRef: React.MutableRefObject<string>,
   djState: React.MutableRefObject<any>,
   setDjSection: (s: string) => void,
+  touchesRef: React.MutableRefObject<Map<any, any>>,
 ) {
   useEffect(() => {
     const dj = djState.current;
@@ -22,6 +26,7 @@ export function useDjAutoPlay(
         audioRef.current?.pd?.releaseAll(); audioRef.current?.bs?.releaseAll();
         audioRef.current?.ar?.releaseAll(); audioRef.current?.dn?.releaseAll();
       } catch {}
+      DJ_VOICE_IDS.forEach(id => touchesRef.current.delete(id));
       setDjSection(""); return;
     }
     dj.on = true; dj.si = 0; dj.tis = 0; dj.tt = 0; dj.oct = 4; dj.deg = 0; dj.cf = 0.15; dj.ce = 0.1;
@@ -34,6 +39,23 @@ export function useDjAutoPlay(
     let cachedMatrix: Record<number, Record<number, number>> = buildMatrix(sn().notes);
     let cachedScale = scaleRef.current;
     let lastFilterVal = -1;
+
+    // Pooled glow overlays for DJ voices — fixed IDs reuse the same DOM elements
+    const pulseTimers: Record<DjVoiceId, ReturnType<typeof setTimeout> | null> = {
+      "dj-ml": null, "dj-bs": null, "dj-ar": null, "dj-ct": null,
+    };
+    function pulseGlow(id: DjVoiceId, midi: number, x: number, y: number, durMs: number) {
+      const existing = pulseTimers[id];
+      if (existing) clearTimeout(existing);
+      touchesRef.current.set(id, {
+        midi, freq: m2f(midi), subFreq: m2f(midi - 12),
+        x, y, note: NOTE_NAMES[((midi % 12) + 12) % 12],
+      });
+      pulseTimers[id] = setTimeout(() => {
+        touchesRef.current.delete(id);
+        pulseTimers[id] = null;
+      }, durMs);
+    }
 
     function secRhy(s: any) { return s.d < 0.3 ? RHY.sparse : s.d < 0.5 ? RHY.quarter : s.d < 0.7 ? pick([RHY.syncopated, RHY.quarter]) : s.d < 0.85 ? RHY.driving : pick([RHY.dense, RHY.driving]); }
     function secBass(s: any) { return s.e < 0.4 ? BASS_PAT.whole : s.e < 0.7 ? BASS_PAT.octave : BASS_PAT.bounce; }
@@ -139,6 +161,7 @@ export function useDjAutoPlay(
               const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
               engineRef.current.addRipple(wx, wy, wz, noteColor(midi));
               engineRef.current.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(6 + E * 16), E);
+              pulseGlow("dj-ml", midi, fx, fy, Math.max(180, durS * 800));
             }, time);
           }
         }
@@ -158,6 +181,7 @@ export function useDjAutoPlay(
               const [wx, wy, wz] = engineRef.current.s2w(bx, by);
               engineRef.current.addRipple(wx, wy, wz, noteColor(bassMidi));
               engineRef.current.emitParticles(wx, wy, wz, noteColor(bassMidi), Math.floor(3 + E * 6), E * 0.7);
+              pulseGlow("dj-bs", bassMidi, bx, by, 280);
             }, time);
           }
         }
@@ -174,6 +198,7 @@ export function useDjAutoPlay(
             const ay = window.innerHeight * 0.3;
             const [wx, wy, wz] = engineRef.current.s2w(ax, ay);
             engineRef.current.emitParticles(wx, wy, wz, noteColor(arpMidi), Math.floor(2 + E * 5), E * 0.5);
+            pulseGlow("dj-ar", arpMidi, ax, ay, 160);
           }, time);
         }
       }
@@ -190,6 +215,7 @@ export function useDjAutoPlay(
             const [wx, wy, wz] = engineRef.current.s2w(cx, cy);
             engineRef.current.addRipple(wx, wy, wz, noteColor(ctMidi));
             engineRef.current.emitParticles(wx, wy, wz, noteColor(ctMidi), Math.floor(3 + E * 6), E * 0.6);
+            pulseGlow("dj-ct", ctMidi, cx, cy, 200);
           }, time);
         }
       }
@@ -202,6 +228,11 @@ export function useDjAutoPlay(
     return () => {
       const t = Tone.getTransport();
       if (djState.current.iv != null) { t.clear(djState.current.iv); djState.current.iv = null; }
+      DJ_VOICE_IDS.forEach(id => {
+        const tm = pulseTimers[id];
+        if (tm) { clearTimeout(tm); pulseTimers[id] = null; }
+        touchesRef.current.delete(id);
+      });
     };
   }, [autoPlay]);
 }
