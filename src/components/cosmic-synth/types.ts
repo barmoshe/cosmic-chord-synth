@@ -53,6 +53,8 @@ export interface AudioEngine {
   rv: Tone.Freeverb;
   dl: Tone.FeedbackDelay;
   ch: Tone.Chorus;
+  mc: Tone.Compressor;
+  ml: Tone.Limiter;
   fft: Tone.FFT;
   lfo: Tone.LFO;
 }

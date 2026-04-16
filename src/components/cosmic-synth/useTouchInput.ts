@@ -19,6 +19,10 @@ export function useTouchInput(
     // Throttle filter rampTo — only when value changes significantly
     let lastFilterFreq = 0;
 
+    // Coalesce touchmove events to one processed move per finger per animation frame
+    const pendingMoves = new Map<any, { x: number; y: number }>();
+    let rafHandle: number | null = null;
+
     // Safety cleanup: release all voices when no touches are active
     let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
     function scheduleVoiceCleanup() {
@@ -30,7 +34,7 @@ export function useTouchInput(
             audioRef.current.sb.releaseAll(Tone.now());
           } catch {}
         }
-      }, 200);
+      }, 120);
     }
 
     // Returns true if the tap/click hit a drum-star (and triggered its drum). Caller skips noteOn.
@@ -52,7 +56,7 @@ export function useTouchInput(
       const midi = quantize(Math.round(BASE_MIDI + (x / window.innerWidth) * MIDI_RANGE), sn);
       const freq = m2f(midi);
       const brightness = 1 - y / window.innerHeight;
-      const vel = 0.3 + brightness * 0.6;
+      const vel = 0.25 + brightness * 0.45;
       const cut = 300 + brightness * 5500;
       const now = Tone.now();
       try {
@@ -72,7 +76,7 @@ export function useTouchInput(
       touchesRef.current.set(id, { midi, freq, subFreq: m2f(midi - 12), x, y, note: NOTE_NAMES[midi % 12] });
     }
 
-    function noteMove(id: any, x: number, y: number) {
+    function processMove(id: any, x: number, y: number) {
       if (!audioRef.current || !touchesRef.current.has(id)) return;
       const prev = touchesRef.current.get(id);
       const sn = SCALES[scaleRef.current].notes;
@@ -86,8 +90,8 @@ export function useTouchInput(
           // Release old note and attack new one with enough offset for voice recycling
           audioRef.current.ld.triggerRelease(prev.freq, now);
           audioRef.current.sb.triggerRelease(prev.subFreq, now);
-          audioRef.current.ld.triggerAttack(freq, now + 0.03, 0.3 + brightness * 0.5);
-          audioRef.current.sb.triggerAttack(subFreq, now + 0.03, 0.25);
+          audioRef.current.ld.triggerAttack(freq, now + 0.02, 0.2 + brightness * 0.35);
+          audioRef.current.sb.triggerAttack(subFreq, now + 0.02, 0.18);
         } catch {}
         haptic(6);
         prev.midi = midi; prev.freq = freq; prev.subFreq = subFreq; prev.note = NOTE_NAMES[midi % 12];
@@ -98,6 +102,17 @@ export function useTouchInput(
         try { audioRef.current.fi.frequency.rampTo(newCut, 0.08); } catch {}
       }
       prev.x = x; prev.y = y;
+    }
+
+    function flushMoves() {
+      rafHandle = null;
+      for (const [id, p] of pendingMoves) processMove(id, p.x, p.y);
+      pendingMoves.clear();
+    }
+
+    function noteMove(id: any, x: number, y: number) {
+      pendingMoves.set(id, { x, y });
+      if (rafHandle === null) rafHandle = requestAnimationFrame(flushMoves);
     }
 
     function noteOff(id: any) {
@@ -157,6 +172,8 @@ export function useTouchInput(
 
     return () => {
       if (cleanupTimer) clearTimeout(cleanupTimer);
+      if (rafHandle !== null) cancelAnimationFrame(rafHandle);
+      pendingMoves.clear();
       cv.removeEventListener("touchstart", onTS); cv.removeEventListener("touchmove", onTM);
       cv.removeEventListener("touchend", onTE); cv.removeEventListener("touchcancel", onTE);
       cv.removeEventListener("mousedown", onMD); cv.removeEventListener("mousemove", onMM);
