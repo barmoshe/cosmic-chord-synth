@@ -91,11 +91,18 @@ export default function CosmicSynth() {
       }
     }, 25);
 
-    // Audio init runs in parallel — doesn't block the UI transition
+    // Create AudioContext synchronously inside user gesture (required by browser policy)
+    try {
+      const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.05 : 0.1 });
+      Tone.setContext(ctx);
+    } catch (e) {
+      console.error("Audio context error:", e);
+      setAudioOk(false);
+    }
+
+    // Resume and init can be async — context was already created in gesture
     (async () => {
       try {
-        const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.05 : 0.1 });
-        Tone.setContext(ctx);
         await Tone.start();
         if (Tone.getContext().state !== "running") {
           await Tone.getContext().resume();
@@ -135,7 +142,7 @@ export default function CosmicSynth() {
       {/* Splash Screen */}
       {phase === "splash" && (
         <div
-          onTouchStart={(e) => { e.preventDefault(); handleStart(); }}
+          onTouchStart={() => handleStart()}
           onClick={() => handleStart()}
           className="cosmic-splash"
         >
