@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import * as Tone from "tone";
 import { m2f } from "./helpers";
 import { SMOOTH } from "./constants";
@@ -8,7 +8,7 @@ export function useAudioEngine() {
   const analysisRef = useRef({ bass: 0, mid: 0, treble: 0, high: 0, vol: 0, pitch: 0 });
   const fftBuffer = useRef(new Float32Array(128));
 
-  function disposeAudio() {
+  const disposeAudio = useCallback(function disposeAudio() {
     const a = audioRef.current;
     if (!a) return;
     try {
@@ -22,7 +22,7 @@ export function useAudioEngine() {
       a.fft.dispose(); a.lfo.dispose();
     } catch {}
     audioRef.current = null;
-  }
+  }, []);
 
   function initAudio() {
     try {
