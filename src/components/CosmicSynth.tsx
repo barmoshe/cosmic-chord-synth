@@ -146,7 +146,10 @@ export default function CosmicSynth() {
           </div>
 
           {!hintDismissed && (
-            <div className="cosmic-hint">Touch to play · Use arrows to change scale</div>
+            <div className="cosmic-hint">
+              <div>Touch to play · Drag to explore</div>
+              <div className="cosmic-hint-detail">← Low pitch — High pitch → &nbsp;|&nbsp; ↑ Bright — Dark ↓</div>
+            </div>
           )}
 
           <div className="cosmic-auto-group">
@@ -189,8 +192,20 @@ export default function CosmicSynth() {
             </button>
           </div>
 
-          {flash && <div className="cosmic-flash">{flash}</div>}
+          {/* Axis guides */}
+          <div className="cosmic-axis-label cosmic-axis-left">Bright</div>
+          <div className="cosmic-axis-label cosmic-axis-right">Dark</div>
+          <div className="cosmic-axis-label cosmic-axis-top">↑ Filter Open</div>
+          <div className="cosmic-axis-label cosmic-axis-bottom">← Low Pitch — High Pitch →</div>
 
+          {/* Energy bar (shows DJ energy when auto-playing) */}
+          {autoPlay && (
+            <div className="cosmic-energy-bar">
+              <div className="cosmic-energy-fill" style={{ width: `${Math.min(100, (djState.current.ce || 0) * 100)}%` }} />
+            </div>
+          )}
+
+          {flash && <div className="cosmic-flash">{flash}</div>}
 
           {!audioOk && (
             <div className="cosmic-error">Audio unavailable — visual only</div>
