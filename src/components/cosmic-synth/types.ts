@@ -50,13 +50,9 @@ export interface AudioEngine {
   bf: Tone.Filter;
   af: Tone.Filter;
   df: Tone.Filter;
-  rv: Tone.Reverb;
+  rv: Tone.Freeverb;
   dl: Tone.FeedbackDelay;
   ch: Tone.Chorus;
-  pr: Tone.Reverb;
-  br2: Tone.Reverb;
-  dr2: Tone.Reverb;
-  drumRv: Tone.Reverb;
   fft: Tone.FFT;
   lfo: Tone.LFO;
 }

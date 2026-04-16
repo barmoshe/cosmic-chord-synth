@@ -60,11 +60,12 @@ export default function CosmicSynth() {
   /* ── Audio Start ── */
   const handleStart = useCallback(async () => {
     try {
+      const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.04 : 0.03 });
+      Tone.setContext(ctx);
       await Tone.start();
       if (Tone.getContext().state !== "running") {
         await Tone.getContext().resume();
       }
-      Tone.getContext().lookAhead = isMobile ? 0.04 : 0.1;
       if (!initAudio()) setAudioOk(false);
     } catch (e) {
       console.error("Audio start error:", e);

@@ -411,7 +411,7 @@ export function useThreeScene(
       const fc = frameCount.current++;
 
       // Throttle FFT analysis — every 3rd frame
-      if (fc % 3 === 0) analyze();
+      if (fc % 6 === 0) analyze();
 
       // Gyro input — expanded mobile mechanics
       const g = gyroRef.current;

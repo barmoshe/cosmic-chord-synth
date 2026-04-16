@@ -16,6 +16,9 @@ export function useTouchInput(
     const cv = canvasRef.current;
     if (!cv || phase !== "play") return;
 
+    // Throttle filter rampTo — only when value changes significantly
+    let lastFilterFreq = 0;
+
     // Safety cleanup: release all voices when no touches are active
     let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
     function scheduleVoiceCleanup() {
@@ -78,7 +81,11 @@ export function useTouchInput(
         haptic(6);
         prev.midi = midi; prev.freq = freq; prev.subFreq = subFreq; prev.note = NOTE_NAMES[midi % 12];
       }
-      try { audioRef.current.fi.frequency.rampTo(300 + (1 - y / window.innerHeight) * 5500, 0.06); } catch {}
+      const newCut = 300 + (1 - y / window.innerHeight) * 5500;
+      if (Math.abs(newCut - lastFilterFreq) > 150) {
+        lastFilterFreq = newCut;
+        try { audioRef.current.fi.frequency.rampTo(newCut, 0.08); } catch {}
+      }
       prev.x = x; prev.y = y;
     }
 

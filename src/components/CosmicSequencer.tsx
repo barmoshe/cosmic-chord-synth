@@ -178,10 +178,10 @@ export default function CosmicSequencer({
   const tapTimesRef = useRef<number[]>([]);
 
   useEffect(() => { tracksRef.current = tracks; }, [tracks]);
-  useEffect(() => { bpmRef.current = bpm; }, [bpm]);
-  useEffect(() => { swingRef.current = swing; }, [swing]);
+  useEffect(() => { bpmRef.current = bpm; if (playingRef.current) Tone.getTransport().bpm.value = bpm; }, [bpm]);
+  useEffect(() => { swingRef.current = swing; if (playingRef.current) Tone.getTransport().swing = swing * 0.5; }, [swing]);
 
-  // Play engine — uses Tone.Transport for reliable iOS scheduling
+  // Play engine — uses Tone.Transport for precise Web Audio clock scheduling
   const startPlayback = useCallback(async () => {
     if (playingRef.current) return;
 
@@ -199,18 +199,25 @@ export default function CosmicSequencer({
     setPlaying(true);
     stepRef.current = -1;
 
-    function tick() {
+    const transport = Tone.getTransport();
+    transport.bpm.value = bpmRef.current;
+    transport.swing = swingRef.current * 0.5;
+
+    intervalRef.current = transport.scheduleRepeat((time) => {
       if (!playingRef.current) return;
       stepRef.current = (stepRef.current + 1) % STEP_COUNT;
       const step = stepRef.current;
-      setCurrentStep(step);
-      setPulseStep(step);
-      setTimeout(() => setPulseStep(-1), 100);
+
+      // Defer UI updates to animation frame
+      Tone.Draw.schedule(() => {
+        setCurrentStep(step);
+        setPulseStep(step);
+        setTimeout(() => setPulseStep(-1), 100);
+      }, time);
 
       const trks = tracksRef.current;
       const anySolo = trks.some(t => t.solo);
       const sn = scales[scaleRef.current]?.notes || [0, 2, 4, 5, 7, 9, 11];
-      const now = Tone.now();
 
       for (const track of trks) {
         if (track.muted) continue;
@@ -223,14 +230,11 @@ export default function CosmicSequencer({
             const drumSynth = audioRef.current?.[track.synth];
             if (drumSynth) {
               if (track.synth === "kick") {
-                // MembraneSynth: triggerAttackRelease(note, duration, time?, velocity?)
-                drumSynth.triggerAttackRelease("C1", "8n", now, s.vel);
+                drumSynth.triggerAttackRelease("C1", "8n", time, s.vel);
               } else if (track.synth === "hihat") {
-                // MetalSynth: triggerAttackRelease(duration, time?, velocity?) — NO note param
-                drumSynth.triggerAttackRelease("32n", now, s.vel * 0.6);
+                drumSynth.triggerAttackRelease("32n", time, s.vel * 0.6);
               } else {
-                // NoiseSynth (snare, clap): triggerAttackRelease(duration, time?, velocity?)
-                drumSynth.triggerAttackRelease("16n", now, s.vel);
+                drumSynth.triggerAttackRelease("16n", time, s.vel);
               }
             }
           } else {
@@ -241,50 +245,51 @@ export default function CosmicSequencer({
             const synth = audioRef.current?.[track.synth];
             if (synth) {
               if (track.synth === "pd") {
-                synth.triggerAttackRelease(freq, dur * 3, now, s.vel * 0.4);
+                synth.triggerAttackRelease(freq, dur * 3, time, s.vel * 0.4);
               } else {
-                synth.triggerAttackRelease(freq, dur, now, s.vel);
+                synth.triggerAttackRelease(freq, dur, time, s.vel);
               }
             }
             if (track.synth === "ld" && audioRef.current?.sb) {
-              audioRef.current.sb.triggerAttackRelease(m2fFn(midi - 12), dur, now, s.vel * 0.4);
+              audioRef.current.sb.triggerAttackRelease(m2fFn(midi - 12), dur, time, s.vel * 0.4);
             }
 
-            // Visuals for melodic
+            // Visuals for melodic — deferred to animation frame
             if (engineRef.current) {
-              const fx = ((midi - 48) / 36) * window.innerWidth;
-              const fy = (1 - s.vel) * window.innerHeight;
-              const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
-              const col = noteColorFn(midi);
-              engineRef.current.addRipple(wx, wy, wz, col);
-              engineRef.current.emitParticles(wx, wy, wz, col, Math.floor(4 + s.vel * 8), s.vel);
+              Tone.Draw.schedule(() => {
+                const fx = ((midi - 48) / 36) * window.innerWidth;
+                const fy = (1 - s.vel) * window.innerHeight;
+                const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
+                const col = noteColorFn(midi);
+                engineRef.current.addRipple(wx, wy, wz, col);
+                engineRef.current.emitParticles(wx, wy, wz, col, Math.floor(4 + s.vel * 8), s.vel);
+              }, time);
             }
           }
 
-          // Visual burst for drums
+          // Visual burst for drums — deferred to animation frame
           if (track.isDrum && engineRef.current) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 50 + Math.random() * 150;
-            const wx = Math.cos(angle) * dist;
-            const wz = Math.sin(angle) * dist;
-            const drumColors: Record<string, [number, number, number]> = {
-              kick: [1, 0.2, 0.3], snare: [1, 0.5, 0], hihat: [1, 0.9, 0], clap: [1, 0.3, 0.7],
-            };
-            const col = drumColors[track.synth] || [1, 1, 1];
-            engineRef.current.emitParticles(wx, 0, wz, col, Math.floor(3 + s.vel * 6), s.vel * 0.7);
+            const vel = s.vel;
+            const synthId = track.synth;
+            Tone.Draw.schedule(() => {
+              const angle = Math.random() * Math.PI * 2;
+              const dist = 50 + Math.random() * 150;
+              const wx = Math.cos(angle) * dist;
+              const wz = Math.sin(angle) * dist;
+              const drumColors: Record<string, [number, number, number]> = {
+                kick: [1, 0.2, 0.3], snare: [1, 0.5, 0], hihat: [1, 0.9, 0], clap: [1, 0.3, 0.7],
+              };
+              const col = drumColors[synthId] || [1, 1, 1];
+              engineRef.current.emitParticles(wx, 0, wz, col, Math.floor(3 + vel * 6), vel * 0.7);
+            }, time);
           }
         } catch (e) {
           console.warn("Seq note error:", e);
         }
       }
+    }, "16n");
 
-      const baseInterval = (60 / bpmRef.current / 4) * 1000;
-      const swingAmount = swingRef.current;
-      const isOdd = step % 2 === 1;
-      const delay = isOdd ? baseInterval * (1 + swingAmount * 0.5) : baseInterval * (1 - swingAmount * 0.25);
-      intervalRef.current = setTimeout(tick, delay);
-    }
-    tick();
+    transport.start();
   }, [audioRef, engineRef, scaleRef, scales, m2fFn, noteColorFn]);
 
   const stopPlayback = useCallback(() => {
@@ -292,16 +297,19 @@ export default function CosmicSequencer({
     setPlaying(false);
     setCurrentStep(-1);
     stepRef.current = -1;
-    if (intervalRef.current) { clearTimeout(intervalRef.current); intervalRef.current = null; }
+    const transport = Tone.getTransport();
+    if (intervalRef.current != null) { transport.clear(intervalRef.current); intervalRef.current = null; }
+    transport.stop();
   }, []);
 
   useEffect(() => {
-    return () => { if (intervalRef.current) clearTimeout(intervalRef.current); };
+    return () => {
+      const transport = Tone.getTransport();
+      if (intervalRef.current != null) { transport.clear(intervalRef.current); intervalRef.current = null; }
+    };
   }, []);
 
-  useEffect(() => {
-    if (!visible && playing) stopPlayback();
-  }, [visible, playing, stopPlayback]);
+  // Sequencer keeps playing when collapsed — user can stop via button when reopened
 
   const toggleStep = useCallback((trackIdx: number, stepIdx: number) => {
     setTracks(prev => prev.map((t, ti) => ti === trackIdx ? {

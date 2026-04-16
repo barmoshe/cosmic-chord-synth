@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
+import { Draw } from "tone";
 import { SCALES, SCALE_ORDER, PROGS, DJ_SECTIONS, RHY, BASS_PAT, ARP_MODES, BASE_MIDI, MIDI_RANGE } from "./constants";
 import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
 
@@ -15,7 +16,7 @@ export function useDjAutoPlay(
     const dj = djState.current;
     if (!autoPlay || !audioRef.current) {
       dj.on = false;
-      if (dj.iv) { clearInterval(dj.iv); dj.iv = null; }
+      if (dj.iv != null) { Tone.getTransport().clear(dj.iv); dj.iv = null; }
       try {
         audioRef.current?.ld?.releaseAll(); audioRef.current?.sb?.releaseAll();
         audioRef.current?.pd?.releaseAll(); audioRef.current?.bs?.releaseAll();
@@ -39,13 +40,13 @@ export function useDjAutoPlay(
     let rhy = secRhy(sec()); dj.ri = 0; let bRhy = secBass(sec()); dj.bi = 0;
 
     function transition() {
-      const s = sec(); setDjSection(s.name);
+      const s = sec();
+      Draw.schedule(() => { setDjSection(s.name); }, Tone.now());
       rhy = secRhy(s); dj.ri = 0; bRhy = secBass(s); dj.bi = 0;
       dj.tf = s.ft; dj.te = s.e; dj.am = pick(ARP_MODES); dj.as = 0;
       try {
         const [at, dc, su, rl] = s.adsr;
-        const [mi, hm, , sp] = s.mod;
-        audioRef.current.ld.set({ envelope: { attack: at, decay: dc, sustain: su, release: rl }, modulationIndex: mi, harmonicity: hm });
+        audioRef.current.ld.set({ envelope: { attack: at, decay: dc, sustain: su, release: rl } });
         audioRef.current.rv.wet.value = s.rv;
         audioRef.current.dl.wet.value = s.dw;
       } catch {}
@@ -66,9 +67,15 @@ export function useDjAutoPlay(
       dj.pp = 0;
       if (dj.si % 3 === 0) { const ps = PROGS[scaleRef.current] || PROGS.minor; prog = pick(ps); dj.ci = 0; }
     }
-    transition(); setDjSection(sec().name);
+    transition();
 
-    dj.iv = setInterval(() => {
+    const transport = Tone.getTransport();
+    // Only set BPM if transport isn't already running (sequencer may have priority)
+    if (transport.state !== "started") {
+      transport.bpm.value = 94;
+    }
+
+    dj.iv = transport.scheduleRepeat((time) => {
       if (!audioRef.current || !dj.on) return;
       const s = sec(), sc2 = sn(), notes = sc2.notes, chords = sc2.chords;
       // Refresh matrix cache if scale changed
@@ -95,25 +102,24 @@ export function useDjAutoPlay(
         dj.ac = chords[prog[dj.ci] % chords.length] || [];
         if (s.l.pd > 0) {
           try {
-            audioRef.current.pd.releaseAll(Tone.now());
+            audioRef.current.pd.releaseAll(time);
             const padFreqs = dj.ac.map((n: number) => m2f(48 + n));
-            audioRef.current.pd.triggerAttack(padFreqs, Tone.now() + 0.02, 0.08 + E * 0.12 * s.l.pd);
+            audioRef.current.pd.triggerAttack(padFreqs, time + 0.02, 0.08 + E * 0.12 * s.l.pd);
             audioRef.current.pf.frequency.rampTo(400 + E * 2500, 0.8);
           } catch {}
         }
         if (dj.tt % 8 === 0) {
           try {
             const rn = notes[prog[dj.ci] % notes.length];
-            audioRef.current.dn.releaseAll(Tone.now() + 0.1);
-            audioRef.current.dn.triggerAttack([m2f(36 + rn), m2f(36 + rn + 7)], Tone.now() + 0.15);
+            audioRef.current.dn.releaseAll(time + 0.1);
+            audioRef.current.dn.triggerAttack([m2f(36 + rn), m2f(36 + rn + 7)], time + 0.15);
           } catch {}
         }
       }
 
       const rC = rhy[dj.ri % rhy.length]; dj.ri++; const durS = rC[0] * 0.14;
-      const now = Tone.now();
 
-      // Melody — use triggerAttackRelease with offset to prevent scheduling conflicts
+      // Melody — scheduled against precise audio clock time
       if (s.l.ml > 0 && dj.phrase.length > 0) {
         const restProb = E < 0.2 ? 0.5 : E < 0.4 ? 0.25 : 0.08;
         if (Math.random() > restProb) {
@@ -124,42 +130,49 @@ export function useDjAutoPlay(
           const midi = dj.oct * 12 + notes[di % notes.length];
           const vel = Math.min((0.1 + E * 0.6) * rC[1] * s.l.ml, 0.85);
           try {
-            audioRef.current.ld.triggerAttackRelease(m2f(midi), durS * 0.8, now + 0.01, vel);
+            audioRef.current.ld.triggerAttackRelease(m2f(midi), durS * 0.8, time, vel);
           } catch {}
           if (engineRef.current && dj.tt % 2 === 0) {
-            const fx = ((midi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
-            const fy = (1 - E) * window.innerHeight;
-            const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
-            engineRef.current.addRipple(wx, wy, wz, noteColor(midi));
-            engineRef.current.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(4 + E * 10), E);
+            Draw.schedule(() => {
+              const fx = ((midi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
+              const fy = (1 - E) * window.innerHeight;
+              const [wx, wy, wz] = engineRef.current.s2w(fx, fy);
+              engineRef.current.addRipple(wx, wy, wz, noteColor(midi));
+              engineRef.current.emitParticles(wx, wy, wz, noteColor(midi), Math.floor(4 + E * 10), E);
+            }, time);
           }
         }
       }
 
-      // Bass — staggered offset to avoid scheduling congestion
+      // Bass — scheduled against precise audio clock
       if (s.l.bs > 0) {
         const bC = bRhy[dj.bi % bRhy.length]; dj.bi++;
         if (bC[1] > 0) {
           const bn = notes[prog[dj.ci] % notes.length];
-          try { audioRef.current.bs.triggerAttackRelease(m2f(36 + bn), bC[0] * 0.12, now + 0.03, Math.min((0.2 + E * 0.5) * bC[1] * s.l.bs, 0.8)); } catch {}
+          try { audioRef.current.bs.triggerAttackRelease(m2f(36 + bn), bC[0] * 0.12, time + 0.01, Math.min((0.2 + E * 0.5) * bC[1] * s.l.bs, 0.8)); } catch {}
         }
       }
 
-      // Arp — staggered offset, every 3rd tick
+      // Arp — every 3rd tick
       if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % 3 === 0) {
         const an = getArpNote(dj.ac, dj.as, dj.am); dj.as++;
-        try { audioRef.current.ar.triggerAttackRelease(m2f(60 + an), 0.1, now + 0.05, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
+        try { audioRef.current.ar.triggerAttackRelease(m2f(60 + an), 0.1, time + 0.02, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
       }
 
-      // Counter melody — staggered offset
+      // Counter melody
       if (s.l.ct > 0 && dj.tt % 8 === 5) {
         const cD = wPick(matrix[dj.deg]);
-        try { audioRef.current.ld.triggerAttackRelease(m2f(60 + notes[cD % notes.length]), 0.08, now + 0.07, Math.min((0.08 + E * 0.25) * s.l.ct, 0.6)); } catch {}
+        try { audioRef.current.ld.triggerAttackRelease(m2f(60 + notes[cD % notes.length]), 0.08, time + 0.03, Math.min((0.08 + E * 0.25) * s.l.ct, 0.6)); } catch {}
       }
 
       if (s.riser && dj.tt % 3 === 0) { dj.rf = lerp(200, 2000, dj.tis / (s.bars * 4)); try { audioRef.current.af.frequency.rampTo(dj.rf, 0.3); } catch {} }
-    }, 160);  // Slower tick rate: 160ms instead of 140ms
+    }, "16n");
 
-    return () => { if (djState.current.iv) { clearInterval(djState.current.iv); djState.current.iv = null; } };
+    if (transport.state !== "started") transport.start();
+
+    return () => {
+      const t = Tone.getTransport();
+      if (djState.current.iv != null) { t.clear(djState.current.iv); djState.current.iv = null; }
+    };
   }, [autoPlay]);
 }
