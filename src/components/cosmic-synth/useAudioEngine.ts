@@ -10,10 +10,16 @@ export function useAudioEngine() {
 
   function initAudio() {
     try {
+      // ── Master bus: gentle glue compressor into a brick-wall limiter ──
+      const masterComp = new Tone.Compressor({ threshold: -18, ratio: 3, attack: 0.003, release: 0.1, knee: 6 });
+      const masterLimiter = new Tone.Limiter(-1);
+      masterComp.connect(masterLimiter);
+      masterLimiter.toDestination();
+
       // ── Shared effects bus (1 algorithmic reverb instead of 5 ConvolverNodes) ──
       const sharedReverb = new Tone.Freeverb({ roomSize: 0.72, dampening: 3000 });
       sharedReverb.wet.value = 0.28;
-      sharedReverb.toDestination();
+      sharedReverb.connect(masterComp);
 
       const mainFilter = new Tone.Filter({ type: "lowpass", frequency: 4500, rolloff: -12 });
       const delay = new Tone.FeedbackDelay({ delayTime: "8n.", feedback: 0.18, wet: 0.1 });
@@ -21,15 +27,15 @@ export function useAudioEngine() {
 
       // ── Lead — lighter Synth instead of FMSynth (2 osc/voice instead of 4) ──
       const lead = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6,
+        maxPolyphony: 4,
         oscillator: { type: "fatsawtooth", spread: 20, count: 2 } as any,
-        envelope: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.8 },
+        envelope: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.35 },
       } as any);
       lead.volume.value = -10;
 
       const sub = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 6, oscillator: { type: "sine" },
-        envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.5 },
+        maxPolyphony: 3, oscillator: { type: "sine" },
+        envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.3 },
       } as any);
       sub.volume.value = -18;
 
@@ -51,7 +57,7 @@ export function useAudioEngine() {
         maxPolyphony: 4, oscillator: { type: "square" },
         envelope: { attack: 0.02, decay: 0.12, sustain: 0.6, release: 0.3 },
       } as any);
-      bass.volume.value = -14; bass.connect(bassFilter); bassFilter.toDestination();
+      bass.volume.value = -14; bass.connect(bassFilter); bassFilter.connect(masterComp);
 
       // ── Arp — through shared reverb via delay ──
       const arpFilter = new Tone.Filter({ type: "lowpass", frequency: 3000, rolloff: -12 });
@@ -79,7 +85,7 @@ export function useAudioEngine() {
         pitchDecay: 0.04, octaves: 5, oscillator: { type: "sine" },
         envelope: { attack: 0.001, decay: 0.25, sustain: 0, release: 0.3 },
       });
-      kick.volume.value = -8; kick.toDestination();
+      kick.volume.value = -8; kick.connect(masterComp);
 
       const snare = new Tone.NoiseSynth({
         noise: { type: "white" },
@@ -87,13 +93,13 @@ export function useAudioEngine() {
       });
       snare.volume.value = -14;
       const snareFilter = new Tone.Filter({ type: "bandpass", frequency: 3000, Q: 1 });
-      snare.connect(snareFilter); snareFilter.toDestination();
+      snare.connect(snareFilter); snareFilter.connect(masterComp);
 
       const hihat = new Tone.MetalSynth({
         envelope: { attack: 0.001, decay: 0.06, release: 0.01 },
         harmonicity: 5.1, modulationIndex: 28, resonance: 4000, octaves: 1.5,
       } as any);
-      hihat.volume.value = -22; hihat.toDestination();
+      hihat.volume.value = -22; hihat.connect(masterComp);
 
       const clap = new Tone.NoiseSynth({
         noise: { type: "pink" },
@@ -101,13 +107,14 @@ export function useAudioEngine() {
       });
       clap.volume.value = -16;
       const clapFilter = new Tone.Filter({ type: "bandpass", frequency: 1500, Q: 1.5 });
-      clap.connect(clapFilter); clapFilter.toDestination();
+      clap.connect(clapFilter); clapFilter.connect(masterComp);
 
       audioRef.current = {
         ld: lead, sb: sub, pd: pad, bs: bass, ar: arp, dn: drone,
         kick, snare, hihat, clap,
         fi: mainFilter, pf: padFilter, bf: bassFilter, af: arpFilter, df: droneFilter,
         rv: sharedReverb, dl: delay, ch: chorus,
+        mc: masterComp, ml: masterLimiter,
         fft, lfo,
       };
       return true;
