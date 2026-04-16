@@ -102,9 +102,10 @@ export const STAR_FRAG = `
 
   void main() {
     float rim = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
-    vec3 c1 = vec3(0.0, 0.94, 1.0);
-    vec3 c2 = vec3(1.0, 0.0, 0.9);
-    vec3 c3 = vec3(1.0, 0.9, 0.0);
+    // Solar Flare: amber → coral → gold
+    vec3 c1 = vec3(1.0, 0.70, 0.28);
+    vec3 c2 = vec3(1.0, 0.37, 0.36);
+    vec3 c3 = vec3(1.0, 0.82, 0.40);
     vec3 color = mix(c1, mix(c2, c3, uPitch), sin(uTime * 0.4 + uPitch * 4.0) * 0.5 + 0.5);
 
     float energy = pow(rim, 1.5) * (2.5 + uBass * 5.0) + 0.6 + uBass * 0.5;
@@ -122,7 +123,8 @@ export const HALO_FRAG = `
 
   void main() {
     float rim = pow(max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0), 2.0);
-    vec3 c = mix(vec3(0.0, 0.94, 1.0), vec3(1.0, 0.0, 0.9), sin(uTime * 0.2) * 0.5 + 0.5);
+    // Halo: amber ↔ plum
+    vec3 c = mix(vec3(1.0, 0.70, 0.28), vec3(0.48, 0.13, 0.42), sin(uTime * 0.2) * 0.5 + 0.5);
     gl_FragColor = vec4(c, rim * (0.35 + uBass * 0.65));
   }
 `;
@@ -183,14 +185,14 @@ export const COMPOSITE_FRAG = `
     // Vignette — deeper for space immersion
     color *= 1.0 - smoothstep(0.35, 1.5, dist * 2.0) * uVignette;
 
-    // Color grading — deeper, richer space tones
-    vec3 cool = color * vec3(0.82, 0.9, 1.2);
-    vec3 warm = color * vec3(1.15, 0.95, 0.82);
+    // Solar Flare color grading — peach shadows, deep ember highlights
+    vec3 cool = color * vec3(1.05, 0.95, 0.85);
+    vec3 warm = color * vec3(1.20, 0.85, 0.65);
     color = mix(cool, warm, uMood);
 
-    // Subtle blue lift in shadows for space depth
+    // Subtle warm lift in shadows for ember depth
     float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-    color += vec3(0.01, 0.015, 0.04) * (1.0 - luminance);
+    color += vec3(0.04, 0.02, 0.01) * (1.0 - luminance);
 
     // Film grain (very subtle)
     float grain = fract(sin(dot(vUv * uTime * 60.0, vec2(12.9898, 78.233))) * 43758.5453);

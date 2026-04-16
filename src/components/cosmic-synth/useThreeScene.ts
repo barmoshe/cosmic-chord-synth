@@ -25,7 +25,7 @@ export function useThreeScene(
     const PR = Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x010005, 0.00008);
+    scene.fog = new THREE.FogExp2(0x1a0a08, 0.00008);
     const camera = new THREE.PerspectiveCamera(72, W() / H(), 1, 12000);
     camera.position.z = 650;
 
@@ -34,7 +34,7 @@ export function useThreeScene(
     renderer.setPixelRatio(PR);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.4;
-    renderer.setClearColor(0x010005);
+    renderer.setClearColor(0x1a0a08);
 
     // ── Background star field — distant fixed stars ──
     const bgStarCount = isMobile ? 2000 : 4000;

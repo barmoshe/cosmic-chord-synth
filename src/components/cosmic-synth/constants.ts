@@ -20,7 +20,8 @@ export const PARTICLE_POOL = isMobile ? 150 : 300;
 export const RIPPLE_POOL = 12;
 export const FFT_BARS = 32;
 export const SMOOTH = 0.14;
-export const PAL: number[][] = [[0, 0.94, 1], [1, 0, 0.9], [1, 0.9, 0], [0, 1, 0.53], [1, 0.38, 0.19], [0.5, 0.25, 1]];
+// Solar Flare palette: amber, coral, gold, plum, ember, single cool sky spark for tension
+export const PAL: number[][] = [[1.0, 0.70, 0.28], [1.0, 0.37, 0.36], [1.0, 0.82, 0.40], [0.48, 0.13, 0.42], [1.0, 0.24, 0.18], [0.28, 0.79, 0.89]];
 export const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
 /* DJ Arrangement */
