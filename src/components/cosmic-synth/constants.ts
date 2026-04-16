@@ -82,12 +82,12 @@ export const DRUM_PATTERNS: Record<string, { kick: number[]; clap: number[]; hat
 export const ARP_MODES = ["up", "down", "updown", "random", "skip"];
 
 /* Four drum-stars that orbit the galaxy core. Users can tap them to play drums;
-   auto-DJ also targets them. Colors sampled from Glacial Aurora 2026 palette. */
+   auto-DJ also targets them. Warm sunset palette — gold → amber → coral → rose. */
 export const DRUM_ORBIT_R = 200;
 export const DRUM_STARS = [
-  { name: "kick",  angle: 0,                 color: [0.99, 0.83, 0.30], label: "K" }, // gold (N)
-  { name: "hat",   angle: Math.PI * 0.5,     color: [0.13, 0.83, 0.93], label: "H" }, // cyan (E)
-  { name: "clap",  angle: Math.PI,           color: [0.51, 0.55, 0.97], label: "C" }, // periwinkle (S)
-  { name: "snare", angle: Math.PI * 1.5,     color: [0.37, 0.92, 0.83], label: "S" }, // mint (W)
+  { name: "kick",  angle: 0,                 color: [1.00, 0.78, 0.25], label: "K" }, // warm gold (N)
+  { name: "hat",   angle: Math.PI * 0.5,     color: [1.00, 0.62, 0.32], label: "H" }, // amber (E)
+  { name: "clap",  angle: Math.PI,           color: [0.98, 0.45, 0.40], label: "C" }, // coral (S)
+  { name: "snare", angle: Math.PI * 1.5,     color: [0.95, 0.35, 0.55], label: "S" }, // rose (W)
 ] as const;
 export type DrumName = typeof DRUM_STARS[number]["name"];
