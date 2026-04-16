@@ -73,21 +73,11 @@ export default function CosmicSynth() {
   useEffect(() => () => { disposeAudio(); }, [disposeAudio]);
 
   /* ── Audio Start ── */
-  const handleStart = useCallback(async () => {
+  const handleStart = useCallback(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    try {
-      const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.05 : 0.1 });
-      Tone.setContext(ctx);
-      await Tone.start();
-      if (Tone.getContext().state !== "running") {
-        await Tone.getContext().resume();
-      }
-      if (!initAudio()) setAudioOk(false);
-    } catch (e) {
-      console.error("Audio start error:", e);
-      setAudioOk(false);
-    }
+
+    // Start warp animation immediately — never block on audio init
     setPhase("warp");
     warpState.current = { on: true, t: 0 };
     let wp = 0;
@@ -100,6 +90,22 @@ export default function CosmicSynth() {
         warpState.current.on = false;
       }
     }, 25);
+
+    // Audio init runs in parallel — doesn't block the UI transition
+    (async () => {
+      try {
+        const ctx = new Tone.Context({ latencyHint: "interactive", lookAhead: isMobile ? 0.05 : 0.1 });
+        Tone.setContext(ctx);
+        await Tone.start();
+        if (Tone.getContext().state !== "running") {
+          await Tone.getContext().resume();
+        }
+        if (!initAudio()) setAudioOk(false);
+      } catch (e) {
+        console.error("Audio start error:", e);
+        setAudioOk(false);
+      }
+    })();
   }, [initAudio]);
 
   /* ── Scale Controls ── */
