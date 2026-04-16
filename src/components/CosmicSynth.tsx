@@ -22,6 +22,8 @@ export default function CosmicSynth() {
   const [showUI, setShowUI] = useState(true);
   const [hintDismissed, setHintDismissed] = useState(false);
   const [warpProgress, setWarpProgress] = useState(0);
+  const [ctxState, setCtxState] = useState<"suspended" | "running" | "closed" | "interrupted">("suspended");
+  const [engineReady, setEngineReady] = useState(false);
 
   // DJ UI adapter — CosmicDjPanel installs itself here via onReady
   const djUiRef = useRef<DjUi>({
@@ -71,6 +73,18 @@ export default function CosmicSynth() {
 
   /* ── Cleanup audio on unmount ── */
   useEffect(() => () => { dispose(); }, [dispose]);
+
+  /* ── Poll AudioContext + engine readiness for the status badge ── */
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        const raw = (Tone.getContext().rawContext as AudioContext);
+        setCtxState(raw.state as typeof ctxState);
+      } catch { /* context not yet available */ }
+      setEngineReady(!!engine.current?.isReady());
+    }, 400);
+    return () => clearInterval(id);
+  }, [engine]);
 
   /* ── Audio Start ──
      iOS Safari links the user-activation token to whichever AudioContext.resume()
@@ -230,6 +244,30 @@ export default function CosmicSynth() {
           {!audioOk && (
             <div className="cosmic-error">Audio unavailable — visual only</div>
           )}
+
+          {/* Audio status badge — click to retry unlock & play a test chime. */}
+          <div
+            onTouchStart={(e) => {
+              e.preventDefault();
+              const rawCtx = Tone.getContext().rawContext as AudioContext;
+              rawCtx.resume().catch(() => undefined);
+              Tone.start().then(() => engine.current?.start());
+            }}
+            onClick={() => {
+              const rawCtx = Tone.getContext().rawContext as AudioContext;
+              rawCtx.resume().catch(() => undefined);
+              Tone.start().then(() => engine.current?.start());
+            }}
+            style={{
+              position: "fixed", bottom: 8, right: 8, zIndex: 50,
+              padding: "6px 10px", borderRadius: 8,
+              background: engineReady && ctxState === "running" ? "rgba(30,180,120,0.85)" : "rgba(220,60,60,0.9)",
+              color: "#fff", fontSize: 11, fontFamily: "monospace",
+              pointerEvents: "auto", userSelect: "none", cursor: "pointer",
+            }}
+          >
+            {ctxState === "running" && engineReady ? "AUDIO OK" : `AUDIO ${ctxState.toUpperCase()} — TAP TO RETRY`}
+          </div>
         </>
       )}
 

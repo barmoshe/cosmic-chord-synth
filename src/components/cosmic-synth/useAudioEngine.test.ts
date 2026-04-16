@@ -40,8 +40,8 @@ vi.mock("tone", async () => {
     NoiseSynth: Ctor("NoiseSynth"),
     MetalSynth: Ctor("MetalSynth"),
     Filter: Ctor("Filter"),
-    Reverb: Ctor("Reverb"),
-    PingPongDelay: Ctor("PingPongDelay"),
+    Freeverb: Ctor("Freeverb"),
+    FeedbackDelay: Ctor("FeedbackDelay"),
     Chorus: Ctor("Chorus"),
     Compressor: Ctor("Compressor"),
     Limiter: Ctor("Limiter"),
@@ -83,8 +83,8 @@ describe("useAudioEngine", () => {
     // 6 PolySynths: lead, sub, pad, bass, arp, drone
     expect(allOf("PolySynth")).toHaveLength(6);
     // 1 reverb, 1 ping-pong delay
-    expect(allOf("Reverb")).toHaveLength(1);
-    expect(allOf("PingPongDelay")).toHaveLength(1);
+    expect(allOf("Freeverb")).toHaveLength(1);
+    expect(allOf("FeedbackDelay")).toHaveLength(1);
   });
 
   it("noteOn(60, 0.7) triggers lead + sub with correct frequencies", async () => {

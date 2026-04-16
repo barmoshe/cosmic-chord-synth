@@ -22,8 +22,8 @@ interface InternalGraph {
   droneFilter: Tone.Filter;
   snareFilter: Tone.Filter;
   clapFilter: Tone.Filter;
-  reverb: Tone.Reverb;
-  delay: Tone.PingPongDelay;
+  reverb: Tone.Freeverb;
+  delay: Tone.FeedbackDelay;
   chorus: Tone.Chorus;
   masterComp: Tone.Compressor;
   masterLimiter: Tone.Limiter;
@@ -39,16 +39,16 @@ function buildGraph(): InternalGraph {
     threshold: -18, ratio: 3, attack: 0.003, release: 0.1, knee: 6,
   }).connect(masterLimiter);
 
-  // Convolution reverb — generated IR gives a smoother tail than Freeverb.
-  const reverb = new Tone.Reverb({
-    decay: isMobile ? 2.2 : 3.8,
-    preDelay: 0.02,
-    wet: isMobile ? 0.24 : 0.32,
+  // Freeverb — synchronous comb/allpass reverb. No async IR generation to
+  // stall on iOS Safari; audio is usable the moment the graph is wired up.
+  const reverb = new Tone.Freeverb({
+    roomSize: isMobile ? 0.7 : 0.82,
+    dampening: 3500,
+    wet: isMobile ? 0.22 : 0.3,
   });
   reverb.connect(masterComp);
 
-  // Stereo ping-pong delay feeds the reverb so echoes bloom.
-  const delay = new Tone.PingPongDelay({
+  const delay = new Tone.FeedbackDelay({
     delayTime: "8n.",
     feedback: 0.28,
     wet: 0.14,
@@ -239,12 +239,14 @@ export function useAudioEngine() {
       try {
         const g = buildGraph();
         graphRef.current = g;
-        // Tone.Reverb generates its IR off the main thread. Kick it off but
-        // DON'T await — the dry signal path is audible immediately, and the
-        // reverb wet bus just becomes audible a few hundred ms later when the
-        // impulse buffer is ready. Awaiting has been observed to stall on iOS
-        // Safari, leaving the whole engine in a "not ready" state.
-        g.reverb.ready.catch(() => { /* IR generation failure is non-fatal */ });
+        // Startup chime — gives immediate audible confirmation that the graph
+        // is wired up and the AudioContext is actually producing sound. If the
+        // user hears this, any subsequent silence is a routing/input bug, not
+        // an unlock bug.
+        const t = Tone.now();
+        g.lead.triggerAttackRelease(m2f(72), "8n", t + 0.05, 0.35);
+        g.lead.triggerAttackRelease(m2f(76), "8n", t + 0.18, 0.35);
+        g.lead.triggerAttackRelease(m2f(79), "4n", t + 0.32, 0.4);
         return true;
       } catch (e) {
         console.error("Audio init error:", e);
