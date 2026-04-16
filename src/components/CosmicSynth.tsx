@@ -73,17 +73,15 @@ export default function CosmicSynth() {
   useEffect(() => () => { dispose(); }, [dispose]);
 
   /* ── Audio Start ──
-     iOS Safari links the browser's user-activation token to the Promise returned
-     by the FIRST audio API call made synchronously inside a gesture handler.
-     We must NOT:
-       - construct a new Tone.Context (orphans the activation)
-       - await Tone.start() before the synchronous body finishes
-     We MUST call Tone.start() synchronously and attach subsequent work via .then. */
+     iOS Safari links the user-activation token to whichever AudioContext.resume()
+     call runs synchronously inside the gesture handler. We do TWO things in the
+     sync body to maximize the chance of success:
+       1. Call rawContext.resume() directly (most reliable on iOS)
+       2. Call Tone.start() (handles Tone's context wrappers) */
   const handleStart = useCallback(() => {
     if (startedRef.current) return;
     startedRef.current = true;
 
-    // Warp animation runs independently of audio — safe to start immediately.
     setPhase("warp");
     warpState.current = { on: true, t: 0 };
     let wp = 0;
@@ -97,17 +95,18 @@ export default function CosmicSynth() {
       }
     }, 25);
 
-    // Synchronous unlock: Tone.start() resume()s the default context under the
-    // gesture's activation. Do NOT await here — the .then runs as a microtask
-    // after the unlock resolves.
-    Tone.start()
+    // --- SYNCHRONOUS unlock (must run in the gesture call stack) ---
+    const rawCtx = Tone.getContext().rawContext as AudioContext;
+    // Kick the raw context first — this is what iOS Safari actually gates on.
+    const rawResume = rawCtx.state !== "running"
+      ? rawCtx.resume().catch(() => undefined)
+      : Promise.resolve();
+    // Tone.start() also calls resume and sets up Tone's own gating logic.
+    const toneStart = Tone.start();
+    // --- end sync unlock ---
+
+    Promise.all([rawResume, toneStart])
       .then(async () => {
-        const ctx = Tone.getContext();
-        if (ctx.state !== "running") {
-          await ctx.rawContext.resume();
-        }
-        ctx.latencyHint = "interactive";
-        ctx.lookAhead = isMobile ? 0.05 : 0.1;
         const ok = await engine.current!.start();
         if (!ok) setAudioOk(false);
       })

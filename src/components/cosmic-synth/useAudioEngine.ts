@@ -23,8 +23,6 @@ interface InternalGraph {
   snareFilter: Tone.Filter;
   clapFilter: Tone.Filter;
   reverb: Tone.Reverb;
-  reverbHpf: Tone.Filter;
-  reverbTone: Tone.Filter;
   delay: Tone.PingPongDelay;
   chorus: Tone.Chorus;
   masterComp: Tone.Compressor;
@@ -41,36 +39,24 @@ function buildGraph(): InternalGraph {
     threshold: -18, ratio: 3, attack: 0.003, release: 0.1, knee: 6,
   }).connect(masterLimiter);
 
-  // High-quality convolution reverb — a generated IR produces a smoother tail
-  // than Freeverb's comb-allpass network. Pre-reverb HPF + post tone filter
-  // keep low-end mud out and give the tail a warm, non-brittle character.
+  // Convolution reverb — generated IR gives a smoother tail than Freeverb.
   const reverb = new Tone.Reverb({
     decay: isMobile ? 2.2 : 3.8,
     preDelay: 0.02,
     wet: isMobile ? 0.24 : 0.32,
   });
-  const reverbTone = new Tone.Filter({ type: "lowpass", frequency: isMobile ? 4500 : 6500, rolloff: -12 });
-  reverb.connect(reverbTone);
-  reverbTone.connect(masterComp);
+  reverb.connect(masterComp);
 
-  // Keep bass out of the reverb tail — muddiness killer.
-  const reverbHpf = new Tone.Filter({ type: "highpass", frequency: 180, rolloff: -12 });
-  reverbHpf.connect(reverb);
-
-  // Stereo ping-pong delay — L/R bounce gives a wider, more musical echo
-  // than a mono FeedbackDelay. Sends to the reverb HPF so echoes also bloom.
+  // Stereo ping-pong delay feeds the reverb so echoes bloom.
   const delay = new Tone.PingPongDelay({
     delayTime: "8n.",
     feedback: 0.28,
     wet: 0.14,
     maxDelay: 1,
   });
-  delay.connect(reverbHpf);
+  delay.connect(reverb);
 
-  // Serial FX chain: chorus -> delay -> reverbHpf -> reverb -> reverbTone -> masterComp.
-  // Each effect passes dry through via its `wet` param, so the lead signal reaches
-  // the master even with delay+reverb present. Nodes that skip this chain (pad,
-  // drone, arp) tap in at the reverbHpf node to stay mud-free.
+  // Serial FX chain for lead: chorus -> delay -> reverb -> masterComp.
   const chorus = new Tone.Chorus({
     frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: isMobile ? 0 : 0.14,
   }).start();
@@ -98,7 +84,7 @@ function buildGraph(): InternalGraph {
   sub.connect(leadFilter);
 
   const padFilter = new Tone.Filter({ type: "lowpass", frequency: 1200, rolloff: -12 });
-  padFilter.connect(reverbHpf);
+  padFilter.connect(reverb);
   const pad = new Tone.PolySynth(Tone.Synth, {
     maxPolyphony: isMobile ? 3 : 6,
     oscillator: { type: "sine" },
@@ -128,7 +114,7 @@ function buildGraph(): InternalGraph {
   arp.connect(arpFilter);
 
   const droneFilter = new Tone.Filter({ type: "lowpass", frequency: 600, rolloff: -12 });
-  droneFilter.connect(reverbHpf);
+  droneFilter.connect(reverb);
   const drone = new Tone.PolySynth(Tone.Synth, {
     maxPolyphony: 3,
     oscillator: { type: "sine" },
@@ -180,7 +166,7 @@ function buildGraph(): InternalGraph {
     lead, sub, pad, bass, arp, drone,
     kick, snare, hihat, clap,
     leadFilter, padFilter, bassFilter, arpFilter, droneFilter, snareFilter, clapFilter,
-    reverb, reverbHpf, reverbTone, delay, chorus,
+    reverb, delay, chorus,
     masterComp, masterLimiter,
     fft, lfo,
     activeLead: new Map<number, number>(),
@@ -193,7 +179,7 @@ function disposeGraph(g: InternalGraph) {
     g.lead, g.sub, g.pad, g.bass, g.arp, g.drone,
     g.kick, g.snare, g.hihat, g.clap,
     g.leadFilter, g.padFilter, g.bassFilter, g.arpFilter, g.droneFilter, g.snareFilter, g.clapFilter,
-    g.reverb, g.reverbHpf, g.reverbTone, g.delay, g.chorus,
+    g.reverb, g.delay, g.chorus,
     g.masterComp, g.masterLimiter,
     g.fft, g.lfo,
   ];
@@ -252,10 +238,13 @@ export function useAudioEngine() {
       if (graphRef.current) return true;
       try {
         const g = buildGraph();
-        // Tone.Reverb generates its impulse asynchronously; don't accept notes
-        // until the IR is ready, otherwise the first hit plays dry-only.
-        await g.reverb.ready;
         graphRef.current = g;
+        // Tone.Reverb generates its IR off the main thread. Kick it off but
+        // DON'T await — the dry signal path is audible immediately, and the
+        // reverb wet bus just becomes audible a few hundred ms later when the
+        // impulse buffer is ready. Awaiting has been observed to stall on iOS
+        // Safari, leaving the whole engine in a "not ready" state.
+        g.reverb.ready.catch(() => { /* IR generation failure is non-fatal */ });
         return true;
       } catch (e) {
         console.error("Audio init error:", e);
