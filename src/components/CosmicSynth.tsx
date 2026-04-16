@@ -519,7 +519,19 @@ export default function CosmicSynth() {
   }, []);
 
   const handleStart = useCallback(async () => {
-    try { await Tone.start(); initAudio(); } catch { setAudioOk(false); }
+    try {
+      await Tone.start();
+      // Ensure audio context is running (iOS sometimes stays suspended)
+      if (Tone.getContext().state !== "running") {
+        await Tone.getContext().resume();
+      }
+      // Lower lookAhead on mobile for responsiveness
+      Tone.getContext().lookAhead = isMobile ? 0.04 : 0.1;
+      initAudio();
+    } catch (e) {
+      console.error("Audio start error:", e);
+      setAudioOk(false);
+    }
     setPhase("warp");
     warpState.current = { on: true, t: 0 };
     
