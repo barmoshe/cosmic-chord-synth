@@ -11,6 +11,7 @@ import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, type DjUi } from "./cosmic-synth/useDjAutoPlay";
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
+import TryV2Prompt from "./cosmic-synth/TryV2Prompt";
 
 export default function CosmicSynth() {
   /* ── State ── */
@@ -185,6 +186,9 @@ export default function CosmicSynth() {
           </div>
         </div>
       )}
+
+      {/* v1 → v2 invitation chip (appears after ~6s, dismissible) */}
+      <TryV2Prompt visible={phase === "play"} />
 
       {/* Play UI */}
       {phase === "play" && (
