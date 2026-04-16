@@ -556,7 +556,7 @@ export default function CosmicSynth() {
       const chorus = new Tone.Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: 0.12 }).start();
 
       const lead = new Tone.PolySynth(Tone.FMSynth, {
-        maxPolyphony: 4, harmonicity: 2, modulationIndex: 3,
+        maxPolyphony: 8, harmonicity: 2, modulationIndex: 3,
         oscillator: { type: "sawtooth" },
         modulation: { type: "triangle" },
         envelope: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.8 },
@@ -565,8 +565,8 @@ export default function CosmicSynth() {
       lead.volume.value = -10;
 
       const sub = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 3, oscillator: { type: "sine" },
-        envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.8 },
+        maxPolyphony: 6, oscillator: { type: "sine" },
+        envelope: { attack: 0.08, decay: 0.2, sustain: 0.5, release: 0.5 },
       } as any);
       sub.volume.value = -18;
 
@@ -576,15 +576,15 @@ export default function CosmicSynth() {
       const padFilter = new Tone.Filter({ type: "lowpass", frequency: 1200, rolloff: -12 });
       const padReverb = new Tone.Reverb({ decay: 4, wet: 0.4 });
       const pad = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 4, oscillator: { type: "sine" },
-        envelope: { attack: 2, decay: 0.8, sustain: 0.6, release: 2 },
+        maxPolyphony: 6, oscillator: { type: "sine" },
+        envelope: { attack: 0.5, decay: 0.6, sustain: 0.6, release: 1.0 },
       } as any);
       pad.volume.value = -22; pad.connect(padFilter); padFilter.connect(padReverb); padReverb.toDestination();
 
       const bassFilter = new Tone.Filter({ type: "lowpass", frequency: 800, rolloff: -24 });
       const bassReverb = new Tone.Reverb({ decay: 1.5, wet: 0.12 });
       const bass = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 2, oscillator: { type: "square" },
+        maxPolyphony: 4, oscillator: { type: "square" },
         envelope: { attack: 0.02, decay: 0.12, sustain: 0.6, release: 0.3 },
       } as any);
       bass.volume.value = -14; bass.connect(bassFilter); bassFilter.connect(bassReverb); bassReverb.toDestination();
@@ -592,7 +592,7 @@ export default function CosmicSynth() {
       const arpFilter = new Tone.Filter({ type: "lowpass", frequency: 3000, rolloff: -12 });
       const arpDelay = new Tone.FeedbackDelay({ delayTime: "16n", feedback: 0.2, wet: 0.15 });
       const arp = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 3, oscillator: { type: "triangle" },
+        maxPolyphony: 6, oscillator: { type: "triangle" },
         envelope: { attack: 0.01, decay: 0.08, sustain: 0.15, release: 0.25 },
       } as any);
       arp.volume.value = -18; arp.connect(arpFilter); arpFilter.connect(arpDelay); arpDelay.connect(reverb);
@@ -600,8 +600,8 @@ export default function CosmicSynth() {
       const droneFilter = new Tone.Filter({ type: "lowpass", frequency: 600, rolloff: -12 });
       const droneReverb = new Tone.Reverb({ decay: 5, wet: 0.4 });
       const drone = new Tone.PolySynth(Tone.Synth, {
-        maxPolyphony: 2, oscillator: { type: "sine" },
-        envelope: { attack: 3, decay: 2, sustain: 0.8, release: 4 },
+        maxPolyphony: 3, oscillator: { type: "sine" },
+        envelope: { attack: 1.5, decay: 1.5, sustain: 0.8, release: 2 },
       } as any);
       drone.volume.value = -24; drone.connect(droneFilter); droneFilter.connect(droneReverb); droneReverb.toDestination();
       drone.triggerAttack([m2f(36), m2f(43)], Tone.now());
@@ -1259,8 +1259,23 @@ export default function CosmicSynth() {
     const cv = canvasRef.current;
     if (!cv || phase !== "play") return;
 
+    // Safety cleanup: release all voices when no touches are active
+    let cleanupTimer: ReturnType<typeof setTimeout> | null = null;
+    function scheduleVoiceCleanup() {
+      if (cleanupTimer) clearTimeout(cleanupTimer);
+      cleanupTimer = setTimeout(() => {
+        if (touchesRef.current.size === 0 && audioRef.current) {
+          try {
+            audioRef.current.ld.releaseAll(Tone.now());
+            audioRef.current.sb.releaseAll(Tone.now());
+          } catch {}
+        }
+      }, 200);
+    }
+
     function noteOn(id: any, x: number, y: number) {
       if (!audioRef.current) return;
+      if (cleanupTimer) { clearTimeout(cleanupTimer); cleanupTimer = null; }
       resetUIHide();
       const sn = SCALES[scaleRef.current].notes;
       const midi = quantize(Math.round(BASE_MIDI + (x / window.innerWidth) * MIDI_RANGE), sn);
@@ -1268,9 +1283,10 @@ export default function CosmicSynth() {
       const brightness = 1 - y / window.innerHeight;
       const vel = 0.3 + brightness * 0.6;
       const cut = 300 + brightness * 5500;
+      const now = Tone.now();
       try {
-        audioRef.current.ld.triggerAttack(freq, Tone.now(), vel);
-        audioRef.current.sb.triggerAttack(m2f(midi - 12), Tone.now(), vel * 0.5);
+        audioRef.current.ld.triggerAttack(freq, now, vel);
+        audioRef.current.sb.triggerAttack(m2f(midi - 12), now, vel * 0.5);
         audioRef.current.fi.frequency.rampTo(cut, 0.08);
         audioRef.current.pd.volume.rampTo(-28, 0.05);
         setTimeout(() => { try { audioRef.current.pd.volume.rampTo(-20, 0.4); } catch {} }, 100);
@@ -1292,15 +1308,18 @@ export default function CosmicSynth() {
       const midi = quantize(Math.round(BASE_MIDI + (x / window.innerWidth) * MIDI_RANGE), sn);
       const freq = m2f(midi);
       if (midi !== prev.midi) {
+        const now = Tone.now();
+        const brightness = 1 - y / window.innerHeight;
+        const subFreq = m2f(midi - 12);
         try {
-          audioRef.current.ld.triggerRelease(prev.freq, Tone.now());
-          audioRef.current.sb.triggerRelease(prev.subFreq, Tone.now());
-          const brightness = 1 - y / window.innerHeight;
-          audioRef.current.ld.triggerAttack(freq, Tone.now() + 0.015, 0.3 + brightness * 0.5);
-          audioRef.current.sb.triggerAttack(m2f(midi - 12), Tone.now() + 0.015, 0.25);
+          // Release old note and attack new one with enough offset for voice recycling
+          audioRef.current.ld.triggerRelease(prev.freq, now);
+          audioRef.current.sb.triggerRelease(prev.subFreq, now);
+          audioRef.current.ld.triggerAttack(freq, now + 0.03, 0.3 + brightness * 0.5);
+          audioRef.current.sb.triggerAttack(subFreq, now + 0.03, 0.25);
         } catch {}
         haptic(6);
-        prev.midi = midi; prev.freq = freq; prev.subFreq = m2f(midi - 12); prev.note = NOTE_NAMES[midi % 12];
+        prev.midi = midi; prev.freq = freq; prev.subFreq = subFreq; prev.note = NOTE_NAMES[midi % 12];
       }
       try { audioRef.current.fi.frequency.rampTo(300 + (1 - y / window.innerHeight) * 5500, 0.06); } catch {}
       prev.x = x; prev.y = y;
@@ -1309,9 +1328,16 @@ export default function CosmicSynth() {
     function noteOff(id: any) {
       const info = touchesRef.current.get(id);
       if (info && audioRef.current) {
-        try { audioRef.current.ld.triggerRelease(info.freq, Tone.now()); audioRef.current.sb.triggerRelease(info.subFreq, Tone.now()); } catch {}
+        try {
+          audioRef.current.ld.triggerRelease(info.freq, Tone.now());
+          audioRef.current.sb.triggerRelease(info.subFreq, Tone.now());
+        } catch {}
       }
       touchesRef.current.delete(id);
+      // When all touches are gone, schedule a safety releaseAll to free any stuck voices
+      if (touchesRef.current.size === 0) {
+        scheduleVoiceCleanup();
+      }
     }
 
     const onTS = (e: TouchEvent) => { e.preventDefault(); for (const t of Array.from(e.changedTouches)) noteOn(t.identifier, t.clientX, t.clientY); };
@@ -1328,6 +1354,7 @@ export default function CosmicSynth() {
     cv.addEventListener("mouseup", onMU); cv.addEventListener("mouseleave", onMU);
 
     return () => {
+      if (cleanupTimer) clearTimeout(cleanupTimer);
       cv.removeEventListener("touchstart", onTS); cv.removeEventListener("touchmove", onTM);
       cv.removeEventListener("touchend", onTE); cv.removeEventListener("touchcancel", onTE);
       cv.removeEventListener("mousedown", onMD); cv.removeEventListener("mousemove", onMM);
@@ -1392,7 +1419,11 @@ export default function CosmicSynth() {
     if (!autoPlay || !audioRef.current) {
       dj.on = false;
       if (dj.iv) { clearInterval(dj.iv); dj.iv = null; }
-      try { audioRef.current?.pd?.releaseAll(); audioRef.current?.bs?.releaseAll(); audioRef.current?.ar?.releaseAll(); } catch {}
+      try {
+        audioRef.current?.ld?.releaseAll(); audioRef.current?.sb?.releaseAll();
+        audioRef.current?.pd?.releaseAll(); audioRef.current?.bs?.releaseAll();
+        audioRef.current?.ar?.releaseAll(); audioRef.current?.dn?.releaseAll();
+      } catch {}
       setDjSection(""); return;
     }
     dj.on = true; dj.si = 0; dj.tis = 0; dj.tt = 0; dj.oct = 4; dj.deg = 0; dj.cf = 0.15; dj.ce = 0.1;
@@ -1508,25 +1539,25 @@ export default function CosmicSynth() {
         }
       }
 
-      // Bass — less frequent
+      // Bass — staggered offset to avoid scheduling congestion
       if (s.l.bs > 0) {
         const bC = bRhy[dj.bi % bRhy.length]; dj.bi++;
         if (bC[1] > 0) {
           const bn = notes[prog[dj.ci] % notes.length];
-          try { audioRef.current.bs.triggerAttackRelease(m2f(36 + bn), bC[0] * 0.12, now + 0.01, Math.min((0.2 + E * 0.5) * bC[1] * s.l.bs, 0.8)); } catch {}
+          try { audioRef.current.bs.triggerAttackRelease(m2f(36 + bn), bC[0] * 0.12, now + 0.03, Math.min((0.2 + E * 0.5) * bC[1] * s.l.bs, 0.8)); } catch {}
         }
       }
 
-      // Arp — every 3rd tick instead of 2nd
+      // Arp — staggered offset, every 3rd tick
       if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % 3 === 0) {
         const an = getArpNote(dj.ac, dj.as, dj.am); dj.as++;
-        try { audioRef.current.ar.triggerAttackRelease(m2f(60 + an), 0.1, now + 0.01, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
+        try { audioRef.current.ar.triggerAttackRelease(m2f(60 + an), 0.1, now + 0.05, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7)); } catch {}
       }
 
-      // Counter melody — less frequent
+      // Counter melody — staggered offset
       if (s.l.ct > 0 && dj.tt % 8 === 5) {
         const cD = wPick(matrix[dj.deg]);
-        try { audioRef.current.ld.triggerAttackRelease(m2f(60 + notes[cD % notes.length]), 0.08, now + 0.06, Math.min((0.08 + E * 0.25) * s.l.ct, 0.6)); } catch {}
+        try { audioRef.current.ld.triggerAttackRelease(m2f(60 + notes[cD % notes.length]), 0.08, now + 0.07, Math.min((0.08 + E * 0.25) * s.l.ct, 0.6)); } catch {}
       }
 
       if (s.riser && dj.tt % 3 === 0) { dj.rf = lerp(200, 2000, dj.tis / (s.bars * 4)); try { audioRef.current.af.frequency.rampTo(dj.rf, 0.3); } catch {} }
