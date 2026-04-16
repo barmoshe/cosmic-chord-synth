@@ -24,7 +24,7 @@ export function usePhysicsEngine(opts: PhysicsHookOpts): PhysicsHandle {
 
   // Init sim once
   if (engineRef.current === null) {
-    engineRef.current = new PhysicsEngine(makeSolarSystem({ moonCount: 9, cometCount: 2 }));
+    engineRef.current = new PhysicsEngine(makeSolarSystem({ moonCount: 12, cometCount: 3 }));
     bodiesRef.current = engineRef.current.getBodies();
   }
 
@@ -66,7 +66,7 @@ export function usePhysicsEngine(opts: PhysicsHookOpts): PhysicsHandle {
   };
 
   const reset = () => {
-    engineRef.current = new PhysicsEngine(makeSolarSystem({ moonCount: 9, cometCount: 2 }));
+    engineRef.current = new PhysicsEngine(makeSolarSystem({ moonCount: 12, cometCount: 3 }));
     bodiesRef.current = engineRef.current.getBodies();
   };
 

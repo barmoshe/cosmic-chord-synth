@@ -24,9 +24,13 @@ import type { Vec3 } from "./physics/types";
 
 type Phase = "splash" | "play";
 
+type CtxState = "suspended" | "running" | "closed" | "interrupted";
+
 export default function CosmicV2() {
   const [phase, setPhase] = useState<Phase>("splash");
   const [audioReady, setAudioReady] = useState(false);
+  const [ctxState, setCtxState] = useState<CtxState>("suspended");
+  const [engineReady, setEngineReady] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const startedRef = useRef(false);
@@ -102,6 +106,39 @@ export default function CosmicV2() {
   });
 
   useEffect(() => () => { dispose(); }, [dispose]);
+
+  // Poll AudioContext + engine readiness so the HUD can surface audio state.
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        const raw = Tone.getContext().rawContext as AudioContext;
+        setCtxState(raw.state as CtxState);
+      } catch { /* pre-context */ }
+      setEngineReady(!!engine.current?.isReady());
+    }, 400);
+    return () => clearInterval(id);
+  }, [engine]);
+
+  // Manual retry — re-runs the sync unlock path if the first gesture silently
+  // failed (denied autoplay, stale token, etc.). Must live in the gesture call
+  // stack, same rules as handleStart.
+  const handleAudioRetry = useCallback(() => {
+    const rawCtx = Tone.getContext().rawContext as AudioContext;
+    const rawResume = rawCtx.state !== "running"
+      ? rawCtx.resume().catch(() => undefined)
+      : Promise.resolve();
+    const toneStart = Tone.start();
+    Promise.all([rawResume, toneStart])
+      .then(() => engine.current?.start())
+      .then((ok) => {
+        if (ok) {
+          engine.current?.startDrone();
+          setAudioReady(true);
+          setReady(true);
+        }
+      })
+      .catch((e) => console.error("v2 audio retry failed", e));
+  }, [engine, setReady]);
 
   // Start audio on user gesture. The sync resume + Tone.start() calls MUST run
   // in the gesture call stack (no awaits) — iOS Safari links the user-activation
@@ -235,6 +272,21 @@ export default function CosmicV2() {
               Enable tilt
             </button>
           )}
+
+          <button
+            onClick={handleAudioRetry}
+            onTouchStart={(e) => { e.preventDefault(); handleAudioRetry(); }}
+            className={cn(
+              "fixed bottom-2 right-2 z-40 rounded-md px-2 py-1 font-mono text-[10px] tracking-wider text-white",
+              ctxState === "running" && engineReady
+                ? "bg-emerald-600/80"
+                : "bg-rose-600/90 animate-pulse",
+            )}
+          >
+            {ctxState === "running" && engineReady
+              ? "AUDIO OK"
+              : `AUDIO ${ctxState.toUpperCase()} — TAP TO RETRY`}
+          </button>
         </>
       )}
     </div>

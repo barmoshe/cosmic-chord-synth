@@ -85,11 +85,13 @@ export function makeSolarSystem(opts: {
     bodies.push(planet);
   }
 
-  // Moons — orbit random planets
+  // Moons — orbit random planets. Tight radii keep orbital periods short so
+  // the bridge hears frequent orbit-cross events and the piece has a
+  // continuous melodic layer.
   const planets = bodies.filter(b => b.kind === "planet");
   for (let i = 0; i < moonCount; i++) {
     const parent = planets[Math.floor(Math.random() * planets.length)];
-    const r = 25 + Math.random() * 40;
+    const r = 18 + Math.random() * 22;
     const angle = Math.random() * Math.PI * 2;
     const v = Math.sqrt(DEFAULT_CONFIG.gravityStrength * parent.mass / r);
     bodies.push(createBody({

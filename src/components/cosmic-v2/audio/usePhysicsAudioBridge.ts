@@ -43,27 +43,29 @@ export function usePhysicsAudioBridge(opts: BridgeOpts) {
         switch (ev.kind) {
           case "orbitCross": {
             const speed = ev.speed ?? 1;
-            const vel = Math.min(0.9, 0.25 + speed * 0.004);
+            // Base 0.55 keeps notes audibly present even at low speeds;
+            // scaling is capped at 0.95 for headroom under the limiter.
+            const vel = Math.min(0.95, 0.55 + speed * 0.004);
             if (b.timbre === "pad") {
               const rootIdx = (b.scaleDegree) % notes.length;
               const chord = [
                 notes[rootIdx],
                 notes[(rootIdx + 2) % notes.length],
                 notes[(rootIdx + 4) % notes.length],
-              ].map((n, i) => BASE_MIDI + b.octave * 12 + n - 48 + (i === 0 ? 0 : 0));
-              engine.triggerPadChord(chord, now, vel * 0.6, "2n");
+              ].map((n) => BASE_MIDI + b.octave * 12 + n - 48);
+              engine.triggerPadChord(chord, now, vel * 0.85, "2n");
             } else if (b.timbre === "bass") {
-              engine.triggerBass(midi - 12, now, vel * 0.8, "4n");
+              engine.triggerBass(midi - 12, now, vel, "4n");
             } else if (b.timbre === "lead") {
               engine.triggerLead(midi, now, vel, "8n");
             } else if (b.timbre === "arp") {
-              engine.triggerArp(midi, now, vel * 0.7, "16n");
+              engine.triggerArp(midi, now, vel * 0.9, "16n");
             }
             onNote?.(ev, midi);
             break;
           }
           case "proximity": {
-            engine.triggerPadChord([midi, midi + 7], now, 0.25, "2n");
+            engine.triggerPadChord([midi, midi + 7], now, 0.45, "2n");
             const curWet = 0.3;
             engine.setReverbWet(Math.min(0.55, curWet + 0.05), 0.4);
             setTimeout(() => engine.setReverbWet(curWet, 1.2), 300);
@@ -73,16 +75,16 @@ export function usePhysicsAudioBridge(opts: BridgeOpts) {
           case "collision": {
             const rv = ev.speed ?? 0;
             const drum = rv > 120 ? "snare" : rv > 60 ? "clap" : rv > 20 ? "hat" : "kick";
-            engine.triggerDrum(drum, Math.min(0.9, 0.3 + rv * 0.004));
+            engine.triggerDrum(drum, Math.min(0.95, 0.5 + rv * 0.005));
             // Also emit a high accent from the spark
             if (b.kind === "spark") {
-              engine.triggerArp(midi + 12, now, 0.5, "32n");
+              engine.triggerArp(midi + 12, now, 0.7, "32n");
             }
             onNote?.(ev, midi);
             break;
           }
           case "perihelion": {
-            engine.triggerArp(midi + 12, now, 0.45, "8n");
+            engine.triggerArp(midi + 12, now, 0.7, "8n");
             onNote?.(ev, midi);
             break;
           }
