@@ -57,6 +57,7 @@ export default function CosmicSynth() {
   });
   const frameCount = useRef(0);
   const rafRef = useRef<number | null>(null);
+  const startedRef = useRef(false);
 
   useEffect(() => { scaleRef.current = scale; }, [scale]);
 
@@ -72,7 +73,6 @@ export default function CosmicSynth() {
   useEffect(() => () => { disposeAudio(); }, [disposeAudio]);
 
   /* ── Audio Start ── */
-  const startedRef = useRef(false);
   const handleStart = useCallback(async () => {
     if (startedRef.current) return;
     startedRef.current = true;
