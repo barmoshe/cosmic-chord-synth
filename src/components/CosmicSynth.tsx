@@ -10,7 +10,8 @@ import { useSetupEffects } from "./cosmic-synth/useSetupEffects";
 import { useThreeScene } from "./cosmic-synth/useThreeScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
-import { useDjAutoPlay } from "./cosmic-synth/useDjAutoPlay";
+import { useDjAutoPlay, type DjUi } from "./cosmic-synth/useDjAutoPlay";
+import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
 
 export default function CosmicSynth() {
   /* ── State ── */
@@ -21,9 +22,24 @@ export default function CosmicSynth() {
   const [flash, setFlash] = useState("");
   const [showUI, setShowUI] = useState(true);
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [djSection, setDjSection] = useState("");
   const [warpProgress, setWarpProgress] = useState(0);
   const [seqOpen, setSeqOpen] = useState(false);
+
+  // DJ UI adapter — CosmicDjPanel installs itself here via onReady
+  const djUiRef = useRef<DjUi>({
+    setPhase: () => {}, setNextPhase: () => {}, setProgress: () => {},
+    setBeat: () => {}, bumpKick: () => {}, bumpClap: () => {}, bumpHat: () => {},
+  });
+  const djUiProxy: DjUi = {
+    setPhase: (p) => djUiRef.current.setPhase(p),
+    setNextPhase: (p) => djUiRef.current.setNextPhase(p),
+    setProgress: (v) => djUiRef.current.setProgress(v),
+    setBeat: (b) => djUiRef.current.setBeat(b),
+    bumpKick: (v) => djUiRef.current.bumpKick(v),
+    bumpClap: (v) => djUiRef.current.bumpClap(v),
+    bumpHat: (v) => djUiRef.current.bumpHat(v),
+  };
+  const handleDjUiReady = useCallback((ui: DjUi) => { djUiRef.current = ui; }, []);
 
   /* ── Refs ── */
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,7 +67,7 @@ export default function CosmicSynth() {
   useThreeScene(canvasRef, audioRef, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
   useTouchInput(canvasRef, audioRef, engineRef, touchesRef, scaleRef, phase, resetUIHide);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
-  useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, setDjSection, touchesRef);
+  useDjAutoPlay(autoPlay, audioRef, engineRef, scaleRef, djState, djUiProxy, touchesRef);
 
   /* ── Audio Start ── */
   const handleStart = useCallback(async () => {
@@ -152,18 +168,13 @@ export default function CosmicSynth() {
             </div>
           )}
 
-          <div className="cosmic-auto-group">
-            <button
-              onTouchStart={(e) => { e.preventDefault(); setAutoPlay(p => !p); }}
-              onClick={() => setAutoPlay(p => !p)}
-              className={`cosmic-btn cosmic-btn-auto ${autoPlay ? "active" : ""}`}
-            >
-              <span className="cosmic-btn-icon">{autoPlay ? "⏸" : "▶"}</span>
-              <span className="cosmic-btn-label">AUTO</span>
-            </button>
-            {autoPlay && djSection && (
-              <div className="cosmic-section-tag">{djSection}</div>
-            )}
+          <div className="cosmic-dj-corner">
+            <CosmicDjPanel
+              autoPlay={autoPlay}
+              onToggle={() => setAutoPlay(p => !p)}
+              onReady={handleDjUiReady}
+              bpm={94}
+            />
             <button
               onTouchStart={(e) => { e.preventDefault(); setSeqOpen(true); }}
               onClick={() => setSeqOpen(true)}

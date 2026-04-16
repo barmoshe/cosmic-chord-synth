@@ -320,21 +320,22 @@ export function useThreeScene(
     }
 
     // ── Ripple Pool ──
-    const ripples: { mesh: THREE.Mesh; active: boolean; life: number }[] = [];
+    const ripples: { mesh: THREE.Mesh; active: boolean; life: number; scaleMult: number; startOp: number; maxLife: number }[] = [];
     for (let i = 0; i < RIPPLE_POOL; i++) {
       const rGeo = new THREE.RingGeometry(0.5, 1.5, 64);
       const rMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false });
       const rMesh = new THREE.Mesh(rGeo, rMat);
       rMesh.visible = false; scene.add(rMesh);
-      ripples.push({ mesh: rMesh, active: false, life: 0 });
+      ripples.push({ mesh: rMesh, active: false, life: 0, scaleMult: 1, startOp: 0.6, maxLife: 60 });
     }
 
     function addRipple(x: number, y: number, z: number, col: number[]) {
       const r = ripples.find(r => !r.active); if (!r) return;
-      r.active = true; r.life = 0; r.mesh.visible = true;
+      r.active = true; r.life = 0; r.scaleMult = 1; r.startOp = 0.6; r.maxLife = 60;
+      r.mesh.visible = true;
       r.mesh.position.set(x, y, z); r.mesh.scale.setScalar(1);
       (r.mesh.material as THREE.MeshBasicMaterial).color.setRGB(col[0], col[1], col[2]);
-      (r.mesh.material as THREE.MeshBasicMaterial).opacity = 0.6;
+      (r.mesh.material as THREE.MeshBasicMaterial).opacity = r.startOp;
     }
 
     // ── FFT Bars (ring) ──
@@ -396,9 +397,70 @@ export function useThreeScene(
       return camera.position.clone().add(dir.multiplyScalar(280));
     }
 
+    // ── DJ "Cosmic Pulse" state — drives per-kick camera punch, galaxy spin boost, and phase whip ──
+    const djFx = {
+      camPunch: 0,        // additive offset into camera.z (negative = closer), decays
+      spinBoost: 0,       // additive rotation speed multiplier, decays
+      whipPhase: 0,       // additive rotation offset for section-transition "whip", decays
+    };
+
+    function shockwave(col: number[], scale: number) {
+      // Big ring from galaxy core; reuses ripple pool with custom scale multiplier
+      const r = ripples.find(rr => !rr.active); if (!r) return;
+      r.active = true; r.life = 0; r.scaleMult = scale; r.startOp = 0.85; r.maxLife = 80;
+      r.mesh.visible = true;
+      r.mesh.position.set(0, 0, 0);
+      r.mesh.scale.setScalar(scale);
+      (r.mesh.material as THREE.MeshBasicMaterial).color.setRGB(col[0], col[1], col[2]);
+      (r.mesh.material as THREE.MeshBasicMaterial).opacity = r.startOp;
+    }
+
+    function cameraImpulse(dz: number) {
+      // Punch camera closer by |dz|; decayed in frame loop
+      djFx.camPunch = Math.min(djFx.camPunch + dz, 80);
+    }
+
+    function kickPulse(vel: number) {
+      const v = clamp(vel, 0, 1);
+      if (0.4 * v > flashIntensity.current) flashIntensity.current = 0.4 * v;
+      shockwave([0.99, 0.83, 0.30], 0.8 + v * 0.8);             // warm-spark gold (Aurora accent)
+      cameraImpulse(8 + v * 12);
+      djFx.spinBoost = Math.min(djFx.spinBoost + 0.25 * v, 0.8);
+      // Radial particle burst from core — aurora gold embers
+      const n = Math.floor(6 + v * 10);
+      for (let i = 0; i < n; i++) {
+        const ang = (i / n) * Math.PI * 2;
+        const dist = 20 + Math.random() * 30;
+        emitParticles(Math.cos(ang) * dist, (Math.random() - 0.5) * 6, Math.sin(ang) * dist, [0.99, 0.75 + Math.random() * 0.2, 0.3], 1, 0.7 + v * 0.4);
+      }
+    }
+
+    function sparkleCloud(col: number[], count: number) {
+      // Scatter tiny sparkles at mid-galaxy distance (matches camera forward ray approximately)
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const r = 120 + Math.random() * 180;
+        const y = (Math.random() - 0.5) * 40;
+        emitParticles(Math.cos(ang) * r, y, Math.sin(ang) * r, col, 1, 0.3 + Math.random() * 0.3);
+      }
+    }
+
+    function sectionTransition(col: number[]) {
+      if (0.7 > flashIntensity.current) flashIntensity.current = 0.7;
+      shockwave(col, 2.4);
+      djFx.whipPhase = 0.35;
+      djFx.spinBoost = Math.min(djFx.spinBoost + 0.6, 1.2);
+      // Color the FFT ring briefly by setting its emissive-ish color via meshes
+      for (let i = 0; i < fftMeshes.length; i++) {
+        (fftMeshes[i].material as THREE.MeshBasicMaterial).color.setRGB(col[0], col[1], col[2]);
+      }
+    }
+
     engineRef.current = {
       camera, addRipple, emitParticles,
       s2w: (x: number, y: number) => { const p = screenToWorld(x, y); return [p.x, p.y, p.z]; },
+      flash: (v: number) => { if (v > flashIntensity.current) flashIntensity.current = v; },
+      shockwave, kickPulse, cameraImpulse, sparkleCloud, sectionTransition,
     };
 
     const clock = new THREE.Clock();
@@ -421,14 +483,18 @@ export function useThreeScene(
       camera.position.x += (mouse.x * 120 - camera.position.x) * 0.015;
       camera.position.y += (mouse.y * 80 - camera.position.y) * 0.015;
       camera.position.z += (targetZ - camera.position.z) * 0.035;
+      camera.position.z -= djFx.camPunch;                 // DJ kick punch — direct offset, decays below
       camera.position.z = clamp(camera.position.z, 80, 1600);
       camera.lookAt(0, 0, 0);
+      djFx.camPunch *= 0.82;
+      djFx.spinBoost *= 0.94;
+      djFx.whipPhase *= 0.9;
 
       // Flash decay
       flashIntensity.current *= 0.92;
 
-      // Galaxy
-      galaxy.rotation.y = t * (0.015 + a.mid * 0.025);
+      // Galaxy — DJ spin boost and phase whip overlay the base rotation
+      galaxy.rotation.y = t * (0.015 + a.mid * 0.025 + djFx.spinBoost * 0.35) + djFx.whipPhase;
       const gu = galaxyMat.uniforms;
       gu.uTime.value = t; gu.uBass.value = a.bass; gu.uTreble.value = a.treble;
       gu.uVol.value = a.vol; gu.uFlash.value = flashIntensity.current;
@@ -511,9 +577,9 @@ export function useThreeScene(
       for (const r of ripples) {
         if (!r.active) continue;
         r.life++;
-        r.mesh.scale.setScalar(1 + r.life * 3);
-        (r.mesh.material as THREE.MeshBasicMaterial).opacity = 0.6 * Math.pow(1 - r.life / 60, 2);
-        if (r.life >= 60) { r.mesh.visible = false; r.active = false; }
+        r.mesh.scale.setScalar((1 + r.life * 3) * r.scaleMult);
+        (r.mesh.material as THREE.MeshBasicMaterial).opacity = r.startOp * Math.pow(1 - r.life / r.maxLife, 2);
+        if (r.life >= r.maxLife) { r.mesh.visible = false; r.active = false; }
       }
 
       // FFT bars (every 3rd frame)

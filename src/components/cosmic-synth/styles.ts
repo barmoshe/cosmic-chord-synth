@@ -218,18 +218,126 @@ export const COSMIC_STYLES = `
           color: #7C95B5;
         }
 
-        .cosmic-auto-group {
-          position: fixed; bottom: 28px; left: 24px; z-index: 10;
-          display: flex; flex-direction: column; align-items: center; gap: 10px;
+        .cosmic-dj-corner {
+          position: fixed; bottom: 24px; left: 20px; z-index: 10;
+          display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
         }
-        .cosmic-section-tag {
+
+        /* ── Cosmic DJ Panel — Glacial Aurora accents ── */
+        .cdj-panel {
+          display: flex; flex-direction: column; gap: 9px;
+          padding: 11px 13px;
+          width: 218px;
+          background: linear-gradient(135deg, rgba(22,37,64,0.72) 0%, rgba(15,27,45,0.82) 100%);
+          border: 1px solid rgba(129,140,248,0.22);
+          box-shadow: 0 10px 34px rgba(0,0,0,0.5), inset 0 1px 0 rgba(229,244,251,0.06), 0 0 24px rgba(34,211,238,0.08);
+          border-radius: 14px;
+          backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
           font-family: 'Orbitron', monospace;
-          font-size: 9px; letter-spacing: 0.18em;
-          color: #22D3EE;
-          padding: 4px 12px;
-          background: rgba(34,211,238,0.08);
-          border: 1px solid rgba(34,211,238,0.25);
+          color: #B4C9E0;
+          user-select: none; -webkit-user-select: none;
+        }
+        .cdj-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .cdj-row-phase { padding-top: 2px; }
+
+        .cdj-toggle {
+          all: unset;
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 11px 6px 9px;
           border-radius: 10px;
+          background: rgba(229,244,251,0.04);
+          border: 1px solid rgba(129,140,248,0.22);
+          cursor: pointer; touch-action: none;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cdj-toggle:hover { background: rgba(129,140,248,0.1); border-color: rgba(129,140,248,0.4); }
+        .cdj-toggle:active { transform: scale(0.96); }
+        .cdj-toggle.active {
+          background: rgba(34,211,238,0.12);
+          border-color: rgba(34,211,238,0.5);
+          box-shadow: 0 0 22px rgba(34,211,238,0.25), inset 0 0 10px rgba(34,211,238,0.1);
+          color: #22D3EE;
+        }
+        .cdj-toggle-icon { font-size: 11px; line-height: 1; }
+        .cdj-toggle-label { font-size: 10px; letter-spacing: 0.2em; font-weight: 500; }
+        .cdj-beat-dot {
+          width: 9px; height: 9px; border-radius: 50%;
+          background: radial-gradient(circle at 30% 30%, #FCD34D, #F59E0B 70%);
+          box-shadow: 0 0 10px rgba(252,211,77,0.7);
+          opacity: 0.4;
+          transition: opacity 0.04s linear;
+        }
+
+        .cdj-bpm { display: flex; align-items: baseline; gap: 5px; padding-right: 4px; }
+        .cdj-bpm-val {
+          font-size: 16px; font-weight: 700;
+          background: linear-gradient(90deg, #22D3EE, #818CF8);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          letter-spacing: 0.05em;
+        }
+        .cdj-bpm-lbl { font-size: 8px; letter-spacing: 0.2em; color: #7C95B5; }
+
+        .cdj-phase {
+          font-size: 11px; font-weight: 700; letter-spacing: 0.22em;
+          color: #22D3EE;
+          text-shadow: 0 0 10px rgba(34,211,238,0.35);
+        }
+        .cdj-phase-drift    { color: #5FEED0; text-shadow: 0 0 10px rgba(95,238,208,0.45); }
+        .cdj-phase-pulse    { color: #818CF8; text-shadow: 0 0 10px rgba(129,140,248,0.45); }
+        .cdj-phase-bloom    { color: #22D3EE; text-shadow: 0 0 10px rgba(34,211,238,0.5); }
+        .cdj-phase-surge    { color: #FCD34D; text-shadow: 0 0 14px rgba(252,211,77,0.55); }
+        .cdj-phase-dissolve { color: #14B8A6; text-shadow: 0 0 10px rgba(20,184,166,0.4); }
+        .cdj-phase-next {
+          font-size: 9px; letter-spacing: 0.2em;
+          color: #7C95B5;
+        }
+
+        .cdj-progress {
+          height: 3px;
+          background: rgba(229,244,251,0.08);
+          border-radius: 2px; overflow: hidden;
+        }
+        .cdj-progress-fill {
+          height: 100%; width: 100%;
+          transform: scaleX(0); transform-origin: left;
+          background: linear-gradient(90deg, #14B8A6, #22D3EE 50%, #818CF8);
+          box-shadow: 0 0 8px rgba(34,211,238,0.4);
+        }
+
+        .cdj-meters { display: flex; flex-direction: column; gap: 4px; }
+        .cdj-meter { display: flex; align-items: center; gap: 8px; }
+        .cdj-meter-lbl {
+          font-family: 'Raleway', sans-serif;
+          font-size: 9px; font-weight: 600;
+          color: #7C95B5;
+          width: 10px;
+        }
+        .cdj-meter-bar {
+          flex: 1; height: 4px;
+          background: rgba(229,244,251,0.06);
+          border-radius: 2px; overflow: hidden;
+        }
+        .cdj-meter-fill {
+          height: 100%; width: 100%;
+          transform: scaleX(0); transform-origin: left;
+          transition: transform 0.03s linear;
+        }
+        .cdj-meter-fill.kick { background: linear-gradient(90deg, #FCD34D, #F59E0B); box-shadow: 0 0 6px rgba(252,211,77,0.55); }
+        .cdj-meter-fill.clap { background: linear-gradient(90deg, #818CF8, #A5B4FC); box-shadow: 0 0 6px rgba(129,140,248,0.5); }
+        .cdj-meter-fill.hat  { background: linear-gradient(90deg, #22D3EE, #67E8F9); box-shadow: 0 0 6px rgba(34,211,238,0.5); }
+
+        .cdj-grid { display: flex; justify-content: center; gap: 9px; padding-top: 3px; }
+        .cdj-grid-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: rgba(229,244,251,0.12);
+          border: 1px solid rgba(129,140,248,0.2);
+          transition: all 0.08s ease-out;
+        }
+        .cdj-grid-dot.active {
+          background: radial-gradient(circle at 30% 30%, #22D3EE, #818CF8 80%);
+          border-color: rgba(34,211,238,0.6);
+          box-shadow: 0 0 10px rgba(34,211,238,0.6);
+          transform: scale(1.25);
         }
 
         .cosmic-scale-group {

@@ -24,27 +24,62 @@ export const SMOOTH = 0.14;
 export const PAL: number[][] = [[0.08, 0.72, 0.65], [0.13, 0.83, 0.93], [0.51, 0.55, 0.97], [0.37, 0.92, 0.83], [0.65, 0.55, 0.98], [0.99, 0.83, 0.30]];
 export const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
-/* DJ Arrangement */
+/* DJ "Cosmic Pulse" — 5-phase loop. DRIFT plays once on AUTO start,
+   then PULSE → BLOOM → SURGE → DISSOLVE cycles forever.
+   Per-phase `col` drives section-transition flash + panel accents.
+   Colors sampled from Glacial Aurora 2026 palette (teal/cyan/periwinkle/mint/lavender/warm-gold spark). */
 export const DJ_SECTIONS = [
-  { name: "INTRO", bars: 4, e: 0.1, d: 0.15, l: { dr: 1, pd: 0, bs: 0, ml: 0, ar: 0, ct: 0 }, ft: 0.15, rv: 0.6, dw: 0.2, algo: "silent", adsr: [2, 1, 0.7, 3], mod: [1, 1, 0, 5] },
-  { name: "VERSE", bars: 8, e: 0.3, d: 0.4, l: { dr: 1, pd: 0.5, bs: 0, ml: 1, ar: 0, ct: 0 }, ft: 0.35, rv: 0.45, dw: 0.18, algo: "motif", adsr: [0.08, 0.3, 0.5, 1.5], mod: [3, 2, 8, 12] },
-  { name: "BUILD", bars: 4, e: 0.55, d: 0.6, l: { dr: 1, pd: 0.7, bs: 0.3, ml: 1, ar: 0.5, ct: 0 }, ft: 0.6, rv: 0.35, dw: 0.15, algo: "sequence", sweep: 1, adsr: [0.05, 0.25, 0.55, 1.2], mod: [4, 2.5, 12, 15] },
-  { name: "DROP", bars: 8, e: 0.85, d: 0.8, l: { dr: 1, pd: 1, bs: 1, ml: 1, ar: 0.8, ct: 0.3 }, ft: 0.9, rv: 0.3, dw: 0.12, algo: "develop", adsr: [0.03, 0.2, 0.6, 0.8], mod: [5, 3, 15, 18] },
-  { name: "BREAK", bars: 6, e: 0.2, d: 0.25, l: { dr: 1, pd: 0.8, bs: 0, ml: 0.5, ar: 0, ct: 0 }, ft: 0.25, rv: 0.55, dw: 0.25, algo: "fragment", adsr: [0.15, 0.4, 0.4, 2.5], mod: [2, 1.5, 5, 8] },
-  { name: "BUILD2", bars: 4, e: 0.65, d: 0.7, l: { dr: 1, pd: 0.8, bs: 0.5, ml: 1, ar: 0.7, ct: 0.3 }, ft: 0.75, rv: 0.3, dw: 0.13, algo: "sequence", sweep: 1, riser: 1, adsr: [0.04, 0.2, 0.6, 1], mod: [5, 2.8, 14, 16] },
-  { name: "PEAK", bars: 8, e: 1, d: 0.9, l: { dr: 1, pd: 1, bs: 1, ml: 1, ar: 1, ct: 0.6 }, ft: 1, rv: 0.25, dw: 0.1, algo: "climax", adsr: [0.02, 0.15, 0.65, 0.6], mod: [6, 3.5, 18, 22] },
-  { name: "OUTRO", bars: 6, e: 0.15, d: 0.2, l: { dr: 1, pd: 0.4, bs: 0, ml: 0.3, ar: 0, ct: 0 }, ft: 0.15, rv: 0.6, dw: 0.22, algo: "fragment", adsr: [0.2, 0.5, 0.4, 3], mod: [1.5, 1.2, 3, 6] },
+  { name: "DRIFT",    bars: 8,  e: 0.15, drums: "drift",    l: { pd: 1,   bs: 0, ml: 0.25, ar: 0 }, ft: 0.3,  rv: 0.65, dw: 0.28, adsr: [1.4, 0.8, 0.7, 2.8], algo: "motif",    col: [0.37, 0.92, 0.83] }, // mint aurora
+  { name: "PULSE",    bars: 12, e: 0.45, drums: "pulse",    l: { pd: 0.9, bs: 0, ml: 0.6,  ar: 0 }, ft: 0.45, rv: 0.5,  dw: 0.2,  adsr: [0.2, 0.4, 0.55, 2],   algo: "motif",    col: [0.51, 0.55, 0.97] }, // periwinkle
+  { name: "BLOOM",    bars: 16, e: 0.7,  drums: "bloom",    l: { pd: 0.7, bs: 1, ml: 1,    ar: 0 }, ft: 0.65, rv: 0.4,  dw: 0.15, adsr: [0.06, 0.3, 0.55, 1.2], algo: "develop", col: [0.13, 0.83, 0.93] }, // cyan
+  { name: "SURGE",    bars: 12, e: 1,    drums: "surge",    l: { pd: 1,   bs: 1, ml: 1,    ar: 1 }, ft: 1,    rv: 0.3,  dw: 0.12, adsr: [0.02, 0.2, 0.65, 0.7], algo: "climax", sweep: 1, col: [0.99, 0.83, 0.30] }, // warm-spark gold
+  { name: "DISSOLVE", bars: 8,  e: 0.3,  drums: "dissolve", l: { pd: 0.9, bs: 0, ml: 0.4,  ar: 0 }, ft: 0.35, rv: 0.6,  dw: 0.24, adsr: [0.25, 0.5, 0.5, 2.2], algo: "fragment", col: [0.08, 0.72, 0.65] }, // teal
 ] as any[];
-export const RHY: Record<string, number[][]> = {
-  sparse: [[8, 1], [8, 0.7]],
-  quarter: [[4, 1], [4, 0.7], [4, 0.9], [4, 0.6]],
-  driving: [[2, 1], [2, 0.6], [2, 0.9], [2, 0.5], [2, 1], [2, 0.7], [2, 0.8], [2, 0.5]],
-  syncopated: [[3, 1], [1, 0.5], [4, 0.8], [3, 0.9], [1, 0.4], [4, 0.7]],
-  dense: [[2, 1], [1, 0.5], [1, 0.7], [2, 0.9], [2, 0.8], [1, 0.6], [1, 0.5], [2, 0.7]],
+
+/* Drum patterns — 16 sixteenth-note steps per bar; value = velocity 0..1 (0 = rest).
+   Experimental electronic base: kick-driven foundation, claps on backbeat, off-beat hats. */
+export const DRUM_PATTERNS: Record<string, { kick: number[]; clap: number[]; hat: number[]; snare: number[] }> = {
+  drift: {
+    kick:  [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+    clap:  [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+    hat:   [0, 0, 0.15, 0,  0, 0, 0.12, 0,  0, 0, 0.15, 0,  0, 0, 0.12, 0],
+    snare: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+  },
+  pulse: {
+    kick:  [1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0],      // 2-on-floor (1 & 3)
+    clap:  [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+    hat:   [0, 0, 0.4, 0,  0, 0, 0.4, 0,  0, 0, 0.4, 0,  0, 0, 0.4, 0],
+    snare: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+  },
+  bloom: {
+    kick:  [1, 0, 0, 0,  1, 0, 0, 0,  1, 0, 0, 0,  1, 0, 0, 0],      // 4-on-floor
+    clap:  [0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0],      // backbeat
+    hat:   [0, 0, 0.7, 0,  0, 0, 0.7, 0,  0, 0, 0.7, 0,  0, 0, 0.7, 0.4],
+    snare: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+  },
+  surge: {
+    kick:  [1, 0, 0, 0,  1, 0, 0, 0,  1, 0, 0, 0,  1, 0, 0, 0.5],    // 4-on-floor + pickup
+    clap:  [0, 0, 0, 0,  1, 0, 0, 0.4,  0, 0, 0, 0,  1, 0, 0, 0],
+    hat:   [0.7, 0, 1, 0,  0.7, 0, 1, 0.5,  0.7, 0, 1, 0,  0.7, 0, 1, 0.7],   // 16ths
+    snare: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0.5, 0],    // ghost
+  },
+  dissolve: {
+    kick:  [0.8, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0.7],
+    clap:  [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0],
+    hat:   [0, 0, 0.3, 0,  0, 0, 0.3, 0.3,  0, 0, 0.3, 0,  0, 0.3, 0.4, 0.5],
+    snare: [0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0],
+  },
 };
-export const BASS_PAT: Record<string, number[][]> = {
-  whole: [[16, 1]],
-  octave: [[4, 1], [4, 0.8], [4, 1], [4, 0.7]],
-  bounce: [[2, 1], [2, 0], [2, 0.8], [2, 0], [2, 1], [2, 0], [2, 0.7], [2, 0]],
-};
+
 export const ARP_MODES = ["up", "down", "updown", "random", "skip"];
+
+/* Four drum-stars that orbit the galaxy core. Users can tap them to play drums;
+   auto-DJ also targets them. Colors sampled from Glacial Aurora 2026 palette. */
+export const DRUM_ORBIT_R = 200;
+export const DRUM_STARS = [
+  { name: "kick",  angle: 0,                 color: [0.99, 0.83, 0.30], label: "K" }, // gold (N)
+  { name: "hat",   angle: Math.PI * 0.5,     color: [0.13, 0.83, 0.93], label: "H" }, // cyan (E)
+  { name: "clap",  angle: Math.PI,           color: [0.51, 0.55, 0.97], label: "C" }, // periwinkle (S)
+  { name: "snare", angle: Math.PI * 1.5,     color: [0.37, 0.92, 0.83], label: "S" }, // mint (W)
+] as const;
+export type DrumName = typeof DRUM_STARS[number]["name"];
