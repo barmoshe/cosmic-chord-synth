@@ -12,6 +12,7 @@ export function useTouchInput(
   scaleRef: React.MutableRefObject<string>,
   phase: string,
   resetUIHide: () => void,
+  sceneKey?: string,
 ) {
   useEffect(() => {
     const cv = canvasRef.current;
@@ -152,5 +153,5 @@ export function useTouchInput(
       cv.removeEventListener("mousedown", onMD); cv.removeEventListener("mousemove", onMM);
       cv.removeEventListener("mouseup", onMU); cv.removeEventListener("mouseleave", onMU);
     };
-  }, [phase, resetUIHide, audioEngine, engineRef, touchesRef, scaleRef, canvasRef]);
+  }, [phase, resetUIHide, audioEngine, engineRef, touchesRef, scaleRef, canvasRef, sceneKey]);
 }

@@ -114,7 +114,7 @@ export default function CosmicSynth() {
   /* ── Hooks ── */
   const { engine, analysisRef, fftBuffer, analyze, dispose } = useAudioEngine();
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
-  useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide);
+  useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide, theme);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
   useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef);
 
@@ -206,7 +206,7 @@ export default function CosmicSynth() {
       className={isJungle ? "theme-jungle" : "theme-space"}
       style={{ position: "fixed", inset: 0, overflow: "hidden", background: isJungle ? "#0a1f14" : "#162540", touchAction: "none" }}
     >
-      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
+      <canvas key={`canvas-${theme}`} ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
 
       {/* Scene mount — one hook set at a time; key forces clean remount on theme change */}

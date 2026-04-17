@@ -553,15 +553,14 @@ export const COSMIC_STYLES = `
           box-shadow: 0 0 8px rgba(34,211,238,0.5), 0 0 16px rgba(129,140,248,0.25);
         }
 
-        /* ── Theme chooser (segmented pill, always visible) ── */
+        /* ── Theme chooser (segmented pill, bottom-left corner) ── */
         .theme-chooser {
           position: fixed;
-          top: 14px;
-          left: 50%;
-          transform: translateX(-50%);
+          left: 12px;
+          bottom: 12px;
           z-index: 30;
           display: flex;
-          padding: 4px;
+          padding: 3px;
           gap: 2px;
           background: rgba(15, 27, 45, 0.55);
           border: 1px solid rgba(255, 255, 255, 0.08);
@@ -577,15 +576,15 @@ export const COSMIC_STYLES = `
           background: transparent;
           color: rgba(255, 255, 255, 0.7);
           font-family: 'Orbitron', monospace;
-          font-size: 11px;
-          letter-spacing: 0.18em;
+          font-size: 10px;
+          letter-spacing: 0.16em;
           font-weight: 700;
-          padding: 8px 14px;
+          padding: 7px 12px;
           border-radius: 999px;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
           transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
           touch-action: manipulation;
         }
