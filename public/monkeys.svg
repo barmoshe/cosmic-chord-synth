@@ -1,166 +1,333 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 128" width="512" height="128" shape-rendering="geometricPrecision">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 384" width="1024" height="384" shape-rendering="geometricPrecision">
   <defs>
-    <radialGradient id="bodyShade" cx="0.5" cy="0.35" r="0.75">
+    <radialGradient id="bodyShade" cx="0.42" cy="0.32" r="0.78">
       <stop offset="0%" stop-color="#8b5a2b"/>
-      <stop offset="100%" stop-color="#6b3e1a"/>
+      <stop offset="70%" stop-color="#6b3e1a"/>
+      <stop offset="100%" stop-color="#4a2810"/>
     </radialGradient>
-    <radialGradient id="bellyShade" cx="0.5" cy="0.4" r="0.7">
-      <stop offset="0%" stop-color="#e0b078"/>
-      <stop offset="100%" stop-color="#c99055"/>
+    <radialGradient id="bellyShade" cx="0.5" cy="0.4" r="0.75">
+      <stop offset="0%" stop-color="#ecc28a"/>
+      <stop offset="100%" stop-color="#b0803f"/>
+    </radialGradient>
+    <radialGradient id="headShade" cx="0.4" cy="0.35" r="0.8">
+      <stop offset="0%" stop-color="#996a37"/>
+      <stop offset="100%" stop-color="#5c3517"/>
     </radialGradient>
     <linearGradient id="bananaShade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff28a"/>
-      <stop offset="70%" stop-color="#ffe14d"/>
-      <stop offset="100%" stop-color="#c5a020"/>
+      <stop offset="0%" stop-color="#fff4a3"/>
+      <stop offset="65%" stop-color="#ffe14d"/>
+      <stop offset="100%" stop-color="#b8891c"/>
     </linearGradient>
+    <radialGradient id="groundShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="rgba(0,0,0,0.5)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </radialGradient>
+
+    <!-- Banana held-in-hand prop (drawn centered at origin, pointing right) -->
+    <g id="banana">
+      <path d="M -9 1 Q 0 -6 11 -2 Q 13 5 4 7 Q -7 7 -9 1 Z" fill="url(#bananaShade)" stroke="#8b6914" stroke-width="0.8"/>
+      <path d="M 11 -2 L 14 -5" stroke="#5c4a0a" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M -5 3 Q -2 4 2 3" stroke="#c5a020" stroke-width="0.8" stroke-linecap="round" fill="none" opacity="0.7"/>
+    </g>
+
+    <!-- Reusable monkey head (drawn with nose at (0,0), forehead up) -->
+    <g id="mkHead">
+      <circle cx="0" cy="-4" r="20" fill="url(#headShade)"/>
+      <circle cx="-17" cy="-14" r="7" fill="#5c3517"/>
+      <circle cx="17" cy="-14" r="7" fill="#5c3517"/>
+      <circle cx="-17" cy="-14" r="3.5" fill="#c99055"/>
+      <circle cx="17" cy="-14" r="3.5" fill="#c99055"/>
+      <ellipse cx="0" cy="0" rx="14" ry="14" fill="url(#bellyShade)"/>
+      <circle cx="-6" cy="-2" r="2.3" fill="#1a1a1a"/>
+      <circle cx="6" cy="-2" r="2.3" fill="#1a1a1a"/>
+      <circle cx="-5.3" cy="-2.8" r="0.8" fill="#ffffff"/>
+      <circle cx="6.7" cy="-2.8" r="0.8" fill="#ffffff"/>
+      <circle cx="-9" cy="6" r="2.5" fill="#ef9a6b" opacity="0.6"/>
+      <circle cx="9" cy="6" r="2.5" fill="#ef9a6b" opacity="0.6"/>
+      <path d="M -4 6 Q 0 9 4 6" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- Tucked "ball" pose used for all FLIP frames — centered at (0,0), fits within r≈34 -->
+    <g id="mkTucked">
+      <!-- body curled into a C -->
+      <ellipse cx="0" cy="0" rx="28" ry="24" fill="url(#bodyShade)"/>
+      <!-- belly bulge at bottom of curl -->
+      <ellipse cx="0" cy="6" rx="18" ry="15" fill="url(#bellyShade)"/>
+      <!-- legs tucked (shown as two rounded feet at bottom) -->
+      <circle cx="-10" cy="18" r="7" fill="#5c3517"/>
+      <circle cx="10" cy="18" r="7" fill="#5c3517"/>
+      <!-- arms hugging knees (arc across belly) -->
+      <path d="M -20 2 Q -8 22 8 22 Q 20 20 22 4" fill="none" stroke="#6b3e1a" stroke-width="7" stroke-linecap="round"/>
+      <!-- head on top, slightly forward (tucked chin) -->
+      <g transform="translate(-1 -20) scale(0.82)">
+        <use href="#mkHead"/>
+      </g>
+      <!-- banana clutched between hands -->
+      <g transform="translate(0 10) rotate(-15) scale(0.8)">
+        <use href="#banana"/>
+      </g>
+      <!-- tail wrapping around -->
+      <path d="M 22 12 Q 30 18 28 28 Q 20 32 12 28" stroke="#6b3e1a" stroke-width="5" stroke-linecap="round" fill="none"/>
+    </g>
   </defs>
 
-  <!-- ============ FRAME 0 : CROUCH ============ -->
-  <g>
-    <!-- tail curling back -->
-    <path d="M 82 82 Q 102 86 106 102 Q 107 114 96 116" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
-    <!-- back (left) arm tucked behind -->
-    <path d="M 52 78 Q 38 82 34 94" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
-    <!-- body -->
-    <ellipse cx="64" cy="86" rx="22" ry="20" fill="url(#bodyShade)"/>
-    <!-- belly -->
-    <ellipse cx="64" cy="89" rx="14" ry="13" fill="url(#bellyShade)"/>
-    <!-- back leg bent -->
-    <path d="M 54 100 Q 44 108 40 116 L 52 118 Q 58 110 60 104 Z" fill="#6b3e1a"/>
-    <!-- front leg bent -->
-    <path d="M 74 100 Q 84 108 88 116 L 76 118 Q 70 110 68 104 Z" fill="#6b3e1a"/>
+  <!-- ========================================================== -->
+  <!-- ROW 0 · JUMP · 4 frames (0..3) at y=0                       -->
+  <!-- ========================================================== -->
+
+  <!-- JUMP F0 — CROUCH (x=0) -->
+  <g transform="translate(0 0)">
+    <ellipse cx="64" cy="120" rx="28" ry="4" fill="url(#groundShadow)"/>
+    <!-- tail low -->
+    <path d="M 82 90 Q 102 92 106 108 Q 107 120 96 122" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <!-- back arm -->
+    <path d="M 52 82 Q 38 86 32 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <!-- compressed body -->
+    <ellipse cx="64" cy="92" rx="24" ry="18" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="95" rx="15" ry="12" fill="url(#bellyShade)"/>
+    <!-- crouched legs -->
+    <path d="M 52 102 Q 42 112 38 120 L 52 122 Q 58 112 60 104 Z" fill="url(#bodyShade)"/>
+    <path d="M 76 102 Q 86 112 90 120 L 76 122 Q 70 112 68 104 Z" fill="url(#bodyShade)"/>
     <!-- head -->
-    <circle cx="64" cy="52" r="20" fill="url(#bodyShade)"/>
-    <!-- ears -->
-    <circle cx="47" cy="42" r="7" fill="#6b3e1a"/><circle cx="47" cy="42" r="3.5" fill="#c99055"/>
-    <circle cx="81" cy="42" r="7" fill="#6b3e1a"/><circle cx="81" cy="42" r="3.5" fill="#c99055"/>
-    <!-- face -->
-    <ellipse cx="64" cy="56" rx="14" ry="14" fill="url(#bellyShade)"/>
-    <!-- eyes closed (crouch = focus) small dashes -->
-    <path d="M 55 54 L 61 54" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-    <path d="M 67 54 L 73 54" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-    <!-- cheek blush -->
-    <circle cx="55" cy="62" r="2.5" fill="#ef9a6b" opacity="0.65"/>
-    <circle cx="73" cy="62" r="2.5" fill="#ef9a6b" opacity="0.65"/>
-    <!-- determined mouth -->
-    <path d="M 59 64 Q 64 66 69 64" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <!-- front (right) arm with banana -->
-    <path d="M 78 78 Q 92 82 98 94" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
-    <!-- banana -->
-    <g transform="translate(92 88) rotate(15)">
-      <path d="M -8 0 Q 0 -6 10 -2 Q 12 4 4 6 Q -6 6 -8 0 Z" fill="url(#bananaShade)" stroke="#8b6914" stroke-width="0.8"/>
-      <path d="M 10 -2 L 13 -4" stroke="#8b6914" stroke-width="1.5" stroke-linecap="round"/>
+    <g transform="translate(64 52)">
+      <use href="#mkHead"/>
+    </g>
+    <!-- front arm with banana -->
+    <path d="M 78 82 Q 92 86 98 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(96 96) rotate(20)">
+      <use href="#banana"/>
     </g>
   </g>
 
-  <!-- ============ FRAME 1 : LIFT-OFF ============ -->
+  <!-- JUMP F1 — LIFT-OFF (x=128) -->
   <g transform="translate(128 0)">
+    <ellipse cx="64" cy="122" rx="14" ry="2.5" fill="url(#groundShadow)"/>
     <!-- tail rising -->
-    <path d="M 82 72 Q 104 66 108 50" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
-    <!-- back arm swinging forward -->
-    <path d="M 52 68 Q 42 58 38 48" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M 82 78 Q 104 68 108 50" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <!-- back arm swinging up -->
+    <path d="M 52 72 Q 44 58 40 46" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
     <!-- body lifted -->
-    <ellipse cx="64" cy="76" rx="20" ry="22" fill="url(#bodyShade)"/>
-    <ellipse cx="64" cy="80" rx="12" ry="14" fill="url(#bellyShade)"/>
-    <!-- back leg extending -->
-    <path d="M 56 92 Q 50 106 48 118 L 58 118 Q 62 106 62 96 Z" fill="#6b3e1a"/>
-    <!-- front leg extending -->
-    <path d="M 72 92 Q 78 106 80 118 L 70 118 Q 66 106 66 96 Z" fill="#6b3e1a"/>
+    <ellipse cx="64" cy="80" rx="21" ry="22" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="84" rx="13" ry="14" fill="url(#bellyShade)"/>
+    <!-- legs extending -->
+    <path d="M 55 96 Q 50 110 48 118 L 58 118 Q 62 108 62 98 Z" fill="url(#bodyShade)"/>
+    <path d="M 73 96 Q 78 110 80 118 L 70 118 Q 66 108 66 98 Z" fill="url(#bodyShade)"/>
     <!-- head -->
-    <circle cx="64" cy="42" r="20" fill="url(#bodyShade)"/>
-    <circle cx="47" cy="32" r="7" fill="#6b3e1a"/><circle cx="47" cy="32" r="3.5" fill="#c99055"/>
-    <circle cx="81" cy="32" r="7" fill="#6b3e1a"/><circle cx="81" cy="32" r="3.5" fill="#c99055"/>
-    <ellipse cx="64" cy="46" rx="14" ry="14" fill="url(#bellyShade)"/>
-    <!-- open eyes -->
-    <circle cx="58" cy="44" r="2.2" fill="#1a1a1a"/>
-    <circle cx="70" cy="44" r="2.2" fill="#1a1a1a"/>
-    <circle cx="58.5" cy="43.5" r="0.7" fill="#ffffff"/>
-    <circle cx="70.5" cy="43.5" r="0.7" fill="#ffffff"/>
-    <circle cx="55" cy="52" r="2.5" fill="#ef9a6b" opacity="0.65"/>
-    <circle cx="73" cy="52" r="2.5" fill="#ef9a6b" opacity="0.65"/>
-    <!-- open mouth — excited -->
-    <ellipse cx="64" cy="56" rx="3" ry="2.5" fill="#1a1a1a"/>
-    <!-- front arm swinging forward with banana -->
-    <path d="M 78 68 Q 90 58 96 46" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(64 46)">
+      <use href="#mkHead"/>
+    </g>
+    <!-- front arm up with banana -->
+    <path d="M 78 72 Q 90 58 96 46" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
     <g transform="translate(96 42) rotate(-30)">
-      <path d="M -8 0 Q 0 -6 10 -2 Q 12 4 4 6 Q -6 6 -8 0 Z" fill="url(#bananaShade)" stroke="#8b6914" stroke-width="0.8"/>
-      <path d="M 10 -2 L 13 -4" stroke="#8b6914" stroke-width="1.5" stroke-linecap="round"/>
+      <use href="#banana"/>
     </g>
   </g>
 
-  <!-- ============ FRAME 2 : PEAK (arms overhead, banana raised) ============ -->
+  <!-- JUMP F2 — PEAK (x=256) -->
   <g transform="translate(256 0)">
+    <ellipse cx="64" cy="124" rx="8" ry="1.5" fill="url(#groundShadow)" opacity="0.6"/>
     <!-- tail curled up high -->
-    <path d="M 82 62 Q 106 50 108 32 Q 106 22 96 22" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 82 64 Q 106 52 108 32 Q 106 22 96 22" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
     <!-- back arm overhead -->
-    <path d="M 52 58 Q 48 40 52 22" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M 52 58 Q 46 38 52 20" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
     <!-- body stretched -->
-    <ellipse cx="64" cy="68" rx="18" ry="24" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="68" rx="19" ry="25" fill="url(#bodyShade)"/>
     <ellipse cx="64" cy="72" rx="11" ry="16" fill="url(#bellyShade)"/>
-    <!-- legs together, toes down -->
-    <path d="M 58 90 Q 56 108 58 120 L 66 120 Q 68 108 66 90 Z" fill="#6b3e1a"/>
-    <path d="M 66 90 Q 68 108 70 120 L 78 120 Q 76 108 74 90 Z" fill="#6b3e1a"/>
+    <!-- legs together, pointing down -->
+    <path d="M 58 90 Q 56 108 60 120 L 66 120 Q 68 108 66 90 Z" fill="url(#bodyShade)"/>
+    <path d="M 66 90 Q 68 108 70 120 L 76 120 Q 74 108 72 90 Z" fill="url(#bodyShade)"/>
     <!-- head -->
-    <circle cx="64" cy="34" r="20" fill="url(#bodyShade)"/>
-    <circle cx="47" cy="24" r="7" fill="#6b3e1a"/><circle cx="47" cy="24" r="3.5" fill="#c99055"/>
-    <circle cx="81" cy="24" r="7" fill="#6b3e1a"/><circle cx="81" cy="24" r="3.5" fill="#c99055"/>
-    <ellipse cx="64" cy="38" rx="14" ry="14" fill="url(#bellyShade)"/>
-    <!-- happy closed eyes ^ ^ -->
-    <path d="M 54 36 Q 58 32 62 36" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-    <path d="M 66 36 Q 70 32 74 36" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-    <circle cx="55" cy="44" r="2.5" fill="#ef9a6b" opacity="0.7"/>
-    <circle cx="73" cy="44" r="2.5" fill="#ef9a6b" opacity="0.7"/>
-    <!-- big smile -->
-    <path d="M 57 46 Q 64 52 71 46" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    <g transform="translate(64 38)">
+      <use href="#mkHead"/>
+    </g>
     <!-- front arm overhead holding banana high -->
-    <path d="M 76 58 Q 80 40 76 22" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
-    <!-- triumphant banana -->
-    <g transform="translate(76 16) rotate(-90)">
-      <path d="M -10 0 Q 0 -7 12 -2 Q 14 5 4 7 Q -8 7 -10 0 Z" fill="url(#bananaShade)" stroke="#8b6914" stroke-width="0.9"/>
-      <path d="M 12 -2 L 16 -5" stroke="#8b6914" stroke-width="1.8" stroke-linecap="round"/>
-      <circle cx="-3" cy="1" r="1" fill="#c5a020" opacity="0.7"/>
+    <path d="M 76 58 Q 80 38 76 20" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(76 14) rotate(-90) scale(1.1)">
+      <use href="#banana"/>
     </g>
     <!-- sparkles around peak -->
-    <path d="M 30 20 L 34 20 M 32 18 L 32 22" stroke="#ffe14d" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M 100 10 L 104 10 M 102 8 L 102 12" stroke="#ffe14d" stroke-width="1.5" stroke-linecap="round"/>
+    <g opacity="0.85">
+      <path d="M 28 18 L 34 18 M 31 15 L 31 21" stroke="#ffe14d" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M 100 8 L 106 8 M 103 5 L 103 11" stroke="#a3e635" stroke-width="1.4" stroke-linecap="round"/>
+      <circle cx="22" cy="42" r="1.3" fill="#ffe14d"/>
+      <circle cx="108" cy="48" r="1.3" fill="#a3e635"/>
+    </g>
   </g>
 
-  <!-- ============ FRAME 3 : DESCEND ============ -->
+  <!-- JUMP F3 — DESCEND (x=384) -->
   <g transform="translate(384 0)">
+    <ellipse cx="64" cy="122" rx="18" ry="3" fill="url(#groundShadow)" opacity="0.8"/>
     <!-- tail forward for balance -->
-    <path d="M 82 74 Q 100 84 104 100" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 82 78 Q 100 86 104 100" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
     <!-- back arm out wide -->
-    <path d="M 52 74 Q 34 72 28 84" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <path d="M 52 78 Q 34 76 28 88" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
     <!-- body coming down -->
-    <ellipse cx="64" cy="78" rx="21" ry="21" fill="url(#bodyShade)"/>
-    <ellipse cx="64" cy="82" rx="13" ry="13" fill="url(#bellyShade)"/>
-    <!-- legs tucking for landing -->
-    <path d="M 54 94 Q 46 100 44 108 L 54 112 Q 60 104 62 98 Z" fill="#6b3e1a"/>
-    <path d="M 74 94 Q 82 100 84 108 L 74 112 Q 68 104 66 98 Z" fill="#6b3e1a"/>
+    <ellipse cx="64" cy="82" rx="21" ry="20" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="85" rx="13" ry="13" fill="url(#bellyShade)"/>
+    <!-- legs tucking -->
+    <path d="M 54 98 Q 46 104 44 112 L 54 116 Q 60 108 62 100 Z" fill="url(#bodyShade)"/>
+    <path d="M 74 98 Q 82 104 84 112 L 74 116 Q 68 108 66 100 Z" fill="url(#bodyShade)"/>
     <!-- head -->
-    <circle cx="64" cy="44" r="20" fill="url(#bodyShade)"/>
-    <circle cx="47" cy="34" r="7" fill="#6b3e1a"/><circle cx="47" cy="34" r="3.5" fill="#c99055"/>
-    <circle cx="81" cy="34" r="7" fill="#6b3e1a"/><circle cx="81" cy="34" r="3.5" fill="#c99055"/>
-    <ellipse cx="64" cy="48" rx="14" ry="14" fill="url(#bellyShade)"/>
-    <!-- wide eyes -->
-    <circle cx="58" cy="46" r="2.5" fill="#1a1a1a"/>
-    <circle cx="70" cy="46" r="2.5" fill="#1a1a1a"/>
-    <circle cx="58.5" cy="45.2" r="0.8" fill="#ffffff"/>
-    <circle cx="70.5" cy="45.2" r="0.8" fill="#ffffff"/>
-    <circle cx="55" cy="54" r="2.5" fill="#ef9a6b" opacity="0.65"/>
-    <circle cx="73" cy="54" r="2.5" fill="#ef9a6b" opacity="0.65"/>
-    <!-- open mouth "whoa" -->
-    <ellipse cx="64" cy="58" rx="2.5" ry="3" fill="#1a1a1a"/>
-    <!-- front arm out wide catching banana tossed from other hand -->
-    <path d="M 78 74 Q 96 72 102 84" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(64 48)">
+      <use href="#mkHead"/>
+    </g>
+    <!-- front arm out wide -->
+    <path d="M 78 78 Q 96 76 102 88" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
     <!-- banana airborne above -->
     <g transform="translate(64 22) rotate(45)">
-      <path d="M -8 0 Q 0 -6 10 -2 Q 12 4 4 6 Q -6 6 -8 0 Z" fill="url(#bananaShade)" stroke="#8b6914" stroke-width="0.8"/>
-      <path d="M 10 -2 L 13 -4" stroke="#8b6914" stroke-width="1.5" stroke-linecap="round"/>
+      <use href="#banana"/>
     </g>
     <!-- motion lines -->
-    <path d="M 40 14 L 46 20" stroke="#a3e635" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
-    <path d="M 88 14 L 82 20" stroke="#a3e635" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <g opacity="0.6">
+      <path d="M 40 14 L 46 20" stroke="#a3e635" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M 88 14 L 82 20" stroke="#a3e635" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M 22 28 L 28 32" stroke="#ffe14d" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M 106 28 L 100 32" stroke="#ffe14d" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
   </g>
+
+  <!-- ========================================================== -->
+  <!-- ROW 1 · WALK · 6 frames (0..5) at y=128                     -->
+  <!-- ========================================================== -->
+
+  <!-- WALK F0 — right foot contact forward (x=0, y=128) -->
+  <g transform="translate(0 128)">
+    <ellipse cx="64" cy="122" rx="22" ry="3" fill="url(#groundShadow)"/>
+    <!-- tail gentle curl back -->
+    <path d="M 82 78 Q 104 80 108 96" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <!-- back leg (left) trailing, bent -->
+    <path d="M 56 92 Q 42 108 40 120 L 48 120 Q 58 110 62 96 Z" fill="url(#bodyShade)"/>
+    <!-- back arm (right) swung back -->
+    <path d="M 52 74 Q 38 84 34 94" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <!-- body upright -->
+    <ellipse cx="64" cy="80" rx="20" ry="20" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="83" rx="13" ry="13" fill="url(#bellyShade)"/>
+    <!-- front leg (right) extended forward, heel strike -->
+    <path d="M 74 92 Q 88 104 90 118 L 80 120 Q 72 110 68 96 Z" fill="url(#bodyShade)"/>
+    <!-- head -->
+    <g transform="translate(64 48)">
+      <use href="#mkHead"/>
+    </g>
+    <!-- front arm (left) swung forward with banana -->
+    <path d="M 78 74 Q 92 78 100 86" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(100 88) rotate(-10)">
+      <use href="#banana"/>
+    </g>
+  </g>
+
+  <!-- WALK F1 — right foot weight bearing, body low (x=128, y=128) -->
+  <g transform="translate(128 128)">
+    <ellipse cx="64" cy="122" rx="22" ry="3" fill="url(#groundShadow)"/>
+    <path d="M 82 82 Q 102 84 106 98" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <!-- left leg lifting, bent high -->
+    <path d="M 58 96 Q 48 100 46 110 L 54 118 Q 62 106 64 98 Z" fill="url(#bodyShade)"/>
+    <!-- back arm (right) mid-swing forward -->
+    <path d="M 52 78 Q 44 88 42 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <!-- body lowered -->
+    <ellipse cx="64" cy="84" rx="20" ry="19" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="87" rx="13" ry="12" fill="url(#bellyShade)"/>
+    <!-- right leg vertical under body -->
+    <path d="M 70 96 Q 72 108 74 120 L 82 120 Q 78 108 74 96 Z" fill="url(#bodyShade)"/>
+    <g transform="translate(64 52)">
+      <use href="#mkHead"/>
+    </g>
+    <!-- left arm mid-swing back -->
+    <path d="M 78 78 Q 88 88 92 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(92 100) rotate(30)">
+      <use href="#banana"/>
+    </g>
+  </g>
+
+  <!-- WALK F2 — pass through, body high (x=256, y=128) -->
+  <g transform="translate(256 128)">
+    <ellipse cx="64" cy="122" rx="16" ry="2.5" fill="url(#groundShadow)" opacity="0.75"/>
+    <path d="M 82 76 Q 102 78 106 92" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <!-- left leg swinging forward, mid-air -->
+    <path d="M 58 94 Q 54 102 56 114 L 64 116 Q 64 104 64 96 Z" fill="url(#bodyShade)"/>
+    <!-- back arm at neutral hanging -->
+    <path d="M 52 74 Q 48 88 46 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <!-- body raised -->
+    <ellipse cx="64" cy="78" rx="20" ry="20" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="81" rx="13" ry="13" fill="url(#bellyShade)"/>
+    <!-- right leg planted, straight -->
+    <path d="M 70 94 Q 72 108 74 120 L 80 120 Q 76 108 74 94 Z" fill="url(#bodyShade)"/>
+    <g transform="translate(64 46)">
+      <use href="#mkHead"/>
+    </g>
+    <!-- front arm at neutral -->
+    <path d="M 78 74 Q 82 86 82 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(82 100) rotate(10)">
+      <use href="#banana"/>
+    </g>
+  </g>
+
+  <!-- WALK F3 — left foot contact forward (mirror of F0) (x=384, y=128) -->
+  <g transform="translate(512 128) scale(-1 1)">
+    <ellipse cx="64" cy="122" rx="22" ry="3" fill="url(#groundShadow)"/>
+    <path d="M 82 78 Q 104 80 108 96" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 56 92 Q 42 108 40 120 L 48 120 Q 58 110 62 96 Z" fill="url(#bodyShade)"/>
+    <path d="M 52 74 Q 38 84 34 94" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="64" cy="80" rx="20" ry="20" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="83" rx="13" ry="13" fill="url(#bellyShade)"/>
+    <path d="M 74 92 Q 88 104 90 118 L 80 120 Q 72 110 68 96 Z" fill="url(#bodyShade)"/>
+    <!-- head needs to stay un-mirrored so face points the correct way -->
+    <g transform="translate(64 48) scale(-1 1)">
+      <use href="#mkHead"/>
+    </g>
+    <path d="M 78 74 Q 92 78 100 86" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(100 88) rotate(-10) scale(-1 1)">
+      <use href="#banana"/>
+    </g>
+  </g>
+
+  <!-- WALK F4 — left foot weight bearing (mirror of F1) (x=512, y=128) -->
+  <g transform="translate(640 128) scale(-1 1)">
+    <ellipse cx="64" cy="122" rx="22" ry="3" fill="url(#groundShadow)"/>
+    <path d="M 82 82 Q 102 84 106 98" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 58 96 Q 48 100 46 110 L 54 118 Q 62 106 64 98 Z" fill="url(#bodyShade)"/>
+    <path d="M 52 78 Q 44 88 42 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="64" cy="84" rx="20" ry="19" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="87" rx="13" ry="12" fill="url(#bellyShade)"/>
+    <path d="M 70 96 Q 72 108 74 120 L 82 120 Q 78 108 74 96 Z" fill="url(#bodyShade)"/>
+    <g transform="translate(64 52) scale(-1 1)">
+      <use href="#mkHead"/>
+    </g>
+    <path d="M 78 78 Q 88 88 92 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(92 100) rotate(30) scale(-1 1)">
+      <use href="#banana"/>
+    </g>
+  </g>
+
+  <!-- WALK F5 — pass through opposite (mirror of F2) (x=640, y=128) -->
+  <g transform="translate(768 128) scale(-1 1)">
+    <ellipse cx="64" cy="122" rx="16" ry="2.5" fill="url(#groundShadow)" opacity="0.75"/>
+    <path d="M 82 76 Q 102 78 106 92" fill="none" stroke="#6b3e1a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 58 94 Q 54 102 56 114 L 64 116 Q 64 104 64 96 Z" fill="url(#bodyShade)"/>
+    <path d="M 52 74 Q 48 88 46 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="64" cy="78" rx="20" ry="20" fill="url(#bodyShade)"/>
+    <ellipse cx="64" cy="81" rx="13" ry="13" fill="url(#bellyShade)"/>
+    <path d="M 70 94 Q 72 108 74 120 L 80 120 Q 76 108 74 94 Z" fill="url(#bodyShade)"/>
+    <g transform="translate(64 46) scale(-1 1)">
+      <use href="#mkHead"/>
+    </g>
+    <path d="M 78 74 Q 82 86 82 98" fill="none" stroke="#6b3e1a" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(82 100) rotate(10) scale(-1 1)">
+      <use href="#banana"/>
+    </g>
+  </g>
+
+  <!-- ========================================================== -->
+  <!-- ROW 2 · FLIP · 8 frames (0..7) at y=256  — tucked pose      -->
+  <!-- rotated 0, 45, 90, 135, 180, 225, 270, 315 degrees          -->
+  <!-- ========================================================== -->
+
+  <g transform="translate(64 320)"><use href="#mkTucked" transform="rotate(0)"/></g>
+  <g transform="translate(192 320)"><use href="#mkTucked" transform="rotate(45)"/></g>
+  <g transform="translate(320 320)"><use href="#mkTucked" transform="rotate(90)"/></g>
+  <g transform="translate(448 320)"><use href="#mkTucked" transform="rotate(135)"/></g>
+  <g transform="translate(576 320)"><use href="#mkTucked" transform="rotate(180)"/></g>
+  <g transform="translate(704 320)"><use href="#mkTucked" transform="rotate(225)"/></g>
+  <g transform="translate(832 320)"><use href="#mkTucked" transform="rotate(270)"/></g>
+  <g transform="translate(960 320)"><use href="#mkTucked" transform="rotate(315)"/></g>
 </svg>
