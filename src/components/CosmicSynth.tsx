@@ -7,11 +7,48 @@ import { COSMIC_STYLES } from "./cosmic-synth/styles";
 import { useAudioEngine } from "./cosmic-synth/useAudioEngine";
 import { useSetupEffects } from "./cosmic-synth/useSetupEffects";
 import { useThreeScene } from "./cosmic-synth/useThreeScene";
+import { useJungleScene } from "./cosmic-synth/useJungleScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, type DjUi } from "./cosmic-synth/useDjAutoPlay";
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
 import TryV2Prompt from "./cosmic-synth/TryV2Prompt";
+import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
+import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
+
+const THEME_STORAGE_KEY = "cosmic-synth-theme";
+
+interface SceneMountProps {
+  canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
+  engine: React.MutableRefObject<any>;
+  analysisRef: React.MutableRefObject<any>;
+  fftBuffer: React.MutableRefObject<Float32Array>;
+  scaleRef: React.MutableRefObject<string>;
+  engineRef: React.MutableRefObject<any>;
+  flashIntensity: React.MutableRefObject<number>;
+  warpState: React.MutableRefObject<any>;
+  frameCount: React.MutableRefObject<number>;
+  rafRef: React.MutableRefObject<number | null>;
+  analyze: () => void;
+}
+
+function SpaceSceneMount(p: SceneMountProps) {
+  useThreeScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze);
+  return null;
+}
+
+function JungleSceneMount(p: SceneMountProps) {
+  useJungleScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze);
+  return null;
+}
+
+function readStoredTheme(): CosmicTheme {
+  try {
+    const v = localStorage.getItem(THEME_STORAGE_KEY);
+    if (v === "jungle" || v === "space") return v;
+  } catch { /* storage unavailable */ }
+  return "space";
+}
 
 export default function CosmicSynth() {
   /* ── State ── */
@@ -25,6 +62,16 @@ export default function CosmicSynth() {
   const [warpProgress, setWarpProgress] = useState(0);
   const [ctxState, setCtxState] = useState<"suspended" | "running" | "closed" | "interrupted">("suspended");
   const [engineReady, setEngineReady] = useState(false);
+  const [theme, setTheme] = useState<CosmicTheme>(readStoredTheme);
+
+  const isJungle = theme === "jungle";
+  const productName = isJungle ? "JUNGLE SYNTH" : "COSMIC SYNTH";
+  const warpText = isJungle ? "ENTERING THE JUNGLE" : "ENTERING THE COSMOS";
+
+  const handleThemeChange = useCallback((t: CosmicTheme) => {
+    setTheme(t);
+    try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch { /* storage unavailable */ }
+  }, []);
 
   // DJ UI adapter — CosmicDjPanel installs itself here via onReady
   const djUiRef = useRef<DjUi>({
@@ -67,7 +114,6 @@ export default function CosmicSynth() {
   /* ── Hooks ── */
   const { engine, analysisRef, fftBuffer, analyze, dispose } = useAudioEngine();
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
-  useThreeScene(canvasRef, engine, analysisRef, fftBuffer, scaleRef, engineRef, flashIntensity, warpState, frameCount, rafRef, analyze);
   useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
   useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef);
@@ -149,11 +195,27 @@ export default function CosmicSynth() {
     changeScale(SCALE_ORDER[(i - 1 + SCALE_ORDER.length) % SCALE_ORDER.length]);
   }, [scale, changeScale]);
 
+  const sceneProps: SceneMountProps = {
+    canvasRef, engine, analysisRef, fftBuffer, scaleRef, engineRef,
+    flashIntensity, warpState, frameCount, rafRef, analyze,
+  };
+
   /* ── JSX ── */
   return (
-    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#162540", touchAction: "none" }}>
+    <div
+      className={isJungle ? "theme-jungle" : "theme-space"}
+      style={{ position: "fixed", inset: 0, overflow: "hidden", background: isJungle ? "#0a1f14" : "#162540", touchAction: "none" }}
+    >
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
+
+      {/* Scene mount — one hook set at a time; key forces clean remount on theme change */}
+      {isJungle
+        ? <JungleSceneMount key="scene-jungle" {...sceneProps} />
+        : <SpaceSceneMount key="scene-space" {...sceneProps} />}
+
+      {/* Theme chooser — always accessible */}
+      <ThemeChooser theme={theme} onChange={handleThemeChange} />
 
       {/* Splash Screen */}
       {phase === "splash" && (
@@ -163,7 +225,7 @@ export default function CosmicSynth() {
           className="cosmic-splash"
         >
           <div className="cosmic-splash-inner">
-            <div className="cosmic-logo">COSMIC SYNTH</div>
+            <div className="cosmic-logo">{productName}</div>
             <div className="cosmic-subtitle-group">
               <div className="cosmic-line" />
               <div className="cosmic-subtitle">INTERACTIVE MUSIC EXPERIENCE</div>
@@ -180,7 +242,7 @@ export default function CosmicSynth() {
       {/* Warp Transition */}
       {phase === "warp" && (
         <div className="cosmic-warp">
-          <div className="cosmic-warp-text">ENTERING THE COSMOS</div>
+          <div className="cosmic-warp-text">{warpText}</div>
           <div className="cosmic-warp-bar">
             <div className="cosmic-warp-fill" style={{ width: `${warpProgress * 100}%` }} />
           </div>
@@ -190,11 +252,14 @@ export default function CosmicSynth() {
       {/* v1 → v2 invitation chip (appears after ~6s, dismissible) */}
       <TryV2Prompt visible={phase === "play"} />
 
+      {/* Jumping monkeys overlay — jungle theme only, play phase only */}
+      {isJungle && <JumpingMonkeys visible={phase === "play"} />}
+
       {/* Play UI */}
       {phase === "play" && (
         <>
           <div className="cosmic-header" style={{ opacity: showUI ? 1 : 0 }}>
-            <div className="cosmic-header-title">COSMIC SYNTH</div>
+            <div className="cosmic-header-title">{productName}</div>
             <div className="cosmic-header-sub">Touch to Play</div>
           </div>
 

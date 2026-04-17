@@ -552,4 +552,95 @@ export const COSMIC_STYLES = `
           transition: width 0.3s ease-out;
           box-shadow: 0 0 8px rgba(34,211,238,0.5), 0 0 16px rgba(129,140,248,0.25);
         }
+
+        /* ── Theme chooser (segmented pill, always visible) ── */
+        .theme-chooser {
+          position: fixed;
+          top: 14px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 30;
+          display: flex;
+          padding: 4px;
+          gap: 2px;
+          background: rgba(15, 27, 45, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 999px;
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+          pointer-events: auto;
+        }
+        .theme-chooser-option {
+          appearance: none;
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.7);
+          font-family: 'Orbitron', monospace;
+          font-size: 11px;
+          letter-spacing: 0.18em;
+          font-weight: 700;
+          padding: 8px 14px;
+          border-radius: 999px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+          touch-action: manipulation;
+        }
+        .theme-chooser-option:hover { color: #fff; }
+        .theme-chooser-option.is-active {
+          background: linear-gradient(135deg, rgba(34,211,238,0.25), rgba(129,140,248,0.25));
+          color: #fff;
+          box-shadow: inset 0 0 0 1px rgba(34,211,238,0.4);
+        }
+        .theme-chooser-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          background: #22D3EE;
+          box-shadow: 0 0 8px #22D3EE;
+        }
+        .theme-chooser-option:nth-child(2) .theme-chooser-dot {
+          background: #a3e635; box-shadow: 0 0 8px #a3e635;
+        }
+
+        /* ── Jungle theme overrides (applied when .theme-jungle on root wrapper) ── */
+        .theme-jungle .cosmic-splash {
+          background: radial-gradient(ellipse at center, rgba(20,61,40,0.85) 0%, rgba(10,31,20,0.95) 100%);
+        }
+        .theme-jungle .cosmic-logo {
+          background: linear-gradient(135deg, #52b788 0%, #a3e635 40%, #ffe14d 70%, #f59e0b 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-size: 300% 100%;
+          filter: drop-shadow(0 0 30px rgba(163,230,53,0.45));
+        }
+        .theme-jungle .cosmic-warp {
+          background: radial-gradient(ellipse at center, rgba(20,61,40,0.9) 0%, rgba(10,31,20,0.98) 100%);
+        }
+        .theme-jungle .cosmic-warp-text {
+          background: linear-gradient(90deg, #a3e635, #ffe14d, #f59e0b);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .theme-jungle .cosmic-warp-fill {
+          background: linear-gradient(90deg, #a3e635, #ffe14d, #f59e0b);
+          box-shadow: 0 0 12px rgba(163,230,53,0.6);
+        }
+        .theme-jungle .cosmic-header-title {
+          background: linear-gradient(90deg, #a3e635, #ffe14d, #f59e0b);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .theme-jungle .cosmic-energy-fill {
+          background: linear-gradient(90deg, #52b788, #a3e635, #ffe14d, #f59e0b);
+          box-shadow: 0 0 8px rgba(163,230,53,0.5), 0 0 16px rgba(255,225,77,0.25);
+        }
+        .theme-jungle .cosmic-cta-ring {
+          border-color: rgba(163,230,53,0.6);
+        }
+        .theme-jungle .theme-chooser-option.is-active {
+          background: linear-gradient(135deg, rgba(163,230,53,0.28), rgba(255,225,77,0.25));
+          box-shadow: inset 0 0 0 1px rgba(163,230,53,0.5);
+        }
 `;
