@@ -46,23 +46,28 @@ const FLOWERS: FlowerSlot[] = [
 export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
   return (
     <div className="jungle-overlay" data-visible={visible ? "true" : "false"}>
-      {/* Shared gradients for trees + bananas. Lives once per overlay. */}
+      {/* Shared gradients + reusable symbols for trees + bananas.
+          Fronds are now proper palm fronds: a curved central rachis with
+          pinnae (leaflets) fanning off both sides, sized-down toward the
+          tip. A bunch of bananas hangs with a back row + front row stacked
+          around the stem peduncle — each banana is a crescent with a stem
+          nub, body gradient highlight, and dark sepal at the tip. */}
       <svg className="jungle-defs" aria-hidden="true" width="0" height="0">
         <defs>
           <linearGradient id="t-trunk" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%"   stopColor="#6b3b1e"/>
-            <stop offset="60%"  stopColor="#3a2415"/>
+            <stop offset="0%"   stopColor="#7a4422"/>
+            <stop offset="45%"  stopColor="#4a2b17"/>
             <stop offset="100%" stopColor="#1a0e07"/>
           </linearGradient>
           <linearGradient id="t-frond" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%"   stopColor="#2d8f5a"/>
-            <stop offset="60%"  stopColor="#206d44"/>
+            <stop offset="0%"   stopColor="#3ea56a"/>
+            <stop offset="55%"  stopColor="#206d44"/>
             <stop offset="100%" stopColor="#0c2a1b"/>
           </linearGradient>
-          <radialGradient id="t-frond-back" cx="50%" cy="50%" r="60%">
+          <linearGradient id="t-frond-back" x1="0" x2="1" y1="0" y2="1">
             <stop offset="0%"   stopColor="#143d28"/>
-            <stop offset="100%" stopColor="#081a11"/>
-          </radialGradient>
+            <stop offset="100%" stopColor="#04120b"/>
+          </linearGradient>
           <radialGradient id="t-coconut" cx="35%" cy="30%" r="70%">
             <stop offset="0%"   stopColor="#a47148"/>
             <stop offset="60%"  stopColor="#6b3b1e"/>
@@ -70,9 +75,47 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           </radialGradient>
           <linearGradient id="b-banana" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%"   stopColor="#fff085"/>
-            <stop offset="55%"  stopColor="#facc15"/>
+            <stop offset="50%"  stopColor="#facc15"/>
             <stop offset="100%" stopColor="#a16207"/>
           </linearGradient>
+
+          {/* ── Palm frond: rachis + 12 pinnae (6 per side).
+              Origin (0,0) at the base so the frond rotates around the crown
+              anchor when placed via transform="rotate(…)". The rachis ends
+              at (130,-10) — sweep upward-right so the frond reads as lifted. */}
+          <symbol id="palm-frond" viewBox="-8 -22 148 44" overflow="visible">
+            {/* upper-side pinnae (lighter) */}
+            <path d="M 10 -1  Q 6 -10 16 -18 Q 14 -9 16 -3 Z"/>
+            <path d="M 26 -2  Q 22 -13 36 -20 Q 32 -10 30 -4 Z"/>
+            <path d="M 44 -4  Q 44 -14 58 -19 Q 54 -10 50 -5 Z"/>
+            <path d="M 62 -6  Q 66 -13 78 -17 Q 74 -9 68 -7 Z"/>
+            <path d="M 80 -7  Q 86 -12 94 -14 Q 92 -8 84 -8 Z"/>
+            <path d="M 98 -9  Q 104 -11 110 -12 Q 108 -9 100 -10 Z"/>
+            {/* lower-side pinnae */}
+            <path d="M 10 1   Q 6 12 16 18 Q 14 9 16 3 Z"/>
+            <path d="M 26 0   Q 22 13 36 19 Q 32 10 30 4 Z"/>
+            <path d="M 44 -2  Q 44 11 58 17 Q 54 9 50 3 Z"/>
+            <path d="M 62 -4  Q 66 10 78 14 Q 74 7 68 5 Z"/>
+            <path d="M 80 -5  Q 86 9 94 11 Q 92 6 84 6 Z"/>
+            <path d="M 98 -7  Q 104 8 110 10 Q 108 7 100 8 Z"/>
+            {/* rachis sits on top of pinnae for a clean spine */}
+            <path d="M 0 0 Q 65 -4 128 -10" stroke="#0c2a1b" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
+          </symbol>
+
+          {/* ── Single banana: crescent body with stem nub + dark tip.
+              Origin at the stem (top), tip at ~y=38. rotate() around (0,0)
+              fans the bunch around the peduncle. */}
+          <symbol id="banana" viewBox="-6 -4 14 44" overflow="visible">
+            {/* stem nub */}
+            <path d="M -2 -2 L 2 -2 L 1.2 -4 Q 0 -4.5 -1.2 -4 Z" fill="#6b3b1e"/>
+            {/* body */}
+            <path d="M -1 -1 Q 4 1 6 10 Q 7 22 4 32 Q 2 36 -1 34 Q -3 28 -2 22 Q -1 12 -3 6 Q -3 1 -1 -1 Z"
+                  fill="url(#b-banana)" stroke="#8b6914" strokeWidth="0.7" strokeLinejoin="round"/>
+            {/* highlight streak */}
+            <path d="M 2 4 Q 5 14 5 24 Q 4 30 2 33" stroke="#fff085" strokeWidth="0.7" fill="none" opacity="0.6" strokeLinecap="round"/>
+            {/* dark sepal at the tip */}
+            <ellipse cx="0" cy="36" rx="1.4" ry="2.2" fill="#2a180e"/>
+          </symbol>
         </defs>
       </svg>
 
@@ -98,12 +141,12 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             d="M 102 340 Q 104 260 102 190 Q 100 120 112 60 L 120 60 Q 116 120 118 190 Q 116 260 114 340 Z"
             fill="#081a11"
           />
-          <g transform="translate(116 60)">
-            <g transform="rotate(-75)"><path d="M 0 0 Q 48 -10 100 -18 Q 62 10 8 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(-35)"><path d="M 0 0 Q 56 -8 112 -20 Q 68 12 10 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(5)"><path  d="M 0 0 Q 58  -4 116 -8  Q 70 14 10 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(45)"><path d="M 0 0 Q 56 -8 112 -20 Q 68 12 10 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(85)"><path d="M 0 0 Q 48 -10 100 -18 Q 62 10 8 14 Z" fill="url(#t-frond-back)"/></g>
+          <g transform="translate(116 60)" fill="url(#t-frond-back)">
+            <use href="#palm-frond" transform="rotate(-82) scale(0.82)"/>
+            <use href="#palm-frond" transform="rotate(-40) scale(0.9)"/>
+            <use href="#palm-frond" transform="rotate(0)   scale(0.95)"/>
+            <use href="#palm-frond" transform="rotate(40)  scale(0.9)"/>
+            <use href="#palm-frond" transform="rotate(82)  scale(0.82)"/>
           </g>
         </svg>
       </div>
@@ -136,25 +179,29 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
 
       {/* ── Front layer: ferns + front palms + banana/coconut clusters ── */}
       <div className="jungle-scene-front">
-        {/* Front-left palm — coconut palm */}
+        {/* Front-left palm — coconut palm.
+            Trunk scars (subtle curved arcs) replace old horizontal ticks —
+            real palms have ring-shaped scars where old fronds dropped. */}
         <svg className="jungle-tree jungle-tree-left" viewBox="0 0 220 360" aria-hidden="true">
-          {/* Trunk (tapered, with bark ticks) */}
           <path
             d="M 98 360 Q 102 280 100 200 Q 98 130 112 58 L 124 58 Q 118 130 120 200 Q 118 280 116 360 Z"
             fill="url(#t-trunk)"
           />
-          <line x1="102" y1="108" x2="122" y2="108" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
-          <line x1="103" y1="178" x2="121" y2="178" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="105" y1="252" x2="119" y2="252" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-          {/* Crown */}
-          <g transform="translate(118 58)">
-            <g transform="rotate(-85)"><path d="M 0 0 Q 52 -16 108 -26 Q 64  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            <g transform="rotate(-50)"><path d="M 0 0 Q 60 -14 120 -28 Q 72 10 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-18)"><path d="M 0 0 Q 62 -8  124 -14 Q 74 14 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(12)"><path  d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(40)"><path  d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(72)"><path  d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            <g transform="rotate(110)"><path d="M 0 0 Q 44 -6  92  -8  Q 56 14 10 16 Z" fill="url(#t-frond)" opacity="0.85"/></g>
+          {/* curved frond scars down the trunk */}
+          <path d="M 100 112 Q 111 116 123 112" stroke="#1a0e07" strokeWidth="1.2" fill="none" opacity="0.7"/>
+          <path d="M 100 152 Q 111 156 122 152" stroke="#1a0e07" strokeWidth="1.2" fill="none" opacity="0.65"/>
+          <path d="M 101 196 Q 111 200 122 196" stroke="#1a0e07" strokeWidth="1.1" fill="none" opacity="0.6"/>
+          <path d="M 102 244 Q 111 248 121 244" stroke="#1a0e07" strokeWidth="1.0" fill="none" opacity="0.55"/>
+          <path d="M 103 292 Q 111 296 120 292" stroke="#1a0e07" strokeWidth="1.0" fill="none" opacity="0.5"/>
+          {/* Crown — 7 fronds around the anchor, lighter at mid-arc */}
+          <g transform="translate(118 58)" fill="url(#t-frond)">
+            <use href="#palm-frond" transform="rotate(-92) scale(0.85)" opacity="0.9"/>
+            <use href="#palm-frond" transform="rotate(-55) scale(0.95)"/>
+            <use href="#palm-frond" transform="rotate(-22) scale(1.0)"/>
+            <use href="#palm-frond" transform="rotate(12)  scale(1.0)"/>
+            <use href="#palm-frond" transform="rotate(45)  scale(0.95)"/>
+            <use href="#palm-frond" transform="rotate(78)  scale(0.88)" opacity="0.9"/>
+            <use href="#palm-frond" transform="rotate(115) scale(0.75)" opacity="0.8"/>
             {/* Coconut cluster at crown base — compact trio */}
             <g className="jungle-coconuts">
               <circle cx="-3"  cy="8"  r="4.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
@@ -164,36 +211,44 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           </g>
         </svg>
 
-        {/* Front-right palm — banana palm */}
+        {/* Front-right palm — banana palm, mirrored crown */}
         <svg className="jungle-tree jungle-tree-right" viewBox="0 0 220 340" aria-hidden="true">
-          {/* Trunk */}
           <path
             d="M 104 340 Q 100 260 102 180 Q 104 120 94 56 L 106 56 Q 116 120 114 180 Q 116 260 112 340 Z"
             fill="url(#t-trunk)"
           />
-          <line x1="98"  y1="104" x2="114" y2="104" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
-          <line x1="99"  y1="172" x2="113" y2="172" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="101" y1="240" x2="111" y2="240" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+          {/* curved frond scars down the trunk */}
+          <path d="M 96  108 Q 106 112 115 108" stroke="#1a0e07" strokeWidth="1.2" fill="none" opacity="0.7"/>
+          <path d="M 97  148 Q 106 152 114 148" stroke="#1a0e07" strokeWidth="1.2" fill="none" opacity="0.65"/>
+          <path d="M 98  190 Q 106 194 114 190" stroke="#1a0e07" strokeWidth="1.1" fill="none" opacity="0.6"/>
+          <path d="M 99  236 Q 106 240 113 236" stroke="#1a0e07" strokeWidth="1.0" fill="none" opacity="0.55"/>
+          <path d="M 100 286 Q 106 290 112 286" stroke="#1a0e07" strokeWidth="1.0" fill="none" opacity="0.5"/>
           {/* Crown — mirrored (this tree faces left) */}
-          <g transform="translate(100 56)">
-            <g transform="rotate(85)"><path  d="M 0 0 Q 52 -16 108 -26 Q 64  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            <g transform="rotate(50)"><path  d="M 0 0 Q 60 -14 120 -28 Q 72 10 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(18)"><path  d="M 0 0 Q 62 -8  124 -14 Q 74 14 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-12)"><path d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-40)"><path d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-72)"><path d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            {/* Banana cluster — stem anchored at (0,0) inside the crown translate.
-                Outer static group scales the whole bunch down; inner group owns
-                the CSS sway animation independently. Only 4 bananas fanning
-                downward across ±20° — a real bunch hangs DOWN, it doesn't
-                radiate like a sunburst. */}
-            <g transform="translate(4 2) scale(0.7)">
+          <g transform="translate(100 56)" fill="url(#t-frond)">
+            <use href="#palm-frond" transform="rotate(92)  scale(0.85)" opacity="0.9"/>
+            <use href="#palm-frond" transform="rotate(55)  scale(0.95)"/>
+            <use href="#palm-frond" transform="rotate(22)  scale(1.0)"/>
+            <use href="#palm-frond" transform="rotate(-12) scale(1.0)"/>
+            <use href="#palm-frond" transform="rotate(-45) scale(0.95)"/>
+            <use href="#palm-frond" transform="rotate(-78) scale(0.88)" opacity="0.9"/>
+            {/* Banana bunch hanging from the crown.
+                Outer translate+scale positions the bunch below the crown
+                anchor. Inner group owns the CSS sway animation. Bananas
+                all hang DOWN (rotate values clustered around 0), with a
+                back row behind a front row for depth. */}
+            <g transform="translate(6 10) scale(0.8)">
               <g className="jungle-banana-cluster jungle-banana-cluster-right">
-                <ellipse cx="0" cy="-2" rx="6" ry="3" fill="#3f2a15"/>
-                <path transform="rotate(-20)" d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-                <path transform="rotate(-7)"  d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-                <path transform="rotate(7)"   d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-                <path transform="rotate(20)"  d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                {/* Peduncle — the stalk where the bunch attaches. */}
+                <path d="M -3 -8 Q 0 -2 -1 2 L 1 2 Q 2 -2 3 -8 Z" fill="#5a3a1a"/>
+                <ellipse cx="0" cy="-1" rx="7.5" ry="3.5" fill="#3f2a15"/>
+                <ellipse cx="0" cy="-3" rx="4" ry="2" fill="#6b3b1e"/>
+                {/* back row — two smaller bananas tucked behind */}
+                <use href="#banana" transform="rotate(-9) scale(0.82)" opacity="0.85"/>
+                <use href="#banana" transform="rotate(9)  scale(0.82)" opacity="0.85"/>
+                {/* front row — three bananas overlapping */}
+                <use href="#banana" transform="rotate(-18)"/>
+                <use href="#banana" transform="rotate(0)"/>
+                <use href="#banana" transform="rotate(18)"/>
               </g>
             </g>
           </g>
