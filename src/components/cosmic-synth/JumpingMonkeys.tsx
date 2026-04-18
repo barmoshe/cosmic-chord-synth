@@ -22,16 +22,12 @@ interface MonkeySlot {
    Row 2 (y=-256) → FLIP  · 8 frames ( animates to -800%, full row )                        */
 
 const SLOTS: MonkeySlot[] = [
-  // Walking troupe on the ground
+  // Walking/jumping troupe on the ground — no high flippers, they intrude into the HUD band.
   { left: "6%",   bottom: "6%",  scale: 0.9,  anim: "walk", delay: "0s",    speed: "1.1s" },
   { left: "22%",  bottom: "5%",  scale: 1.0,  anim: "jump", delay: "0.2s",  speed: "0.9s" },
-  { left: "42%",  bottom: "7%",  scale: 1.15, anim: "walk", delay: "0.4s",  speed: "1.25s", flip: true },
+  { left: "42%",  bottom: "7%",  scale: 1.05, anim: "walk", delay: "0.4s",  speed: "1.25s", flip: true },
   { left: "62%",  bottom: "4%",  scale: 0.95, anim: "jump", delay: "0.55s", speed: "0.85s" },
   { left: "80%",  bottom: "6%",  scale: 1.0,  anim: "walk", delay: "0.7s",  speed: "1.05s" },
-  // Mid-ground flipper
-  { left: "35%",  bottom: "18%", scale: 0.8,  anim: "flip", delay: "0.1s",  speed: "1.4s" },
-  // Secondary flipper — relocated from bottom:55% so it no longer climbs into the HUD band
-  { left: "70%",  bottom: "22%", scale: 0.55, anim: "flip", delay: "0.8s",  speed: "1.8s", flip: true },
 ];
 
 export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
@@ -146,11 +142,11 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             <g transform="rotate(40)"><path  d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(72)"><path  d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
             <g transform="rotate(110)"><path d="M 0 0 Q 44 -6  92  -8  Q 56 14 10 16 Z" fill="url(#t-frond)" opacity="0.85"/></g>
-            {/* Coconut cluster at crown base */}
+            {/* Coconut cluster at crown base — compact trio */}
             <g className="jungle-coconuts">
-              <circle cx="-4"  cy="10" r="6"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="8"   cy="12" r="6.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="2"   cy="18" r="5.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="-3"  cy="8"  r="4.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="6"   cy="10" r="5"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="1"   cy="14" r="4"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
             </g>
           </g>
         </svg>
@@ -173,14 +169,19 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             <g transform="rotate(-12)"><path d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(-40)"><path d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(-72)"><path d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            {/* Banana cluster — stem anchored at (0,0) inside the crown translate. */}
-            <g className="jungle-banana-cluster jungle-banana-cluster-right">
-              <ellipse cx="0" cy="-2" rx="7" ry="3" fill="#3f2a15"/>
-              <path transform="rotate(-36)" d="M 0 0 Q 3 14 -3 30 Q -9 40 1 42 Q 11 38 12 24 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path transform="rotate(-18)" d="M 0 0 Q 3 16 -3 34 Q -9 44 1 46 Q 11 42 12 26 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path                         d="M 0 0 Q 3 18 -3 36 Q -9 46 1 48 Q 11 44 12 28 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path transform="rotate(18)"  d="M 0 0 Q 3 16 -3 34 Q -9 44 1 46 Q 11 42 12 26 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path transform="rotate(36)"  d="M 0 0 Q 3 14 -3 30 Q -9 40 1 42 Q 11 38 12 24 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+            {/* Banana cluster — stem anchored at (0,0) inside the crown translate.
+                Outer static group scales the whole bunch down; inner group owns
+                the CSS sway animation independently. Only 4 bananas fanning
+                downward across ±20° — a real bunch hangs DOWN, it doesn't
+                radiate like a sunburst. */}
+            <g transform="translate(4 2) scale(0.7)">
+              <g className="jungle-banana-cluster jungle-banana-cluster-right">
+                <ellipse cx="0" cy="-2" rx="6" ry="3" fill="#3f2a15"/>
+                <path transform="rotate(-20)" d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                <path transform="rotate(-7)"  d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                <path transform="rotate(7)"   d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                <path transform="rotate(20)"  d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+              </g>
             </g>
           </g>
         </svg>
@@ -218,10 +219,10 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           opacity: 0;
           transition: opacity 0.6s ease-out;
           overflow: hidden;
-          clip-path: inset(34% 0 0 0);
+          clip-path: inset(42% 0 0 0);
         }
         @media (max-width: 480px) {
-          .jungle-overlay { clip-path: inset(40% 0 0 0); }
+          .jungle-overlay { clip-path: inset(50% 0 0 0); }
         }
         .jungle-overlay[data-visible="true"] { opacity: 1; }
 
@@ -262,9 +263,14 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           width: auto;
           filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
         }
-        .jungle-tree-back  { left: 42%; height: 60%; opacity: 0.75; transform: translateX(-50%); }
-        .jungle-tree-left  { left: -3%; height: 66%; opacity: 0.97; }
-        .jungle-tree-right { right: -4%; height: 60%; opacity: 0.97; }
+        .jungle-tree-back  { left: 50%; height: 40%; opacity: 0.7;  transform: translateX(-50%); }
+        .jungle-tree-left  { left: -12%; height: 44%; opacity: 0.95; }
+        .jungle-tree-right { right: -14%; height: 42%; opacity: 0.95; }
+        @media (max-width: 480px) {
+          .jungle-tree-back  { height: 34%; }
+          .jungle-tree-left  { height: 38%; left: -18%; }
+          .jungle-tree-right { height: 36%; right: -20%; }
+        }
 
         /* Banana cluster — pivot at the stem attachment (0,0 in its local
            rotated crown space). transform-origin is pinned so the sway rotates
