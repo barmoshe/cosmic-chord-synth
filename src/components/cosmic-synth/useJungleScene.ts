@@ -252,13 +252,15 @@ export function useJungleScene(
       pulse: 0,
     }));
     const layoutDrums = () => {
-      const cx = W / 2;
-      const cy = H / 2;
-      const r = Math.min(W, H) * 0.28;
+      // Ground-row layout: drums bloom from the jungle floor in a horizontal band
+      // above the DJ panel. On mobile the panel is taller, so drums lift higher.
+      const isNarrow = W <= 640;
+      const groundReserve = isNarrow ? 118 : 102;
+      const y = H - groundReserve;
+      const xs = [0.14, 0.38, 0.62, 0.86];
       drums.forEach((d, i) => {
-        const a = DRUM_STARS[i].angle - Math.PI / 2;
-        d.x = cx + Math.cos(a) * r;
-        d.y = cy + Math.sin(a) * r;
+        d.x = W * xs[i];
+        d.y = y;
       });
     };
     layoutDrums();
