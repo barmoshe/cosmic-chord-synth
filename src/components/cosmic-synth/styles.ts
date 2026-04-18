@@ -1,12 +1,16 @@
 export const COSMIC_STYLES = `
         /* ── z-layer map ──
-           canvas 1 · jungle decor (monkeys/trees/vines) 3 · axis 8 ·
-           energy-bar 9 · HUD (header/hint/scale) 10 · glow overlays 12 ·
+           canvas 1 · jungle decor 3 (isolate, inner: back 1 · mid 2 · front 3) ·
+           axis 8 · energy-bar 9 · HUD (header/hint/scale) 10 · glow overlays 12 ·
            DJ panel 14 · flash/error 15 · theme pill 30 · try-v2 40 ·
            audio badge 50 · splash/warp 100.
            The jungle decor is purely decorative with pointer-events:none, so it
-           must stay behind every interactive/textual chrome. Keeping it above the
-           canvas lets the monkeys still render over the galaxy background.       */
+           must stay behind every interactive/textual chrome. 'isolation: isolate'
+           on .jungle-overlay pins its inner stacking context so the back/mid/front
+           scene layers order monkeys between background vines and foreground trees
+           without leaking out. A clip-path on the overlay keeps decor from painting
+           above the top viewport band (header, audio badge, theme pill, try-v2).
+           Keeping it above the canvas lets monkeys still render over the galaxy. */
 
         /* ── Cosmic Design System v4 — "Glacial Aurora 2026" lifted-navy theme ── */
         @keyframes cosmicGradient {
