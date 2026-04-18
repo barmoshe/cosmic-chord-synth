@@ -300,7 +300,7 @@ export function useThreeScene(
         fragmentShader: DRUM_STAR_FRAG,
         transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
       });
-      const m = new THREE.Mesh(geo, mat) as DrumMesh;
+      const m = new THREE.Mesh(geo, mat) as unknown as DrumMesh;
       m.position.set(Math.cos(ds.angle) * DRUM_ORBIT_R, 0, Math.sin(ds.angle) * DRUM_ORBIT_R);
       m.userData = { name: ds.name, pulse: 0, col: [...ds.color] };
       drumGroup.add(m); drumMeshes.push(m);
