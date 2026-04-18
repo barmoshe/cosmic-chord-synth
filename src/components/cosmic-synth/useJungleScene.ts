@@ -9,70 +9,8 @@ interface Firefly { x: number; y: number; vx: number; vy: number; hue: number; p
 interface Particle { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; col: RGB; rot: number; vr: number; kind: 0 | 1; alive: boolean; }
 interface Ripple { x: number; y: number; r: number; maxR: number; col: RGB; alpha: number; alive: boolean; }
 interface DrumGlyph { name: DrumName; x: number; y: number; color: RGB; label: string; pulse: number; }
-interface Tree { x: number; scale: number; seed: number; layer: number; sway: number; }
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
-
-function drawTree(ctx: CanvasRenderingContext2D, t: Tree, baseY: number, timeS: number, bassEnergy: number) {
-  const h = 160 * t.scale;
-  const w = 28 * t.scale;
-  const bendPhase = Math.sin(timeS * 0.5 + t.seed * 7) * (0.4 + bassEnergy * 1.2);
-  const alpha = t.layer === 0 ? 0.5 : t.layer === 1 ? 0.7 : t.layer === 2 ? 0.92 : 1.0;
-
-  ctx.save();
-  ctx.translate(t.x, baseY);
-  ctx.globalAlpha = alpha;
-
-  // trunk
-  ctx.fillStyle = t.layer === 0 ? "#081a11" : t.layer === 1 ? "#0c2a1b" : t.layer === 2 ? "#143d28" : "#1a4d33";
-  ctx.beginPath();
-  ctx.moveTo(-w * 0.18, 0);
-  ctx.quadraticCurveTo(bendPhase * 4, -h * 0.55, w * 0.14 + bendPhase * 6, -h);
-  ctx.lineTo(w * 0.22 + bendPhase * 6, -h);
-  ctx.quadraticCurveTo(bendPhase * 5, -h * 0.55, w * 0.22, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  // canopy blobs
-  const canopyX = w * 0.2 + bendPhase * 6;
-  const canopyY = -h - 4;
-  const blobs = 5;
-  for (let i = 0; i < blobs; i++) {
-    const a = (i / blobs) * Math.PI * 2 + t.seed;
-    const r = 22 * t.scale + Math.sin(timeS + i) * 2;
-    ctx.beginPath();
-    ctx.fillStyle = t.layer === 0 ? "#0e2617" : t.layer === 1 ? "#174a2d" : t.layer === 2 ? "#206d44" : "#2d8a58";
-    ctx.arc(canopyX + Math.cos(a) * 18 * t.scale, canopyY + Math.sin(a) * 12 * t.scale, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // hanging banana cluster (mid/front layers only)
-  if (t.layer >= 1) {
-    const bx = canopyX + 12 * t.scale;
-    const by = canopyY + 8 * t.scale;
-    ctx.save();
-    ctx.translate(bx, by);
-    ctx.rotate(bendPhase * 0.3);
-    ctx.fillStyle = "#ffe14d";
-    ctx.strokeStyle = "#8b6914";
-    ctx.lineWidth = 1;
-    for (let k = 0; k < 3; k++) {
-      ctx.save();
-      ctx.rotate((k - 1) * 0.25);
-      ctx.beginPath();
-      ctx.moveTo(-3, 0);
-      ctx.quadraticCurveTo(0, 10, 3, 14);
-      ctx.quadraticCurveTo(6, 10, 3, -1);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    }
-    ctx.restore();
-  }
-
-  ctx.restore();
-}
 
 export function useJungleScene(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,
@@ -108,25 +46,6 @@ export function useJungleScene(
     };
     resize();
     window.addEventListener("resize", resize);
-
-    // ── Trees (4 parallax layers: 0=far, 1=mid, 2=near, 3=foreground) ──
-    const trees: Tree[] = [];
-    const layerCounts = isMobile ? [7, 6, 5, 2] : [12, 10, 7, 3];
-    for (let layer = 0; layer < 4; layer++) {
-      const count = layerCounts[layer];
-      for (let i = 0; i < count; i++) {
-        trees.push({
-          x: rand(-60, W + 60),
-          scale: layer === 0 ? rand(0.55, 0.8)
-            : layer === 1 ? rand(0.9, 1.15)
-            : layer === 2 ? rand(1.2, 1.55)
-            : rand(1.5, 1.9),
-          seed: Math.random() * 100,
-          layer,
-          sway: rand(0.5, 1.5),
-        });
-      }
-    }
 
     // ── Offscreen mountain silhouette (cached) ──
     const mtCanvas = document.createElement("canvas");
@@ -224,13 +143,13 @@ export function useJungleScene(
         y: Math.random() * H,
         vx: rand(-0.25, 0.25),
         vy: rand(-0.4, -0.05),
-        hue: Math.random() < 0.7 ? 80 : 52, // 80=lime, 52=banana
+        hue: Math.random() < 0.7 ? 80 : 52, // 80=lime, 52=amber
         phase: Math.random() * Math.PI * 2,
         speed: rand(1.2, 2.6),
       });
     }
 
-    // ── Particle pool (leaves + banana bits) ──
+    // ── Particle pool (leaves + flower petals) ──
     const particles: Particle[] = Array.from({ length: PARTICLE_POOL }, () => ({
       x: 0, y: 0, vx: 0, vy: 0, life: 0, maxLife: 1, col: [0, 0, 0], rot: 0, vr: 0, kind: 0, alive: false,
     }));
@@ -288,7 +207,7 @@ export function useJungleScene(
         p.col = col;
         p.rot = a;
         p.vr = (i % 2 === 0 ? 1 : -1) * rand(0.04, 0.14);
-        p.kind = Math.random() < 0.55 ? 1 : 0; // more flowers/bananas, fewer leaves
+        p.kind = Math.random() < 0.55 ? 1 : 0; // more petals, fewer leaves
         p.alive = true;
       }
     }
@@ -400,17 +319,7 @@ export function useJungleScene(
         ctx.restore();
       }
 
-      // Tree layers back → front (4 layers, parallax)
       const groundY = H * 0.95;
-      for (let layer = 0; layer < 4; layer++) {
-        const parallax = (layer + 1) * 8;
-        const offsetX = (tS * parallax * 0.1) % W;
-        for (const t of trees) {
-          if (t.layer !== layer) continue;
-          const drawX = ((t.x - offsetX) % (W + 120) + W + 120) % (W + 120) - 60;
-          drawTree(ctx, { ...t, x: drawX }, groundY + (3 - layer) * 6, tS, bass);
-        }
-      }
 
       // Ground strip
       const g2 = ctx.createLinearGradient(0, groundY, 0, H);
@@ -455,17 +364,11 @@ export function useJungleScene(
         ctx.rotate(p.rot);
         ctx.globalAlpha = alpha;
         if (p.kind === 1) {
-          // banana bit
-          ctx.fillStyle = "#ffe14d";
-          ctx.strokeStyle = "#8b6914";
-          ctx.lineWidth = 0.8;
+          // flower petal
+          ctx.fillStyle = `rgb(${Math.floor(p.col[0] * 255)},${Math.floor(p.col[1] * 255)},${Math.floor(p.col[2] * 255)})`;
           ctx.beginPath();
-          ctx.moveTo(-5, 0);
-          ctx.quadraticCurveTo(0, -4, 6, -1);
-          ctx.quadraticCurveTo(3, 3, -5, 0);
-          ctx.closePath();
+          ctx.ellipse(0, 0, 4, 5.5, 0, 0, Math.PI * 2);
           ctx.fill();
-          ctx.stroke();
         } else {
           // leaf
           ctx.fillStyle = `rgb(${Math.floor(p.col[0] * 255)},${Math.floor(p.col[1] * 255)},${Math.floor(p.col[2] * 255)})`;
