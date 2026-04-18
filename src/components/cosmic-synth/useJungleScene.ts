@@ -109,21 +109,111 @@ export function useJungleScene(
     resize();
     window.addEventListener("resize", resize);
 
-    // ── Trees (3 parallax layers) ──
+    // ── Trees (4 parallax layers: 0=far, 1=mid, 2=near, 3=foreground) ──
     const trees: Tree[] = [];
-    const layerCounts = isMobile ? [7, 6, 5] : [12, 10, 7];
-    for (let layer = 0; layer < 3; layer++) {
+    const layerCounts = isMobile ? [7, 6, 5, 2] : [12, 10, 7, 3];
+    for (let layer = 0; layer < 4; layer++) {
       const count = layerCounts[layer];
       for (let i = 0; i < count; i++) {
         trees.push({
           x: rand(-60, W + 60),
-          scale: layer === 0 ? rand(0.55, 0.8) : layer === 1 ? rand(0.9, 1.15) : rand(1.2, 1.55),
+          scale: layer === 0 ? rand(0.55, 0.8)
+            : layer === 1 ? rand(0.9, 1.15)
+            : layer === 2 ? rand(1.2, 1.55)
+            : rand(1.5, 1.9),
           seed: Math.random() * 100,
           layer,
           sway: rand(0.5, 1.5),
         });
       }
     }
+
+    // ── Offscreen mountain silhouette (cached) ──
+    const mtCanvas = document.createElement("canvas");
+    const buildMountains = () => {
+      mtCanvas.width = Math.max(1, Math.floor(W * PR));
+      mtCanvas.height = Math.max(1, Math.floor(H * 0.45 * PR));
+      const mctx = mtCanvas.getContext("2d")!;
+      mctx.setTransform(PR, 0, 0, PR, 0, 0);
+      mctx.clearRect(0, 0, W, H * 0.45);
+      // far range
+      mctx.fillStyle = "#0c2a1b";
+      mctx.beginPath();
+      mctx.moveTo(0, H * 0.45);
+      const peaks = 7;
+      for (let i = 0; i <= peaks; i++) {
+        const x = (i / peaks) * W;
+        const noise = Math.sin(i * 1.7) * 0.5 + Math.cos(i * 0.9) * 0.3;
+        const y = H * 0.45 - (H * 0.18 + noise * H * 0.08);
+        mctx.lineTo(x, y);
+      }
+      mctx.lineTo(W, H * 0.45);
+      mctx.closePath();
+      mctx.fill();
+      // closer range
+      mctx.fillStyle = "#143d28";
+      mctx.beginPath();
+      mctx.moveTo(0, H * 0.45);
+      for (let i = 0; i <= peaks + 2; i++) {
+        const x = (i / (peaks + 2)) * W;
+        const noise = Math.sin(i * 2.3 + 1) * 0.4;
+        const y = H * 0.45 - (H * 0.1 + noise * H * 0.05);
+        mctx.lineTo(x, y);
+      }
+      mctx.lineTo(W, H * 0.45);
+      mctx.closePath();
+      mctx.fill();
+    };
+    buildMountains();
+
+    // ── Offscreen undergrowth (ferns + rocks, cached) ──
+    const ugCanvas = document.createElement("canvas");
+    const buildUndergrowth = () => {
+      ugCanvas.width = Math.max(1, Math.floor(W * PR));
+      ugCanvas.height = Math.max(1, Math.floor(H * 0.18 * PR));
+      const uctx = ugCanvas.getContext("2d")!;
+      uctx.setTransform(PR, 0, 0, PR, 0, 0);
+      uctx.clearRect(0, 0, W, H * 0.18);
+      const fernCount = isMobile ? 14 : 26;
+      for (let i = 0; i < fernCount; i++) {
+        const fx = (i / fernCount) * W + rand(-12, 12);
+        const fy = H * 0.18 - rand(0, 8);
+        const fh = rand(18, 36);
+        uctx.save();
+        uctx.translate(fx, fy);
+        uctx.strokeStyle = "rgba(82,183,136,0.55)";
+        uctx.lineWidth = 1.2;
+        for (let b = -2; b <= 2; b++) {
+          uctx.beginPath();
+          uctx.moveTo(0, 0);
+          uctx.quadraticCurveTo(b * 8, -fh * 0.5, b * 14, -fh);
+          uctx.stroke();
+        }
+        uctx.restore();
+      }
+      const rockCount = isMobile ? 5 : 9;
+      for (let i = 0; i < rockCount; i++) {
+        const rx = rand(0, W);
+        const ry = H * 0.18 - rand(0, 4);
+        const rw = rand(14, 28);
+        const rh = rw * 0.55;
+        uctx.fillStyle = "rgba(14,38,23,0.9)";
+        uctx.beginPath();
+        uctx.ellipse(rx, ry, rw, rh, 0, Math.PI, Math.PI * 2);
+        uctx.fill();
+      }
+    };
+    buildUndergrowth();
+
+    const rebuildOffscreens = () => { buildMountains(); buildUndergrowth(); };
+    window.addEventListener("resize", rebuildOffscreens);
+
+    // ── Mist bands (3 drifting horizontal layers) ──
+    const mistBands = [
+      { y: 0.42, speed: 0.018, alpha: 0.06, h: 80, off: 0 },
+      { y: 0.55, speed: 0.028, alpha: 0.05, h: 110, off: 0 },
+      { y: 0.70, speed: 0.012, alpha: 0.04, h: 140, off: 0 },
+    ];
 
     // ── Fireflies ──
     const fireflyCount = isMobile ? 120 : 260;
