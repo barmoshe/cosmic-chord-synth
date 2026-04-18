@@ -46,37 +46,7 @@ const FLOWERS: FlowerSlot[] = [
 export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
   return (
     <div className="jungle-overlay" data-visible={visible ? "true" : "false"}>
-      {/* Shared gradients for trees + bananas. Lives once per overlay. */}
-      <svg className="jungle-defs" aria-hidden="true" width="0" height="0">
-        <defs>
-          <linearGradient id="t-trunk" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%"   stopColor="#6b3b1e"/>
-            <stop offset="60%"  stopColor="#3a2415"/>
-            <stop offset="100%" stopColor="#1a0e07"/>
-          </linearGradient>
-          <linearGradient id="t-frond" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%"   stopColor="#2d8f5a"/>
-            <stop offset="60%"  stopColor="#206d44"/>
-            <stop offset="100%" stopColor="#0c2a1b"/>
-          </linearGradient>
-          <radialGradient id="t-frond-back" cx="50%" cy="50%" r="60%">
-            <stop offset="0%"   stopColor="#143d28"/>
-            <stop offset="100%" stopColor="#081a11"/>
-          </radialGradient>
-          <radialGradient id="t-coconut" cx="35%" cy="30%" r="70%">
-            <stop offset="0%"   stopColor="#a47148"/>
-            <stop offset="60%"  stopColor="#6b3b1e"/>
-            <stop offset="100%" stopColor="#2a180e"/>
-          </radialGradient>
-          <linearGradient id="b-banana" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%"   stopColor="#fff085"/>
-            <stop offset="55%"  stopColor="#facc15"/>
-            <stop offset="100%" stopColor="#a16207"/>
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {/* ── Back layer: vines + silhouette palm ── */}
+      {/* ── Back layer: vines ── */}
       <div className="jungle-scene-back">
         <svg className="jungle-vine jungle-vine-1" viewBox="0 0 80 340" aria-hidden="true">
           <path d="M 40 0 Q 48 60 38 120 Q 28 180 44 240 Q 56 300 40 340" stroke="#143d28" strokeWidth="3" fill="none" strokeLinecap="round"/>
@@ -90,21 +60,6 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           <ellipse cx="40" cy="110" rx="10" ry="3.5" fill="#2d6a4f" transform="rotate(15 40 110)"/>
           <ellipse cx="50" cy="190" rx="8" ry="3" fill="#206d44" transform="rotate(-25 50 190)"/>
           <ellipse cx="30" cy="270" rx="10" ry="3.5" fill="#2d6a4f" transform="rotate(20 30 270)"/>
-        </svg>
-
-        {/* Back palm — silhouette, 5 dark fronds, no coconuts */}
-        <svg className="jungle-tree jungle-tree-back" viewBox="0 0 220 340" aria-hidden="true">
-          <path
-            d="M 102 340 Q 104 260 102 190 Q 100 120 112 60 L 120 60 Q 116 120 118 190 Q 116 260 114 340 Z"
-            fill="#081a11"
-          />
-          <g transform="translate(116 60)">
-            <g transform="rotate(-75)"><path d="M 0 0 Q 48 -10 100 -18 Q 62 10 8 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(-35)"><path d="M 0 0 Q 56 -8 112 -20 Q 68 12 10 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(5)"><path  d="M 0 0 Q 58  -4 116 -8  Q 70 14 10 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(45)"><path d="M 0 0 Q 56 -8 112 -20 Q 68 12 10 14 Z" fill="url(#t-frond-back)"/></g>
-            <g transform="rotate(85)"><path d="M 0 0 Q 48 -10 100 -18 Q 62 10 8 14 Z" fill="url(#t-frond-back)"/></g>
-          </g>
         </svg>
       </div>
 
@@ -134,72 +89,9 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
         ))}
       </div>
 
-      {/* ── Front layer: ferns + front palms + banana/coconut clusters ── */}
+      {/* ── Front layer: ferns + ground flowers ── */}
       <div className="jungle-scene-front">
-        {/* Front-left palm — coconut palm */}
-        <svg className="jungle-tree jungle-tree-left" viewBox="0 0 220 360" aria-hidden="true">
-          {/* Trunk (tapered, with bark ticks) */}
-          <path
-            d="M 98 360 Q 102 280 100 200 Q 98 130 112 58 L 124 58 Q 118 130 120 200 Q 118 280 116 360 Z"
-            fill="url(#t-trunk)"
-          />
-          <line x1="102" y1="108" x2="122" y2="108" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
-          <line x1="103" y1="178" x2="121" y2="178" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="105" y1="252" x2="119" y2="252" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-          {/* Crown */}
-          <g transform="translate(118 58)">
-            <g transform="rotate(-85)"><path d="M 0 0 Q 52 -16 108 -26 Q 64  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            <g transform="rotate(-50)"><path d="M 0 0 Q 60 -14 120 -28 Q 72 10 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-18)"><path d="M 0 0 Q 62 -8  124 -14 Q 74 14 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(12)"><path  d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(40)"><path  d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(72)"><path  d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            <g transform="rotate(110)"><path d="M 0 0 Q 44 -6  92  -8  Q 56 14 10 16 Z" fill="url(#t-frond)" opacity="0.85"/></g>
-            {/* Coconut cluster — nudged below the crown so the trio reads as
-                fruit hanging under the fronds instead of peeking through them. */}
-            <g className="jungle-coconuts" transform="translate(2 14)">
-              <circle cx="-5"  cy="0"  r="5"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="5"   cy="2"  r="5.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="0"   cy="8"  r="4.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-            </g>
-          </g>
-        </svg>
-
-        {/* Front-right palm — banana palm */}
-        <svg className="jungle-tree jungle-tree-right" viewBox="0 0 220 340" aria-hidden="true">
-          {/* Trunk */}
-          <path
-            d="M 104 340 Q 100 260 102 180 Q 104 120 94 56 L 106 56 Q 116 120 114 180 Q 116 260 112 340 Z"
-            fill="url(#t-trunk)"
-          />
-          <line x1="98"  y1="104" x2="114" y2="104" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.8"/>
-          <line x1="99"  y1="172" x2="113" y2="172" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-          <line x1="101" y1="240" x2="111" y2="240" stroke="#1a0e07" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
-          {/* Crown — mirrored (this tree faces left) */}
-          <g transform="translate(100 56)">
-            <g transform="rotate(85)"><path  d="M 0 0 Q 52 -16 108 -26 Q 64  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            <g transform="rotate(50)"><path  d="M 0 0 Q 60 -14 120 -28 Q 72 10 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(18)"><path  d="M 0 0 Q 62 -8  124 -14 Q 74 14 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-12)"><path d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-40)"><path d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
-            <g transform="rotate(-72)"><path d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            {/* Banana cluster — nudged outward from the crown mass and
-                scaled up to 1.0 so the bunch reads as hanging fruit rather
-                than a tucked leaf. Inner group owns the CSS sway. */}
-            <g transform="translate(10 14)">
-              <g className="jungle-banana-cluster jungle-banana-cluster-right">
-                <ellipse cx="0" cy="-2" rx="7" ry="3.2" fill="#3f2a15"/>
-                <path transform="rotate(-20)" d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-                <path transform="rotate(-7)"  d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-                <path transform="rotate(7)"   d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-                <path transform="rotate(20)"  d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              </g>
-            </g>
-          </g>
-        </svg>
-
-        {/* A single fern tuft off to the side — second one removed to uncrowd
-            the ground band. */}
+        {/* A single fern tuft off to the side — keeps the ground band alive. */}
         <svg className="jungle-fern jungle-fern-1" viewBox="0 0 120 70" aria-hidden="true">
           <path d="M 60 70 Q 20 40 10 10" stroke="#143d28" strokeWidth="3" fill="none" strokeLinecap="round"/>
           <path d="M 60 70 Q 40 30 30 2" stroke="#206d44" strokeWidth="3" fill="none" strokeLinecap="round"/>
@@ -247,7 +139,7 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
              isolation:isolate gives the three inner scene layers (back/mid/front)
              their own stacking context so local z-indices never leak out.
              clip-path keeps the decor out of the top viewport band where the
-             header, audio badge, theme pill and try-v2 chip live. */
+             header, audio badge and theme pill live. */
           isolation: isolate;
           z-index: 3;
           opacity: 0;
@@ -259,8 +151,6 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           .jungle-overlay { clip-path: inset(50% 0 0 0); }
         }
         .jungle-overlay[data-visible="true"] { opacity: 1; }
-
-        .jungle-defs { position: absolute; width: 0; height: 0; }
 
         .jungle-scene-back,
         .jungle-scene-mid,
@@ -288,54 +178,6 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
         @keyframes vine-sway {
           0%, 100% { transform: rotate(-2deg); }
           50%      { transform: rotate(3deg); }
-        }
-
-        /* Tree silhouettes along bottom */
-        .jungle-tree {
-          position: absolute;
-          bottom: 0;
-          width: auto;
-          filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
-        }
-        /* Back tree → off-center (70% from left) at 30% height + 0.55 opacity
-           so it frames the horizon without competing with the center action.
-           Front trees → pushed further off-screen so only the canopy peeks in;
-           trunks stay out of the playable band. */
-        .jungle-tree-back  { left: 70%; height: 30%; opacity: 0.55; transform: translateX(-50%); }
-        .jungle-tree-left  { left: -22%; height: 42%; opacity: 0.92; }
-        .jungle-tree-right { right: -24%; height: 40%; opacity: 0.92; }
-        @media (max-width: 480px) {
-          .jungle-tree-back  { height: 26%; left: 72%; }
-          .jungle-tree-left  { height: 36%; left: -28%; }
-          .jungle-tree-right { height: 34%; right: -30%; }
-        }
-
-        /* Banana cluster — pivot at the stem attachment (0,0 in its local
-           rotated crown space). transform-origin is pinned so the sway rotates
-           around the branch junction, not through the fruit mass. */
-        .jungle-banana-cluster {
-          transform-origin: 0 0;
-          transform-box: fill-box;
-          animation: banana-sway 4.2s ease-in-out infinite;
-        }
-        .jungle-banana-cluster-right {
-          animation-duration: 4.6s;
-          animation-delay: -0.6s;
-        }
-        @keyframes banana-sway {
-          0%, 100% { transform: rotate(-5deg); }
-          50%      { transform: rotate(7deg); }
-        }
-
-        /* Coconut cluster — gentle micro-bob so fruit feels weighty */
-        .jungle-coconuts {
-          transform-origin: 0 0;
-          transform-box: fill-box;
-          animation: coconut-bob 5.4s ease-in-out infinite;
-        }
-        @keyframes coconut-bob {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(1px); }
         }
 
         /* Ground ferns */
@@ -510,9 +352,6 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
         @media (prefers-reduced-motion: reduce) {
           .jungle-monkey-sprite,
           .jungle-monkey-shadow,
-          .jungle-banana-cluster,
-          .jungle-banana-cluster-right,
-          .jungle-coconuts,
           .jungle-flower,
           .jungle-flower-head,
           .jungle-vine { animation: none !important; }
