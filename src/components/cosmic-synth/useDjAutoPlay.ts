@@ -50,6 +50,37 @@ function variatePattern(
 const DJ_VOICE_IDS = ["dj-ml", "dj-bs", "dj-ar"] as const;
 type DjVoiceId = typeof DJ_VOICE_IDS[number];
 
+const LANES: DrumLane[] = ["kick", "clap", "hat", "snare"];
+
+export function makeEmptyUserLayer(): DrumPattern {
+  return {
+    kick:  Array(16).fill(NaN),
+    clap:  Array(16).fill(NaN),
+    hat:   Array(16).fill(NaN),
+    snare: Array(16).fill(NaN),
+  };
+}
+
+function mergeUserLayer(base: DrumPattern, user: DrumPattern | null | undefined): void {
+  if (!user) return;
+  for (const lane of LANES) {
+    const src = user[lane];
+    const dst = base[lane];
+    for (let i = 0; i < 16; i++) {
+      const u = src[i];
+      if (!Number.isNaN(u)) dst[i] = u;
+    }
+  }
+}
+
+function resetUserLayer(user: DrumPattern | null | undefined): void {
+  if (!user) return;
+  for (const lane of LANES) {
+    const row = user[lane];
+    for (let i = 0; i < 16; i++) row[i] = NaN;
+  }
+}
+
 export function useDjAutoPlay(
   autoPlay: boolean,
   audioEngine: React.MutableRefObject<AudioEngine | null>,
@@ -58,6 +89,7 @@ export function useDjAutoPlay(
   djState: React.MutableRefObject<any>,
   ui: DjUi,
   touchesRef: React.MutableRefObject<Map<any, any>>,
+  userLayerRef?: React.MutableRefObject<DrumPattern>,
 ) {
   useEffect(() => {
     const dj = djState.current;
@@ -95,6 +127,7 @@ export function useDjAutoPlay(
       DRUM_PATTERNS[sec().drums] || DRUM_PATTERNS.nebula,
       0.25 + sec().e,
     );
+    mergeUserLayer(currentPattern, userLayerRef?.current);
 
     const pulseTimers: Record<DjVoiceId, ReturnType<typeof setTimeout> | null> = {
       "dj-ml": null, "dj-bs": null, "dj-ar": null,
@@ -132,6 +165,9 @@ export function useDjAutoPlay(
       ui.setEnergy(s.e);
       // Seed the beat grid with this section's pattern immediately so the widget
       // shows its shape on toggle, before the first audio tick lands.
+      // User edits don't carry across section boundaries — the generative nature of
+      // the DJ takes back over on each transition.
+      resetUserLayer(userLayerRef?.current);
       currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + s.e);
       ui.setStep(-1, currentPattern);
 
@@ -196,12 +232,14 @@ export function useDjAutoPlay(
       // Step within bar (0..15), absolute step within section
       const step = dj.tis % 16;
 
-      // Regenerate the bar's pattern at each downbeat — dynamic drift bar-to-bar
+      // Regenerate the bar's pattern at each downbeat — dynamic drift bar-to-bar.
+      // User-edit layer is merged on top so tapped cells persist within the section.
       if (step === 0) {
         currentPattern = variatePattern(
           DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula,
           0.25 + E,
         );
+        mergeUserLayer(currentPattern, userLayerRef?.current);
       }
 
       // ── DRUMS — routed through the unified triggerDrum on the drum-stars.

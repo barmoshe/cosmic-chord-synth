@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!--
+    Fruit sprite sheet for the jungle-theme drum grid.
+    4 cols × 4 rows of 128px cells. One row per drum lane.
+    Row 0 = kick (coconut), Row 1 = snare (mango),
+    Row 2 = hat (lime),     Row 3 = clap (banana).
+    Frames advance left→right on each active step.
+  -->
+  <defs>
+    <radialGradient id="g-coconut" cx="32%" cy="30%" r="75%">
+      <stop offset="0%"  stop-color="#a47148"/>
+      <stop offset="55%" stop-color="#6b3b1e"/>
+      <stop offset="100%" stop-color="#3c2010"/>
+    </radialGradient>
+    <radialGradient id="g-mango" cx="30%" cy="28%" r="80%">
+      <stop offset="0%"  stop-color="#ffd46a"/>
+      <stop offset="55%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </radialGradient>
+    <radialGradient id="g-lime" cx="30%" cy="28%" r="80%">
+      <stop offset="0%"   stop-color="#e9fccc"/>
+      <stop offset="50%"  stop-color="#a3e635"/>
+      <stop offset="100%" stop-color="#4d7c0f"/>
+    </radialGradient>
+    <linearGradient id="g-banana" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#fff085"/>
+      <stop offset="60%"  stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </linearGradient>
+    <radialGradient id="g-flash" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ── ROW 0 · COCONUT (kick) ── rest → squash → crack+shake → recover ── -->
+  <g>
+    <g>
+      <circle cx="64" cy="68" r="42" fill="url(#g-coconut)"/>
+      <ellipse cx="52" cy="54" rx="12" ry="8" fill="#8b5a2b" opacity="0.55"/>
+      <circle cx="44" cy="74" r="3.5" fill="#2a180e"/>
+      <circle cx="64" cy="86" r="3.5" fill="#2a180e"/>
+      <circle cx="80" cy="72" r="3.5" fill="#2a180e"/>
+    </g>
+    <g transform="translate(128,0)">
+      <ellipse cx="64" cy="78" rx="50" ry="32" fill="url(#g-coconut)"/>
+      <ellipse cx="52" cy="68" rx="14" ry="6" fill="#8b5a2b" opacity="0.55"/>
+      <circle cx="44" cy="86" r="3.5" fill="#2a180e"/>
+      <circle cx="64" cy="96" r="3.5" fill="#2a180e"/>
+      <circle cx="82" cy="86" r="3.5" fill="#2a180e"/>
+    </g>
+    <g transform="translate(256,0)">
+      <circle cx="64" cy="68" r="42" fill="url(#g-coconut)"/>
+      <path d="M 44 38 L 58 62 L 50 74 L 66 78 L 60 100"
+            stroke="#2a180e" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <g stroke="#fde68a" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+        <line x1="10" y1="46" x2="22" y2="50"/>
+        <line x1="8"  y1="68" x2="22" y2="68"/>
+        <line x1="10" y1="92" x2="22" y2="88"/>
+        <line x1="106" y1="46" x2="118" y2="50"/>
+        <line x1="106" y1="68" x2="120" y2="68"/>
+        <line x1="106" y1="92" x2="118" y2="88"/>
+      </g>
+    </g>
+    <g transform="translate(384,0)">
+      <circle cx="64" cy="68" r="52" fill="url(#g-flash)"/>
+      <circle cx="64" cy="68" r="38" fill="url(#g-coconut)"/>
+      <ellipse cx="52" cy="54" rx="12" ry="7" fill="#8b5a2b" opacity="0.55"/>
+    </g>
+  </g>
+
+  <!-- ── ROW 1 · MANGO (snare) ── whole → slice-line → sliced → flash ── -->
+  <g transform="translate(0,128)">
+    <g>
+      <ellipse cx="64" cy="68" rx="34" ry="44" fill="url(#g-mango)"/>
+      <ellipse cx="50" cy="52" rx="10" ry="14" fill="#fff085" opacity="0.7"/>
+      <path d="M 58 22 Q 66 12 76 22" stroke="#3f6212" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(128,0)">
+      <ellipse cx="64" cy="68" rx="34" ry="44" fill="url(#g-mango)"/>
+      <ellipse cx="50" cy="52" rx="10" ry="14" fill="#fff085" opacity="0.7"/>
+      <line x1="22" y1="58" x2="106" y2="58" stroke="#ffffff" stroke-width="3" opacity="0.9"/>
+      <path d="M 58 22 Q 66 12 76 22" stroke="#3f6212" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(256,0)">
+      <path d="M 30 44 Q 30 22 64 22 Q 98 22 98 44 L 98 52 L 30 52 Z" fill="url(#g-mango)"/>
+      <path d="M 30 64 L 98 64 L 98 72 Q 98 114 64 114 Q 30 114 30 72 Z" fill="url(#g-mango)"/>
+      <line x1="18" y1="58" x2="110" y2="58" stroke="#ffffff" stroke-width="5" opacity="0.95"/>
+    </g>
+    <g transform="translate(384,0)">
+      <ellipse cx="64" cy="68" rx="46" ry="56" fill="url(#g-flash)"/>
+      <ellipse cx="64" cy="68" rx="32" ry="42" fill="url(#g-mango)"/>
+      <ellipse cx="50" cy="52" rx="10" ry="13" fill="#fff085" opacity="0.75"/>
+    </g>
+  </g>
+
+  <!-- ── ROW 2 · LIME (hat) ── four rotational ping frames ── -->
+  <g transform="translate(0,256)">
+    <g>
+      <circle cx="64" cy="64" r="34" fill="url(#g-lime)"/>
+      <circle cx="54" cy="54" r="8" fill="#e9fccc" opacity="0.85"/>
+      <path d="M 64 30 Q 70 20 78 26" stroke="#365314" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(128,0) rotate(90 64 64)">
+      <circle cx="64" cy="64" r="34" fill="url(#g-lime)"/>
+      <circle cx="54" cy="54" r="8" fill="#e9fccc" opacity="0.85"/>
+      <path d="M 64 30 Q 70 20 78 26" stroke="#365314" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(256,0) rotate(180 64 64)">
+      <circle cx="64" cy="64" r="34" fill="url(#g-lime)"/>
+      <circle cx="54" cy="54" r="8" fill="#e9fccc" opacity="0.85"/>
+      <path d="M 64 30 Q 70 20 78 26" stroke="#365314" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(384,0) rotate(270 64 64)">
+      <circle cx="64" cy="64" r="34" fill="url(#g-lime)"/>
+      <circle cx="54" cy="54" r="8" fill="#e9fccc" opacity="0.85"/>
+      <path d="M 64 30 Q 70 20 78 26" stroke="#365314" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- ── ROW 3 · BANANA (clap) ── closed → peel-tip → peeled → flash ── -->
+  <g transform="translate(0,384)">
+    <g>
+      <path d="M 34 32 Q 20 66 42 102 Q 48 110 58 108 Q 74 104 90 94 Q 110 78 104 42 Q 102 28 92 30 Q 90 40 84 52 Q 70 82 48 86 Q 40 82 42 66 Q 44 48 50 36 Q 44 26 34 32 Z"
+            fill="url(#g-banana)" stroke="#8b6914" stroke-width="2"/>
+    </g>
+    <g transform="translate(128,0)">
+      <path d="M 34 32 Q 20 66 42 102 Q 48 110 58 108 Q 74 104 90 94 Q 110 78 104 42 Q 102 28 92 30 Q 90 40 84 52 Q 70 82 48 86 Q 40 82 42 66 Q 44 48 50 36 Q 44 26 34 32 Z"
+            fill="url(#g-banana)" stroke="#8b6914" stroke-width="2"/>
+      <path d="M 34 32 Q 26 22 18 28 Q 20 44 30 50 Q 36 42 40 34 Z" fill="#fef3c7" stroke="#8b6914" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(256,0)">
+      <path d="M 34 32 Q 20 66 42 102 Q 48 110 58 108 Q 74 104 90 94 Q 110 78 104 42 Q 102 28 92 30 Q 90 40 84 52 Q 70 82 48 86 Q 40 82 42 66 Q 44 48 50 36 Q 44 26 34 32 Z"
+            fill="url(#g-banana)" stroke="#8b6914" stroke-width="2"/>
+      <path d="M 30 24 Q 12 14 6 22 Q 10 42 24 54 Q 32 42 38 32 Z" fill="#fef3c7" stroke="#8b6914" stroke-width="1.5"/>
+      <path d="M 98 26 Q 118 18 124 26 Q 118 44 106 54 Q 100 44 94 36 Z" fill="#fef3c7" stroke="#8b6914" stroke-width="1.5"/>
+    </g>
+    <g transform="translate(384,0)">
+      <circle cx="64" cy="68" r="54" fill="url(#g-flash)"/>
+      <path d="M 34 32 Q 20 66 42 102 Q 48 110 58 108 Q 74 104 90 94 Q 110 78 104 42 Q 102 28 92 30 Q 90 40 84 52 Q 70 82 48 86 Q 40 82 42 66 Q 44 48 50 36 Q 44 26 34 32 Z"
+            fill="url(#g-banana)" stroke="#8b6914" stroke-width="2"/>
+    </g>
+  </g>
+</svg>

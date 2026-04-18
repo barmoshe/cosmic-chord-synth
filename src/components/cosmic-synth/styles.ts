@@ -1,4 +1,10 @@
 export const COSMIC_STYLES = `
+        /* ── z-layer map ──
+           canvas 1 · axis 8 · energy-bar 9 · HUD (header/hint/scale) 10 ·
+           jungle overlay 11 · glow overlays 12 · DJ panel 14 ·
+           flash/error 15 · theme pill 30 · try-v2 40 · audio badge 50 ·
+           splash/warp 100.                                                  */
+
         /* ── Cosmic Design System v4 — "Glacial Aurora 2026" lifted-navy theme ── */
         @keyframes cosmicGradient {
           0%, 100% { background-position: 0% 50%; }
@@ -212,7 +218,7 @@ export const COSMIC_STYLES = `
           left: 50%;
           bottom: 16px;
           transform: translateX(-50%);
-          z-index: 12;
+          z-index: 14;
           display: flex; flex-direction: column; align-items: stretch;
           gap: 10px;
           width: min(420px, calc(100vw - 24px));
@@ -428,14 +434,24 @@ export const COSMIC_STYLES = `
           gap: 2px;
         }
         .conductor-cell {
-          height: 12px;
-          border-radius: 2px;
+          /* Rendered as a <button> — reset native chrome */
+          appearance: none; -webkit-appearance: none;
+          font: inherit; color: inherit; margin: 0; padding: 0;
+          display: block;
+          position: relative;
+          height: 14px;
+          border-radius: 3px;
           background: rgba(229,244,251,0.08);
           border: 1px solid rgba(129,140,248,0.14);
-          transition: transform 0.08s linear, box-shadow 0.08s linear;
+          transition: transform 0.08s linear, box-shadow 0.08s linear, border-color 0.15s;
           opacity: 0.1;
           will-change: opacity, transform;
+          cursor: pointer;
+          touch-action: manipulation;
+          overflow: hidden;
         }
+        .conductor-cell:focus-visible { outline: 2px solid rgba(34,211,238,0.8); outline-offset: 2px; }
+        .conductor-cell:active { transform: scale(0.92); }
         .conductor-cell.is-downbeat { border-left: 1px solid rgba(129,140,248,0.35); }
         .conductor-row-kick  .conductor-cell { background: linear-gradient(180deg, rgba(252,211,77,0.9),  rgba(252,211,77,0.4));  border-color: rgba(252,211,77,0.35); }
         .conductor-row-clap  .conductor-cell { background: linear-gradient(180deg, rgba(248,113,113,0.9), rgba(248,113,113,0.4)); border-color: rgba(248,113,113,0.35); }
@@ -447,6 +463,33 @@ export const COSMIC_STYLES = `
           transform: scaleY(1.18);
           box-shadow: 0 0 10px rgba(252,211,77,0.75);
         }
+        /* User-edit markers — dashed ring on user-toggled cells. */
+        .conductor-cell[data-user="on"] {
+          border-color: rgba(34,211,238,0.85) !important;
+          box-shadow: inset 0 0 0 1px rgba(34,211,238,0.45);
+        }
+        .conductor-cell[data-user="off"] {
+          background: rgba(229,244,251,0.05) !important;
+          border: 1px dashed rgba(229,244,251,0.35) !important;
+        }
+
+        /* ── Jungle fruit sprite overlay (rendered inside each cell on jungle theme) ── */
+        .conductor-cell-fruit {
+          position: absolute;
+          inset: -2px;
+          background-image: url('/fruits.svg');
+          background-repeat: no-repeat;
+          background-size: 400% 400%;
+          background-position: 0% 0%;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s ease;
+        }
+        /* One row per lane; frame 0 (col 0) is the resting fruit. */
+        .conductor-row-kick  .conductor-cell-fruit { background-position: 0% 0%;       }
+        .conductor-row-snare .conductor-cell-fruit { background-position: 0% 33.3333%; }
+        .conductor-row-hat   .conductor-cell-fruit { background-position: 0% 66.6666%; }
+        .conductor-row-clap  .conductor-cell-fruit { background-position: 0% 100%;     }
 
         @media (max-width: 480px) {
           .conductor-root {
@@ -792,6 +835,46 @@ export const COSMIC_STYLES = `
           background-clip: text;
         }
         .theme-jungle .conductor-phase { color: #ffe14d; text-shadow: 0 0 10px rgba(255,225,77,0.4); }
+
+        /* ── Jungle drum cells — become canvases for the fruit sprite overlay ──
+           The coloured gradient backgrounds are muted so the fruit carries the
+           visual weight. Cells grow taller to let the sprites read clearly. */
+        .theme-jungle .conductor-cell { height: 18px; border-radius: 4px; background: rgba(10,31,20,0.55) !important; border-color: rgba(163,230,53,0.22) !important; }
+        .theme-jungle .conductor-cell.is-downbeat { border-left: 1px solid rgba(255,225,77,0.45) !important; }
+        .theme-jungle .conductor-cell-fruit { opacity: 0.7; }
+        .theme-jungle .conductor-cell[data-active="1"] {
+          outline: 1.5px solid rgba(255,225,77,0.95);
+          box-shadow: 0 0 14px rgba(255,225,77,0.7);
+        }
+        .theme-jungle .conductor-cell[data-active="1"] .conductor-cell-fruit {
+          opacity: 1;
+          animation: fruitFrames 0.36s steps(4, jump-none) 1;
+        }
+        /* Non-active lit cells still show the fruit at reduced intensity. */
+        .theme-jungle .conductor-row-kick  .conductor-cell-fruit,
+        .theme-jungle .conductor-row-snare .conductor-cell-fruit,
+        .theme-jungle .conductor-row-hat   .conductor-cell-fruit,
+        .theme-jungle .conductor-row-clap  .conductor-cell-fruit {
+          /* inherit per-row background-position from base rule above */
+        }
+        /* User-forced on → amber accent; user-forced off → mute the fruit. */
+        .theme-jungle .conductor-cell[data-user="on"] {
+          border-color: rgba(255,225,77,0.85) !important;
+          box-shadow: inset 0 0 0 1px rgba(255,225,77,0.55), 0 0 10px rgba(255,225,77,0.35);
+        }
+        .theme-jungle .conductor-cell[data-user="off"] .conductor-cell-fruit { opacity: 0.15; }
+
+        /* Sprite frame animation — advances across the 4 columns of fruits.svg.
+           "to" value is 3/4 × 100% = 75% because steps(4, jump-none) visits 0..3
+           (4 frames) at 0%, 33.33%, 66.66%, 100%, so the keyframe end value is the
+           last frame column. The row (Y) is selected by the per-lane rule above. */
+        @keyframes fruitFrames {
+          from { background-position-x: 0%;   }
+          to   { background-position-x: 100%; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .theme-jungle .conductor-cell[data-active="1"] .conductor-cell-fruit { animation: none; }
+        }
 
         /* Flash — amber */
         .theme-jungle .cosmic-flash {

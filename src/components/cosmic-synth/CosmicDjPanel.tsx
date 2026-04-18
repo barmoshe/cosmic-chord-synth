@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { DJ_SECTIONS, isMobile } from "./constants";
 import type { DjUi, DrumPattern, DrumLane } from "./useDjAutoPlay";
+import type { CosmicTheme } from "./ThemeChooser";
 
 interface CosmicDjPanelProps {
   autoPlay: boolean;
   onToggle: () => void;
   onReady: (ui: DjUi) => void;
   bpm?: number;
+  userLayerRef?: React.MutableRefObject<DrumPattern>;
+  theme?: CosmicTheme;
 }
+
+// Default velocity written when a user force-enables a step via tap.
+const USER_HIT_VELOCITY = 0.9;
 
 const LANES: DrumLane[] = ["kick", "clap", "hat", "snare"];
 const LANE_LABEL: Record<DrumLane, string> = { kick: "K", clap: "C", hat: "H", snare: "S" };
@@ -32,12 +38,14 @@ const SECTION_OFFSETS: Record<string, { start: number; width: number }> = (() =>
   return out;
 })();
 
-export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94 }: CosmicDjPanelProps) {
+export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94, userLayerRef, theme = "space" }: CosmicDjPanelProps) {
   const [phase, setPhase] = useState("");
   const [nextPhase, setNextPhase] = useState("");
   const [bpm, setBpm] = useState(bpmProp);
   const [expanded, setExpanded] = useState(!isMobile);
   const [reducedMotion, setReducedMotion] = useState(false);
+  // Bump to force a re-render after user tap edits so `data-user` attributes refresh.
+  const [, setUserEditTick] = useState(0);
 
   // Refs for RAF-driven visuals (avoids per-frame re-renders)
   const progressRef = useRef(0);
@@ -54,7 +62,7 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   // Version counter bumped on every setStep — lets the RAF loop detect pattern
   // reseeds (from applySection) even when step value is unchanged.
   const patternVersionRef = useRef(0);
-  const cellEls = useRef<Record<DrumLane, (HTMLDivElement | null)[]>>({
+  const cellEls = useRef<Record<DrumLane, (HTMLElement | null)[]>>({
     kick: Array(16).fill(null), clap: Array(16).fill(null), hat: Array(16).fill(null), snare: Array(16).fill(null),
   });
   const laneDotEls = useRef<Record<DrumLane, HTMLDivElement | null>>({
@@ -175,7 +183,30 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   const handleToggle = useCallback(() => { onToggle(); }, [onToggle]);
   const handleExpand = useCallback(() => { setExpanded(e => !e); }, []);
 
+  // Tap-to-edit: cycle the step between the generator's value, force-on, and force-off.
+  //   tap clean step     → if generator has a hit, force mute (0); else force on
+  //   tap user-forced    → clear the override (fall back to generator)
+  const handleCellTap = useCallback((lane: DrumLane, step: number) => {
+    const layer = userLayerRef?.current;
+    if (!layer) return;
+    const current = layer[lane][step];
+    if (!Number.isNaN(current)) {
+      layer[lane][step] = NaN;
+    } else {
+      const generated = patternRef.current[lane]?.[step] ?? 0;
+      layer[lane][step] = generated > 0 ? 0 : USER_HIT_VELOCITY;
+    }
+    // Repaint the visible cell immediately so the edit is responsive even before
+    // the next bar-boundary merge lands. We mutate patternRef so the RAF loop
+    // picks it up on its next step-or-pattern-version check.
+    const nextVel = Number.isNaN(layer[lane][step]) ? (patternRef.current[lane]?.[step] ?? 0) : layer[lane][step];
+    patternRef.current[lane][step] = nextVel;
+    patternVersionRef.current++;
+    setUserEditTick((t) => (t + 1) & 0xfff);
+  }, [userLayerRef]);
+
   const phaseClass = PHASE_CLASS[phase] || "idle";
+  const isJungle = theme === "jungle";
 
   return (
     <div className={`conductor-root ${expanded ? "is-expanded" : "is-collapsed"}`}>
@@ -245,8 +276,9 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
             </div>
           </div>
 
-          {/* Beat grid — 4 lanes × 16 cells */}
-          <div className="conductor-grid" role="img" aria-label="Drum pattern visualization">
+          {/* Beat grid — 4 lanes × 16 tappable cells. Tap to override the generator's
+              value for this section; overrides clear on the next section transition. */}
+          <div className="conductor-grid" role="group" aria-label="Drum pattern — tap cells to edit">
             {LANES.map((lane) => (
               <div key={lane} className={`conductor-row conductor-row-${lane}`}>
                 <div className="conductor-row-head">
@@ -258,14 +290,24 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
                   <span className="conductor-row-label">{LANE_LABEL[lane]}</span>
                 </div>
                 <div className="conductor-cells">
-                  {Array.from({ length: 16 }, (_, i) => (
-                    <div
-                      key={i}
-                      ref={(el) => { cellEls.current[lane][i] = el; }}
-                      className={`conductor-cell ${i % 4 === 0 ? "is-downbeat" : ""}`}
-                      aria-hidden="true"
-                    />
-                  ))}
+                  {Array.from({ length: 16 }, (_, i) => {
+                    const u = userLayerRef?.current[lane][i];
+                    const userState = u === undefined || Number.isNaN(u) ? undefined : (u > 0 ? "on" : "off");
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        ref={(el) => { cellEls.current[lane][i] = el; }}
+                        className={`conductor-cell ${i % 4 === 0 ? "is-downbeat" : ""}`}
+                        data-user={userState}
+                        aria-label={`${lane} step ${i + 1}${userState ? ` (user ${userState})` : ""}`}
+                        onTouchStart={(e) => { e.preventDefault(); handleCellTap(lane, i); }}
+                        onClick={() => handleCellTap(lane, i)}
+                      >
+                        {isJungle && <span className="conductor-cell-fruit" aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}

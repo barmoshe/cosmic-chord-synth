@@ -10,7 +10,7 @@ import { useThreeScene } from "./cosmic-synth/useThreeScene";
 import { useJungleScene } from "./cosmic-synth/useJungleScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
-import { useDjAutoPlay, type DjUi } from "./cosmic-synth/useDjAutoPlay";
+import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
 import TryV2Prompt from "./cosmic-synth/TryV2Prompt";
 import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
@@ -109,6 +109,10 @@ export default function CosmicSynth() {
   const rafRef = useRef<number | null>(null);
   const startedRef = useRef(false);
 
+  // User-edit layer for the drum grid. NaN = no override, 0 = force mute,
+  // >0 = force hit at that velocity. Reset per section by useDjAutoPlay.
+  const userLayerRef = useRef<DrumPattern>(makeEmptyUserLayer());
+
   useEffect(() => { scaleRef.current = scale; }, [scale]);
 
   /* ── Hooks ── */
@@ -116,7 +120,7 @@ export default function CosmicSynth() {
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
   useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide, theme);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
-  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef);
+  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef, userLayerRef);
 
   /* ── Cleanup audio on unmount ── */
   useEffect(() => () => { dispose(); }, [dispose]);
@@ -275,6 +279,8 @@ export default function CosmicSynth() {
             onToggle={() => setAutoPlay(p => !p)}
             onReady={handleDjUiReady}
             bpm={94}
+            userLayerRef={userLayerRef}
+            theme={theme}
           />
 
           <div className="cosmic-scale-group">
