@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="64" viewBox="0 0 256 64">
+  <!--
+    Decorative jungle flower sprite sheet.
+    4 frames × 1 row of 64px cells, rendered at 48-56px in the overlay.
+    Frame 0 = closed bud, Frame 1 = opening, Frame 2 = open, Frame 3 = bloomed.
+    Each flower is 5-petal tropical / hibiscus-style, pink petals + yellow core.
+  -->
+  <defs>
+    <radialGradient id="f-petal" cx="50%" cy="60%" r="60%">
+      <stop offset="0%"   stop-color="#fbcfe8"/>
+      <stop offset="55%"  stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#9d174d"/>
+    </radialGradient>
+    <radialGradient id="f-core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#fef3c7"/>
+      <stop offset="70%"  stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Frame 0 · closed bud -->
+  <g transform="translate(32 36)">
+    <ellipse cx="0" cy="0" rx="4" ry="8" fill="url(#f-petal)"/>
+    <ellipse cx="0" cy="-3" rx="2" ry="4" fill="#fbcfe8" opacity="0.6"/>
+    <path d="M -3 6 Q 0 10 3 6" stroke="#206d44" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Frame 1 · petals opening -->
+  <g transform="translate(96 32)">
+    <g><ellipse cx="0" cy="-6" rx="4" ry="7" fill="url(#f-petal)"/></g>
+    <g transform="rotate(72)"><ellipse cx="0" cy="-6" rx="4" ry="7" fill="url(#f-petal)"/></g>
+    <g transform="rotate(144)"><ellipse cx="0" cy="-6" rx="4" ry="7" fill="url(#f-petal)"/></g>
+    <g transform="rotate(216)"><ellipse cx="0" cy="-6" rx="4" ry="7" fill="url(#f-petal)"/></g>
+    <g transform="rotate(288)"><ellipse cx="0" cy="-6" rx="4" ry="7" fill="url(#f-petal)"/></g>
+    <circle cx="0" cy="0" r="2.2" fill="url(#f-core)"/>
+  </g>
+
+  <!-- Frame 2 · fully open -->
+  <g transform="translate(160 32)">
+    <g><ellipse cx="0" cy="-9" rx="5" ry="9" fill="url(#f-petal)"/></g>
+    <g transform="rotate(72)"><ellipse cx="0" cy="-9" rx="5" ry="9" fill="url(#f-petal)"/></g>
+    <g transform="rotate(144)"><ellipse cx="0" cy="-9" rx="5" ry="9" fill="url(#f-petal)"/></g>
+    <g transform="rotate(216)"><ellipse cx="0" cy="-9" rx="5" ry="9" fill="url(#f-petal)"/></g>
+    <g transform="rotate(288)"><ellipse cx="0" cy="-9" rx="5" ry="9" fill="url(#f-petal)"/></g>
+    <circle cx="0" cy="0" r="3" fill="url(#f-core)"/>
+  </g>
+
+  <!-- Frame 3 · bloomed (slightly bigger + stamens) -->
+  <g transform="translate(224 32)">
+    <g><ellipse cx="0" cy="-11" rx="6" ry="10" fill="url(#f-petal)"/></g>
+    <g transform="rotate(72)"><ellipse cx="0" cy="-11" rx="6" ry="10" fill="url(#f-petal)"/></g>
+    <g transform="rotate(144)"><ellipse cx="0" cy="-11" rx="6" ry="10" fill="url(#f-petal)"/></g>
+    <g transform="rotate(216)"><ellipse cx="0" cy="-11" rx="6" ry="10" fill="url(#f-petal)"/></g>
+    <g transform="rotate(288)"><ellipse cx="0" cy="-11" rx="6" ry="10" fill="url(#f-petal)"/></g>
+    <circle cx="0" cy="0" r="3.5" fill="url(#f-core)"/>
+    <circle cx="-1.5" cy="-1.5" r="0.8" fill="#fff085"/>
+    <circle cx="1.8"  cy="-1.2" r="0.8" fill="#fff085"/>
+    <circle cx="0"    cy="1.8"  r="0.8" fill="#fff085"/>
+  </g>
+</svg>

@@ -474,7 +474,10 @@ export function useJungleScene(
         ctx.restore();
       }
 
-      // Drum glyphs — 5-petal tropical flowers (bass-bloom)
+      // Drum buttons — hibiscus-style flowers with a stem (גבעול) and side
+      // leaves, matching the decorative ground flowers in JumpingMonkeys +
+      // /public/flowers.svg. Each drum keeps its own warm-palette tint so the
+      // lanes stay visually distinct (kick=gold, hat=amber, clap=coral, snare=rose).
       for (const d of drums) {
         d.pulse *= 0.88;
         const bloom = 1 + bass * 0.35 + d.pulse * 0.5;
@@ -482,40 +485,94 @@ export function useJungleScene(
         const cR = Math.floor(d.color[0] * 255);
         const cG = Math.floor(d.color[1] * 255);
         const cB = Math.floor(d.color[2] * 255);
+        // Tonal stops for the petal gradient: highlight (near-white tint at
+        // base), mid (full drum color), shadow (darker edge at the tip).
+        const hiR = Math.min(255, cR + 60);
+        const hiG = Math.min(255, cG + 60);
+        const hiB = Math.min(255, cB + 60);
+        const loR = Math.max(0, Math.floor(cR * 0.45));
+        const loG = Math.max(0, Math.floor(cG * 0.45));
+        const loB = Math.max(0, Math.floor(cB * 0.45));
+
         ctx.save();
         ctx.translate(d.x, d.y);
+
+        // Stem (גבעול) — drawn in the un-rotated local frame so it stays
+        // planted while the flower head rotates above it. Two leaves sprout
+        // mid-stem, matching the sprite's side-leaf motif.
+        const stemLen = r * 2.4;
+        const stemTopY = r * 0.45;
+        const stemBotY = stemTopY + stemLen;
+        ctx.save();
+        ctx.strokeStyle = "#2d6a4f";
+        ctx.lineWidth = Math.max(2, r * 0.12);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(0, stemBotY);
+        ctx.bezierCurveTo(
+          -r * 0.22, stemBotY - stemLen * 0.4,
+          r * 0.18, stemTopY + stemLen * 0.4,
+          0, stemTopY
+        );
+        ctx.stroke();
+        const leafY = (stemTopY + stemBotY) / 2;
+        ctx.fillStyle = "#206d44";
+        ctx.beginPath();
+        ctx.ellipse(-r * 0.5, leafY, r * 0.5, r * 0.22, -0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#2d8f5a";
+        ctx.beginPath();
+        ctx.ellipse(r * 0.55, leafY - r * 0.45, r * 0.45, r * 0.2, 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Flower head — rotates with time + pulse, matching sprite-style petals
+        ctx.save();
         ctx.rotate(tS * 0.15 + d.pulse * 0.6);
         ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
         ctx.shadowBlur = 14 + d.pulse * 28;
-        // 5 petals
         for (let pIdx = 0; pIdx < 5; pIdx++) {
           const ang = (pIdx / 5) * Math.PI * 2;
           ctx.save();
           ctx.rotate(ang);
-          const grd = ctx.createRadialGradient(0, -r * 0.55, 1, 0, -r * 0.55, r * 0.65);
-          grd.addColorStop(0, `rgba(${cR},${cG},${cB},0.95)`);
-          grd.addColorStop(1, `rgba(${cR},${cG},${cB},0.25)`);
+          // Radial gradient along the petal: hue base → full color → dark tip,
+          // mirroring the #fbcfe8 → #ec4899 → #9d174d pattern in flowers.svg.
+          const grd = ctx.createRadialGradient(0, -r * 0.2, 1, 0, -r * 0.9, r * 0.85);
+          grd.addColorStop(0,    `rgba(${hiR},${hiG},${hiB},0.95)`);
+          grd.addColorStop(0.55, `rgba(${cR},${cG},${cB},0.92)`);
+          grd.addColorStop(1,    `rgba(${loR},${loG},${loB},0.55)`);
           ctx.fillStyle = grd;
           ctx.beginPath();
-          ctx.ellipse(0, -r * 0.55, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
+          ctx.ellipse(0, -r * 0.58, r * 0.42, r * 0.78, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
-        // center disk
+        // Amber core — matches the sprite's #fef3c7 → #fbbf24 → #b45309 disk
         ctx.shadowBlur = 0;
-        const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.35);
-        cg.addColorStop(0, "#ffe14d");
-        cg.addColorStop(1, "#b45309");
+        const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.38);
+        cg.addColorStop(0,   "#fef3c7");
+        cg.addColorStop(0.7, "#fbbf24");
+        cg.addColorStop(1,   "#b45309");
         ctx.fillStyle = cg;
         ctx.beginPath();
-        ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+        ctx.arc(0, 0, r * 0.34, 0, Math.PI * 2);
         ctx.fill();
-        // label
+        // Stamens appear as the flower blooms (d.pulse spikes on drum hits) —
+        // matches frame 3 of the sprite sheet, which adds three yellow stamens.
+        if (d.pulse > 0.2) {
+          const stamenA = Math.min(1, (d.pulse - 0.2) / 0.6);
+          ctx.fillStyle = `rgba(255,240,133,${stamenA})`;
+          ctx.beginPath(); ctx.arc(-r * 0.09, -r * 0.08, r * 0.06, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc( r * 0.10, -r * 0.05, r * 0.06, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc( 0,         r * 0.10, r * 0.06, 0, Math.PI * 2); ctx.fill();
+        }
+        // Letter label (K/H/C/S) sits on the core
         ctx.fillStyle = "#0a1f14";
         ctx.font = `bold ${Math.floor(r * 0.42)}px system-ui, sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(d.label, 0, 0);
+        ctx.restore();
         ctx.restore();
       }
 

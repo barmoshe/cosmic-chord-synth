@@ -22,16 +22,25 @@ interface MonkeySlot {
    Row 2 (y=-256) → FLIP  · 8 frames ( animates to -800%, full row )                        */
 
 const SLOTS: MonkeySlot[] = [
-  // Walking troupe on the ground
-  { left: "6%",   bottom: "6%",  scale: 0.9,  anim: "walk", delay: "0s",    speed: "1.1s" },
-  { left: "22%",  bottom: "5%",  scale: 1.0,  anim: "jump", delay: "0.2s",  speed: "0.9s" },
-  { left: "42%",  bottom: "7%",  scale: 1.15, anim: "walk", delay: "0.4s",  speed: "1.25s", flip: true },
-  { left: "62%",  bottom: "4%",  scale: 0.95, anim: "jump", delay: "0.55s", speed: "0.85s" },
-  { left: "80%",  bottom: "6%",  scale: 1.0,  anim: "walk", delay: "0.7s",  speed: "1.05s" },
-  // Mid-ground flipper
-  { left: "35%",  bottom: "18%", scale: 0.8,  anim: "flip", delay: "0.1s",  speed: "1.4s" },
-  // Secondary flipper — relocated from bottom:55% so it no longer climbs into the HUD band
-  { left: "70%",  bottom: "22%", scale: 0.55, anim: "flip", delay: "0.8s",  speed: "1.8s", flip: true },
+  // Sparse ground troupe — three monkeys, well-spaced, leaving breathing room
+  // for the flower clumps and ferns.
+  { left: "10%",  bottom: "6%",  scale: 0.95, anim: "walk", delay: "0s",    speed: "1.1s" },
+  { left: "44%",  bottom: "5%",  scale: 1.05, anim: "jump", delay: "0.4s",  speed: "0.9s" },
+  { left: "78%",  bottom: "6%",  scale: 1.0,  anim: "walk", delay: "0.7s",  speed: "1.05s", flip: true },
+];
+
+interface FlowerSlot {
+  left: string;
+  bottom: string;
+  scale: number;
+  delay: string;
+  tilt: number;
+}
+
+const FLOWERS: FlowerSlot[] = [
+  { left: "28%", bottom: "2%", scale: 0.95, delay: "0s",   tilt: -4 },
+  { left: "60%", bottom: "3%", scale: 1.1,  delay: "1.2s", tilt:  3 },
+  { left: "90%", bottom: "2%", scale: 0.85, delay: "0.6s", tilt: -2 },
 ];
 
 export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
@@ -146,11 +155,11 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             <g transform="rotate(40)"><path  d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(72)"><path  d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
             <g transform="rotate(110)"><path d="M 0 0 Q 44 -6  92  -8  Q 56 14 10 16 Z" fill="url(#t-frond)" opacity="0.85"/></g>
-            {/* Coconut cluster at crown base */}
+            {/* Coconut cluster at crown base — compact trio */}
             <g className="jungle-coconuts">
-              <circle cx="-4"  cy="10" r="6"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="8"   cy="12" r="6.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="2"   cy="18" r="5.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="-3"  cy="8"  r="4.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="6"   cy="10" r="5"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="1"   cy="14" r="4"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
             </g>
           </g>
         </svg>
@@ -173,19 +182,25 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             <g transform="rotate(-12)"><path d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(-40)"><path d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(-72)"><path d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            {/* Banana cluster — stem anchored at (0,0) inside the crown translate. */}
-            <g className="jungle-banana-cluster jungle-banana-cluster-right">
-              <ellipse cx="0" cy="-2" rx="7" ry="3" fill="#3f2a15"/>
-              <path transform="rotate(-36)" d="M 0 0 Q 3 14 -3 30 Q -9 40 1 42 Q 11 38 12 24 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path transform="rotate(-18)" d="M 0 0 Q 3 16 -3 34 Q -9 44 1 46 Q 11 42 12 26 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path                         d="M 0 0 Q 3 18 -3 36 Q -9 46 1 48 Q 11 44 12 28 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path transform="rotate(18)"  d="M 0 0 Q 3 16 -3 34 Q -9 44 1 46 Q 11 42 12 26 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
-              <path transform="rotate(36)"  d="M 0 0 Q 3 14 -3 30 Q -9 40 1 42 Q 11 38 12 24 Q 12 8 5 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+            {/* Banana cluster — stem anchored at (0,0) inside the crown translate.
+                Outer static group scales the whole bunch down; inner group owns
+                the CSS sway animation independently. Only 4 bananas fanning
+                downward across ±20° — a real bunch hangs DOWN, it doesn't
+                radiate like a sunburst. */}
+            <g transform="translate(4 2) scale(0.7)">
+              <g className="jungle-banana-cluster jungle-banana-cluster-right">
+                <ellipse cx="0" cy="-2" rx="6" ry="3" fill="#3f2a15"/>
+                <path transform="rotate(-20)" d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                <path transform="rotate(-7)"  d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                <path transform="rotate(7)"   d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+                <path transform="rotate(20)"  d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
+              </g>
             </g>
           </g>
         </svg>
 
-        {/* Ground fern tufts */}
+        {/* A single fern tuft off to the side — second one removed to uncrowd
+            the ground band. */}
         <svg className="jungle-fern jungle-fern-1" viewBox="0 0 120 70" aria-hidden="true">
           <path d="M 60 70 Q 20 40 10 10" stroke="#143d28" strokeWidth="3" fill="none" strokeLinecap="round"/>
           <path d="M 60 70 Q 40 30 30 2" stroke="#206d44" strokeWidth="3" fill="none" strokeLinecap="round"/>
@@ -193,13 +208,34 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           <path d="M 60 70 Q 80 30 90 2" stroke="#206d44" strokeWidth="3" fill="none" strokeLinecap="round"/>
           <path d="M 60 70 Q 100 40 110 10" stroke="#143d28" strokeWidth="3" fill="none" strokeLinecap="round"/>
         </svg>
-        <svg className="jungle-fern jungle-fern-2" viewBox="0 0 120 70" aria-hidden="true">
-          <path d="M 60 70 Q 25 38 15 12" stroke="#0e2617" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <path d="M 60 70 Q 45 32 38 4" stroke="#174a2d" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <path d="M 60 70 Q 60 30 58 0" stroke="#206d44" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <path d="M 60 70 Q 75 32 82 4" stroke="#174a2d" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <path d="M 60 70 Q 95 38 105 12" stroke="#0e2617" strokeWidth="3" fill="none" strokeLinecap="round"/>
-        </svg>
+
+        {/* Ground flowers — stem (גבעול) + sprite-animated bloom head.
+            The stem is a static curved SVG path with a midway leaf; the head
+            is a div with background-image cycling through flowers.svg at
+            steps(4, jump-none). Positions are scattered in gaps between the
+            monkey troupe so the ground reads as sparse-but-alive. */}
+        {FLOWERS.map((f, i) => (
+          <div
+            key={i}
+            className="jungle-flower"
+            style={{
+              left: f.left,
+              bottom: f.bottom,
+              transform: `scale(${f.scale}) rotate(${f.tilt}deg)`,
+            }}
+          >
+            <svg className="jungle-flower-stem" viewBox="0 0 24 60" aria-hidden="true">
+              <path d="M 12 60 Q 9 42 12 24 Q 15 12 12 2" stroke="#206d44" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
+              <ellipse cx="7" cy="38" rx="6" ry="2.4" fill="#2d8f5a" transform="rotate(-25 7 38)" opacity="0.9"/>
+              <ellipse cx="17" cy="28" rx="5" ry="2.2" fill="#206d44" transform="rotate(30 17 28)" opacity="0.85"/>
+            </svg>
+            <span
+              className="jungle-flower-head"
+              style={{ animationDelay: f.delay }}
+              aria-hidden="true"
+            />
+          </div>
+        ))}
       </div>
 
       <style>{`
@@ -218,10 +254,10 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           opacity: 0;
           transition: opacity 0.6s ease-out;
           overflow: hidden;
-          clip-path: inset(34% 0 0 0);
+          clip-path: inset(42% 0 0 0);
         }
         @media (max-width: 480px) {
-          .jungle-overlay { clip-path: inset(40% 0 0 0); }
+          .jungle-overlay { clip-path: inset(50% 0 0 0); }
         }
         .jungle-overlay[data-visible="true"] { opacity: 1; }
 
@@ -262,9 +298,14 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           width: auto;
           filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
         }
-        .jungle-tree-back  { left: 42%; height: 60%; opacity: 0.75; transform: translateX(-50%); }
-        .jungle-tree-left  { left: -3%; height: 66%; opacity: 0.97; }
-        .jungle-tree-right { right: -4%; height: 60%; opacity: 0.97; }
+        .jungle-tree-back  { left: 50%; height: 40%; opacity: 0.7;  transform: translateX(-50%); }
+        .jungle-tree-left  { left: -12%; height: 44%; opacity: 0.95; }
+        .jungle-tree-right { right: -14%; height: 42%; opacity: 0.95; }
+        @media (max-width: 480px) {
+          .jungle-tree-back  { height: 34%; }
+          .jungle-tree-left  { height: 38%; left: -18%; }
+          .jungle-tree-right { height: 36%; right: -20%; }
+        }
 
         /* Banana cluster — pivot at the stem attachment (0,0 in its local
            rotated crown space). transform-origin is pinned so the sway rotates
@@ -303,8 +344,52 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           opacity: 0.85;
           filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
         }
-        .jungle-fern-1 { left: 14%; }
-        .jungle-fern-2 { right: 24%; }
+        .jungle-fern-1 { left: 4%; opacity: 0.7; }
+
+        /* Ground flower — stem (גבעול) below, sprite-animated bloom head on top.
+           The head sits at the top of the stem via absolute positioning.
+           Sprite advances through 4 frames at steps(4, jump-none) for a slow
+           bloom-breathe cycle. transform-origin on the wrapper pins the sway
+           at the ground so the stem bends from its root, not its tip. */
+        .jungle-flower {
+          position: absolute;
+          width: 56px;
+          height: 80px;
+          transform-origin: 50% 100%;
+          animation: flower-sway 5.4s ease-in-out infinite;
+          filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));
+        }
+        @keyframes flower-sway {
+          0%, 100% { transform: rotate(-3deg); }
+          50%      { transform: rotate(4deg); }
+        }
+        .jungle-flower-stem {
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 24px;
+          height: 56px;
+        }
+        .jungle-flower-head {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 56px;
+          height: 56px;
+          background-image: url('/flowers.svg');
+          background-repeat: no-repeat;
+          /* 4 horizontal frames, 1 row → 400% 100%. steps(4, jump-none) walks
+             the 4 columns; end position of 100% is the last column (frame 3). */
+          background-size: 400% 100%;
+          background-position: 0% 0%;
+          animation: flower-bloom 3.6s steps(4, jump-none) infinite;
+        }
+        @keyframes flower-bloom {
+          from { background-position: 0%   0%; }
+          to   { background-position: 100% 0%; }
+        }
 
         /* Monkey sprite base */
         .jungle-monkey {
@@ -425,6 +510,8 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           .jungle-banana-cluster,
           .jungle-banana-cluster-right,
           .jungle-coconuts,
+          .jungle-flower,
+          .jungle-flower-head,
           .jungle-vine { animation: none !important; }
         }
       `}</style>
