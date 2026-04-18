@@ -435,11 +435,12 @@ export function useJungleScene(
         ctx.restore();
       }
 
-      // Particles (leaves + banana bits)
+      // Particles (leaves + flower bits) — high-band FFT boosts velocity
+      const hiBoost = 1 + high * 0.6;
       for (const p of particles) {
         if (!p.alive) continue;
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx * hiBoost;
+        p.y += p.vy * hiBoost;
         p.vy += 0.08; // gravity
         p.vx *= 0.985;
         p.rot += p.vr;
