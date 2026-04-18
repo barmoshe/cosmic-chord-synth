@@ -272,20 +272,21 @@ export function useJungleScene(
       r.col = col; r.alpha = 0.55 * intensity; r.alive = true;
     }
     function emitParticles(x: number, y: number, _z: number, col: RGB, count: number, vel: number) {
+      // spiral burst — angles equally spaced, gentle outward + upward bias
       for (let i = 0; i < count; i++) {
         const p = particles[particleCursor];
         particleCursor = (particleCursor + 1) % particles.length;
-        const a = Math.random() * Math.PI * 2;
-        const s = rand(1.2, 3.6) * vel;
+        const a = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+        const s = rand(1.6, 3.2) * vel;
         p.x = x; p.y = y;
         p.vx = Math.cos(a) * s;
-        p.vy = Math.sin(a) * s - rand(1, 2.5);
-        p.maxLife = rand(60, 110);
+        p.vy = Math.sin(a) * s * 0.6 - rand(0.8, 2.0);
+        p.maxLife = rand(70, 120);
         p.life = p.maxLife;
         p.col = col;
-        p.rot = Math.random() * Math.PI * 2;
-        p.vr = rand(-0.12, 0.12);
-        p.kind = Math.random() < 0.35 ? 1 : 0;
+        p.rot = a;
+        p.vr = (i % 2 === 0 ? 1 : -1) * rand(0.04, 0.14);
+        p.kind = Math.random() < 0.55 ? 1 : 0; // more flowers/bananas, fewer leaves
         p.alive = true;
       }
     }
@@ -345,20 +346,37 @@ export function useJungleScene(
       const mid = a.mid ?? 0;
       const high = a.high ?? 0;
 
-      // Background gradient sky
+      // Three-stop sky gradient
       const grad = ctx.createLinearGradient(0, 0, 0, H);
       grad.addColorStop(0, "#0a1f14");
-      grad.addColorStop(0.6, "#143d28");
+      grad.addColorStop(0.45, "#143d28");
       grad.addColorStop(1, "#2d1b0a");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      // Warm horizon glow (amber sun)
-      const horizon = ctx.createRadialGradient(W * 0.5, H * 0.78, 20, W * 0.5, H * 0.78, H * 0.5);
-      horizon.addColorStop(0, "rgba(245,158,11,0.22)");
+      // Radial sun glow at 78% (stronger, warmer)
+      const horizon = ctx.createRadialGradient(W * 0.5, H * 0.78, 20, W * 0.5, H * 0.78, H * 0.55);
+      horizon.addColorStop(0, "rgba(245,158,11,0.28)");
+      horizon.addColorStop(0.5, "rgba(180,90,20,0.12)");
       horizon.addColorStop(1, "rgba(245,158,11,0)");
       ctx.fillStyle = horizon;
       ctx.fillRect(0, 0, W, H);
+
+      // Distant mountain silhouette (cached)
+      ctx.drawImage(mtCanvas, 0, H * 0.30, W, H * 0.45);
+
+      // Drifting mist bands (driven by mid-band FFT)
+      for (const m of mistBands) {
+        m.off += m.speed * (1 + mid * 0.6);
+        const my = H * m.y;
+        const mAlpha = m.alpha + mid * 0.04;
+        const mg = ctx.createLinearGradient(0, my - m.h * 0.5, 0, my + m.h * 0.5);
+        mg.addColorStop(0, `rgba(255,255,255,0)`);
+        mg.addColorStop(0.5, `rgba(255,255,255,${mAlpha})`);
+        mg.addColorStop(1, `rgba(255,255,255,0)`);
+        ctx.fillStyle = mg;
+        ctx.fillRect(0, my - m.h * 0.5, W, m.h);
+      }
 
       // Fireflies
       for (const f of fireflies) {
@@ -380,15 +398,15 @@ export function useJungleScene(
         ctx.restore();
       }
 
-      // Tree layers back → front
+      // Tree layers back → front (4 layers, parallax)
       const groundY = H * 0.95;
-      for (let layer = 0; layer < 3; layer++) {
+      for (let layer = 0; layer < 4; layer++) {
         const parallax = (layer + 1) * 8;
         const offsetX = (tS * parallax * 0.1) % W;
         for (const t of trees) {
           if (t.layer !== layer) continue;
           const drawX = ((t.x - offsetX) % (W + 120) + W + 120) % (W + 120) - 60;
-          drawTree(ctx, { ...t, x: drawX }, groundY + (2 - layer) * 6, tS, bass);
+          drawTree(ctx, { ...t, x: drawX }, groundY + (3 - layer) * 6, tS, bass);
         }
       }
 
@@ -398,6 +416,9 @@ export function useJungleScene(
       g2.addColorStop(1, "#050d08");
       ctx.fillStyle = g2;
       ctx.fillRect(0, groundY, W, H - groundY);
+
+      // Undergrowth (ferns + rocks, cached) — sits along ground
+      ctx.drawImage(ugCanvas, 0, groundY - H * 0.18 + 12, W, H * 0.18);
 
       // Ripples
       for (const r of ripples) {
@@ -452,29 +473,45 @@ export function useJungleScene(
         ctx.restore();
       }
 
-      // Drum glyphs (glowing bananas)
+      // Drum glyphs — 5-petal tropical flowers (bass-bloom)
       for (const d of drums) {
         d.pulse *= 0.88;
-        const r = 18 + d.pulse * 14 + Math.sin(tS * 2) * 1.2;
+        const bloom = 1 + bass * 0.35 + d.pulse * 0.5;
+        const r = (16 + d.pulse * 14) * bloom + Math.sin(tS * 2) * 1.2;
+        const cR = Math.floor(d.color[0] * 255);
+        const cG = Math.floor(d.color[1] * 255);
+        const cB = Math.floor(d.color[2] * 255);
         ctx.save();
         ctx.translate(d.x, d.y);
-        ctx.shadowColor = `rgb(${Math.floor(d.color[0] * 255)},${Math.floor(d.color[1] * 255)},${Math.floor(d.color[2] * 255)})`;
-        ctx.shadowBlur = 12 + d.pulse * 24;
-        ctx.fillStyle = `rgba(${Math.floor(d.color[0] * 255)},${Math.floor(d.color[1] * 255)},${Math.floor(d.color[2] * 255)},${0.85})`;
-        // banana shape
-        ctx.rotate(-0.4);
-        ctx.beginPath();
-        ctx.moveTo(-r * 0.9, 0);
-        ctx.quadraticCurveTo(0, -r * 0.8, r * 0.9, -r * 0.2);
-        ctx.quadraticCurveTo(r * 0.5, r * 0.4, -r * 0.2, r * 0.4);
-        ctx.quadraticCurveTo(-r * 0.8, r * 0.3, -r * 0.9, 0);
-        ctx.closePath();
-        ctx.fill();
-        ctx.rotate(0.4);
-        // label
+        ctx.rotate(tS * 0.15 + d.pulse * 0.6);
+        ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
+        ctx.shadowBlur = 14 + d.pulse * 28;
+        // 5 petals
+        for (let pIdx = 0; pIdx < 5; pIdx++) {
+          const ang = (pIdx / 5) * Math.PI * 2;
+          ctx.save();
+          ctx.rotate(ang);
+          const grd = ctx.createRadialGradient(0, -r * 0.55, 1, 0, -r * 0.55, r * 0.65);
+          grd.addColorStop(0, `rgba(${cR},${cG},${cB},0.95)`);
+          grd.addColorStop(1, `rgba(${cR},${cG},${cB},0.25)`);
+          ctx.fillStyle = grd;
+          ctx.beginPath();
+          ctx.ellipse(0, -r * 0.55, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        // center disk
         ctx.shadowBlur = 0;
+        const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.35);
+        cg.addColorStop(0, "#ffe14d");
+        cg.addColorStop(1, "#b45309");
+        ctx.fillStyle = cg;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2);
+        ctx.fill();
+        // label
         ctx.fillStyle = "#0a1f14";
-        ctx.font = `bold ${Math.floor(r * 0.7)}px system-ui, sans-serif`;
+        ctx.font = `bold ${Math.floor(r * 0.42)}px system-ui, sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(d.label, 0, 0);
@@ -503,10 +540,10 @@ export function useJungleScene(
         flashIntensity.current *= 0.9;
       }
 
-      // Vignette
-      const vig = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.4, W / 2, H / 2, Math.max(W, H) * 0.75);
+      // Vignette (tighter)
+      const vig = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.34, W / 2, H / 2, Math.max(W, H) * 0.72);
       vig.addColorStop(0, "rgba(0,0,0,0)");
-      vig.addColorStop(1, "rgba(0,0,0,0.55)");
+      vig.addColorStop(1, "rgba(0,0,0,0.65)");
       ctx.fillStyle = vig;
       ctx.fillRect(0, 0, W, H);
     };
@@ -517,7 +554,11 @@ export function useJungleScene(
       rafRef.current = null;
       window.removeEventListener("resize", resize);
       window.removeEventListener("resize", layoutDrums);
+      window.removeEventListener("resize", rebuildOffscreens);
       engineRef.current = null;
+      // dispose offscreen canvases
+      mtCanvas.width = mtCanvas.height = 0;
+      ugCanvas.width = ugCanvas.height = 0;
       // clear canvas so next scene (e.g. space) starts clean
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, cv.width, cv.height);
