@@ -59,6 +59,10 @@ Always dispose Tone.js nodes on cleanup to prevent memory leaks.
 - TypeScript interfaces in `types.ts`, helpers in `helpers.ts`
 - Mobile-first: reduce particle counts and disable heavy effects on mobile
 
+## Git Workflow
+
+- Mono-branch project: after committing to a feature branch, always fast-forward `main` and `git push origin main`. No PR review flow — main is the single source of truth.
+
 ## Scoped Rules
 
 @.claude/rules/react-components.md
