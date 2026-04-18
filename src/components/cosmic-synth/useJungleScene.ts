@@ -17,14 +17,14 @@ function drawTree(ctx: CanvasRenderingContext2D, t: Tree, baseY: number, timeS: 
   const h = 160 * t.scale;
   const w = 28 * t.scale;
   const bendPhase = Math.sin(timeS * 0.5 + t.seed * 7) * (0.4 + bassEnergy * 1.2);
-  const alpha = t.layer === 0 ? 0.55 : t.layer === 1 ? 0.75 : 0.95;
+  const alpha = t.layer === 0 ? 0.5 : t.layer === 1 ? 0.7 : t.layer === 2 ? 0.92 : 1.0;
 
   ctx.save();
   ctx.translate(t.x, baseY);
   ctx.globalAlpha = alpha;
 
   // trunk
-  ctx.fillStyle = t.layer === 0 ? "#081a11" : t.layer === 1 ? "#0c2a1b" : "#143d28";
+  ctx.fillStyle = t.layer === 0 ? "#081a11" : t.layer === 1 ? "#0c2a1b" : t.layer === 2 ? "#143d28" : "#1a4d33";
   ctx.beginPath();
   ctx.moveTo(-w * 0.18, 0);
   ctx.quadraticCurveTo(bendPhase * 4, -h * 0.55, w * 0.14 + bendPhase * 6, -h);
@@ -41,7 +41,7 @@ function drawTree(ctx: CanvasRenderingContext2D, t: Tree, baseY: number, timeS: 
     const a = (i / blobs) * Math.PI * 2 + t.seed;
     const r = 22 * t.scale + Math.sin(timeS + i) * 2;
     ctx.beginPath();
-    ctx.fillStyle = t.layer === 0 ? "#0e2617" : t.layer === 1 ? "#174a2d" : "#206d44";
+    ctx.fillStyle = t.layer === 0 ? "#0e2617" : t.layer === 1 ? "#174a2d" : t.layer === 2 ? "#206d44" : "#2d8a58";
     ctx.arc(canopyX + Math.cos(a) * 18 * t.scale, canopyY + Math.sin(a) * 12 * t.scale, r, 0, Math.PI * 2);
     ctx.fill();
   }
