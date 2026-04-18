@@ -13,6 +13,7 @@ import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
 import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
+import JungleFlora from "./cosmic-synth/JungleFlora";
 import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
 
 const THEME_STORAGE_KEY = "cosmic-synth-theme";
@@ -252,8 +253,13 @@ export default function CosmicSynth() {
         </div>
       )}
 
-      {/* Jumping monkeys overlay — jungle theme only, play phase only */}
-      {isJungle && <JumpingMonkeys visible={phase === "play"} />}
+      {/* Jungle overlays — flora sits behind animated monkey sprites */}
+      {isJungle && (
+        <>
+          <JungleFlora visible={phase === "play"} />
+          <JumpingMonkeys visible={phase === "play"} />
+        </>
+      )}
 
       {/* Play UI */}
       {phase === "play" && (
