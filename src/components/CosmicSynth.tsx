@@ -14,6 +14,7 @@ import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
 import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
 import JungleFlora from "./cosmic-synth/JungleFlora";
+import FloatingBananas from "./cosmic-synth/FloatingBananas";
 import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
 
 const THEME_STORAGE_KEY = "cosmic-synth-theme";
@@ -258,6 +259,7 @@ export default function CosmicSynth() {
         <>
           <JungleFlora visible={phase === "play"} />
           <JumpingMonkeys visible={phase === "play"} />
+          <FloatingBananas visible={phase === "play"} />
         </>
       )}
 
