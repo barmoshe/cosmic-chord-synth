@@ -642,4 +642,85 @@ export const COSMIC_STYLES = `
           background: linear-gradient(135deg, rgba(163,230,53,0.28), rgba(255,225,77,0.25));
           box-shadow: inset 0 0 0 1px rgba(163,230,53,0.5);
         }
+
+        /* Scale label + arrow buttons — lime outline + banana glow */
+        .theme-jungle .cosmic-scale-label {
+          color: #ffe14d;
+          text-shadow: 0 0 10px rgba(255,225,77,0.55), 0 0 24px rgba(163,230,53,0.35);
+        }
+        .theme-jungle .cosmic-btn-arrow {
+          color: #a3e635;
+          background: rgba(10,31,20,0.45);
+          border: 1px solid rgba(163,230,53,0.45);
+          box-shadow: 0 0 14px rgba(163,230,53,0.18), inset 0 0 8px rgba(255,225,77,0.08);
+        }
+        .theme-jungle .cosmic-btn-arrow:hover {
+          background: rgba(163,230,53,0.14);
+          border-color: rgba(255,225,77,0.55);
+          box-shadow: 0 0 22px rgba(255,225,77,0.35), inset 0 0 10px rgba(163,230,53,0.18);
+        }
+        .theme-jungle .cosmic-btn-auto {
+          color: #a3e635;
+          background: rgba(10,31,20,0.5);
+          border: 1px solid rgba(163,230,53,0.4);
+          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .theme-jungle .cosmic-btn-auto.active {
+          color: #ffe14d;
+          background: rgba(163,230,53,0.18);
+          border-color: rgba(255,225,77,0.65);
+          box-shadow: 0 0 30px rgba(255,225,77,0.35), inset 0 0 15px rgba(163,230,53,0.18);
+        }
+
+        /* Axis labels — moss with lime shadow */
+        .theme-jungle .cosmic-axis-label {
+          color: rgba(82,183,136,0.85);
+          text-shadow: 0 0 8px rgba(163,230,53,0.45);
+        }
+
+        /* Hint — frosted leaf glass */
+        .theme-jungle .cosmic-hint {
+          color: #a3e635;
+          text-shadow: 0 0 8px rgba(163,230,53,0.35);
+        }
+        .theme-jungle .cosmic-hint-detail {
+          color: rgba(82,183,136,0.85);
+        }
+
+        /* DJ panel — frosted canopy glass */
+        .theme-jungle .conductor-transport,
+        .theme-jungle .conductor-drawer {
+          background: rgba(10,31,20,0.55);
+          border: 1px solid rgba(163,230,53,0.22);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(163,230,53,0.08), 0 0 28px rgba(163,230,53,0.12);
+          backdrop-filter: blur(12px) saturate(140%);
+          -webkit-backdrop-filter: blur(12px) saturate(140%);
+        }
+        .theme-jungle .conductor-toggle {
+          color: #a3e635;
+          border-color: rgba(163,230,53,0.35);
+        }
+        .theme-jungle .conductor-toggle.is-active {
+          color: #ffe14d;
+          background: rgba(255,225,77,0.14);
+          border-color: rgba(255,225,77,0.6);
+          box-shadow: 0 0 22px rgba(255,225,77,0.35), inset 0 0 10px rgba(163,230,53,0.15);
+        }
+        .theme-jungle .conductor-bpm {
+          background: linear-gradient(90deg, #a3e635, #ffe14d);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .theme-jungle .conductor-phase { color: #ffe14d; text-shadow: 0 0 10px rgba(255,225,77,0.4); }
+
+        /* Flash — amber */
+        .theme-jungle .cosmic-flash {
+          color: #ffe14d;
+          text-shadow: 0 0 14px rgba(255,225,77,0.6), 0 0 30px rgba(245,158,11,0.4);
+        }
+
+        /* Header sub — moss tint */
+        .theme-jungle .cosmic-header-sub {
+          color: rgba(82,183,136,0.75);
+        }
 `;
