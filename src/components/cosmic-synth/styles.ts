@@ -541,6 +541,29 @@ export const COSMIC_STYLES = `
           transform: translateX(-50%);
         }
 
+        /* ── Audio status badge — bottom-right on desktop, repositioned on mobile ── */
+        .cosmic-audio-status {
+          position: fixed;
+          bottom: 8px; right: 8px;
+          z-index: 50;
+          padding: 6px 10px;
+          border-radius: 8px;
+          color: #fff;
+          font-size: 11px;
+          font-family: monospace;
+          letter-spacing: 0.04em;
+          pointer-events: auto;
+          user-select: none; -webkit-user-select: none;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.3s ease, transform 0.2s ease;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        }
+        .cosmic-audio-status.is-ok  { background: rgba(30,180,120,0.85); }
+        .cosmic-audio-status.is-err { background: rgba(220,60,60,0.9); animation: cosmicPulse 2s ease-in-out infinite; }
+        .cosmic-audio-status:active { transform: scale(0.96); }
+        .cosmic-audio-status-short { display: none; }
+
         .cosmic-energy-bar {
           position: fixed; top: 0; left: 0; right: 0; z-index: 9;
           height: 2px;
@@ -601,6 +624,63 @@ export const COSMIC_STYLES = `
         }
         .theme-chooser-option:nth-child(2) .theme-chooser-dot {
           background: #a3e635; box-shadow: 0 0 8px #a3e635;
+        }
+
+        /* ── Mobile layout overrides — keep chrome clear of the bottom-docked DJ panel ── */
+        @media (max-width: 480px) {
+          /* Theme chooser → top-left, symmetric with the top-right "Try v2" chip */
+          .theme-chooser {
+            bottom: auto;
+            top: 10px;
+            left: 10px;
+            padding: 2px;
+          }
+          .theme-chooser-option {
+            padding: 6px 9px;
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            gap: 5px;
+          }
+          .theme-chooser-dot { width: 6px; height: 6px; }
+
+          /* Header → sits below chooser + Try v2 chips, slimmed down so it doesn't collide */
+          .cosmic-header { top: 48px; }
+          .cosmic-header-title { font-size: 10px; letter-spacing: 0.28em; }
+          .cosmic-header-sub   { font-size: 9px;  letter-spacing: 0.16em; }
+
+          /* Scale group → above the DJ transport row so the arrows remain tappable */
+          .cosmic-scale-group {
+            bottom: 84px;
+            right: 10px;
+            gap: 8px;
+          }
+          .cosmic-scale-label { font-size: 11px; min-width: 54px; letter-spacing: 0.18em; }
+          .cosmic-btn-arrow   { width: 32px; height: 32px; font-size: 16px; }
+
+          /* Axis labels → hide the bottom one (DJ panel eats the space); shrink side ones */
+          .cosmic-axis-bottom { display: none; }
+          .cosmic-axis-top    { top: 86px; font-size: 8px; }
+          .cosmic-axis-left,
+          .cosmic-axis-right  { font-size: 8px; }
+
+          /* Hint → lift above the scale group so all three stay visible */
+          .cosmic-hint       { bottom: 136px; font-size: 10px; letter-spacing: 0.18em; }
+          .cosmic-hint-detail { font-size: 9px; letter-spacing: 0.12em; }
+
+          /* Audio status badge → compact chip, parked above the DJ panel on the left */
+          .cosmic-audio-status {
+            bottom: 88px;
+            left: 10px;
+            right: auto;
+            padding: 5px 9px;
+            font-size: 10px;
+            border-radius: 999px;
+          }
+          .cosmic-audio-status.is-ok .cosmic-audio-status-full,
+          .cosmic-audio-status.is-err .cosmic-audio-status-full { display: none; }
+          .cosmic-audio-status-short { display: inline; }
+          /* When audio is healthy the badge is uninteresting chrome — fade it out */
+          .cosmic-audio-status.is-ok { opacity: 0.55; }
         }
 
         /* ── Jungle theme overrides (applied when .theme-jungle on root wrapper) ── */

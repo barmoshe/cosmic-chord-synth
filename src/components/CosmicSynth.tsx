@@ -327,15 +327,16 @@ export default function CosmicSynth() {
               rawCtx.resume().catch(() => undefined);
               Tone.start().then(() => engine.current?.start());
             }}
-            style={{
-              position: "fixed", bottom: 8, right: 8, zIndex: 50,
-              padding: "6px 10px", borderRadius: 8,
-              background: engineReady && ctxState === "running" ? "rgba(30,180,120,0.85)" : "rgba(220,60,60,0.9)",
-              color: "#fff", fontSize: 11, fontFamily: "monospace",
-              pointerEvents: "auto", userSelect: "none", cursor: "pointer",
-            }}
+            className={`cosmic-audio-status ${engineReady && ctxState === "running" ? "is-ok" : "is-err"}`}
+            role="status"
+            aria-live="polite"
           >
-            {ctxState === "running" && engineReady ? "AUDIO OK" : `AUDIO ${ctxState.toUpperCase()} — TAP TO RETRY`}
+            <span className="cosmic-audio-status-full">
+              {ctxState === "running" && engineReady ? "AUDIO OK" : `AUDIO ${ctxState.toUpperCase()} — TAP TO RETRY`}
+            </span>
+            <span className="cosmic-audio-status-short" aria-hidden="true">
+              {ctxState === "running" && engineReady ? "AUDIO OK" : "AUDIO ⚠ TAP"}
+            </span>
           </div>
         </>
       )}
