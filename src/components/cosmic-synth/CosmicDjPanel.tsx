@@ -252,7 +252,7 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
                 <div className="conductor-row-head">
                   <span
                     className="conductor-row-dot"
-                    ref={(el) => { laneDotEls.current[lane] = el; }}
+                    ref={(el) => { laneDotEls.current[lane] = el as unknown as HTMLDivElement; }}
                     aria-hidden="true"
                   />
                   <span className="conductor-row-label">{LANE_LABEL[lane]}</span>
