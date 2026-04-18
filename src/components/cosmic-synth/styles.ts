@@ -129,10 +129,13 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-header {
-          position: fixed; top: 24px; left: 0; right: 0; z-index: 10;
+          position: fixed; top: 24px; left: 0; right: 0; z-index: 11;
           display: flex; flex-direction: column; align-items: center;
           pointer-events: none;
           transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+          /* Drop-shadow keeps the title/subtitle legible when floating
+             decor (bananas, monkeys) drifts behind them. */
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 6px rgba(0, 0, 0, 0.55));
         }
         .cosmic-header-title {
           font-family: 'Orbitron', monospace;
@@ -148,6 +151,7 @@ export const COSMIC_STYLES = `
           font-size: 11px; font-weight: 300;
           letter-spacing: 0.2em;
           color: #7C95B5;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
         }
 
         .cosmic-hint {

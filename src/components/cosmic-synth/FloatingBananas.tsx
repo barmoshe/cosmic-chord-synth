@@ -179,6 +179,9 @@ export default function FloatingBananas({ visible }: FloatingBananasProps) {
           position: fixed;
           inset: 0;
           pointer-events: none;
+          /* Sits above the canvas + flora (z:2) + monkeys (z:3) but strictly
+             below every UI text layer: axis labels (z:8), HUD/header (z:10),
+             glow overlays (z:12), DJ conductor (z:14), warp/splash (z:15+). */
           z-index: 4;
           opacity: 0;
           transition: opacity 0.8s ease-out;
