@@ -1,9 +1,11 @@
 export const COSMIC_STYLES = `
         /* ── z-layer map ──
            canvas 1 · jungle decor 3 (isolate, inner: back 1 · mid 2 · front 3) ·
-           axis 8 · energy-bar 9 · HUD (header/hint/scale) 10 · glow overlays 12 ·
-           DJ panel 14 · flash/error 15 · theme pill 30 · audio badge 50 ·
-           splash/warp 100. Jungle decor is decorative (pointer-events:none) and
+           energy-bar 9 · glow overlays 12 · DJ panel 14 · flash/error 15 ·
+           HUD text (header/hint/scale/axis) 20 · theme pill 30 · audio badge 50 ·
+           splash/warp 100. HUD text sits above every decorative + overlay
+           layer so it stays readable regardless of touch glow or DJ panel
+           position. Jungle decor is decorative (pointer-events:none) and
            must stay behind every interactive/textual chrome. 'isolation: isolate'
            on .jungle-overlay pins its inner stacking context so back/mid/front
            scene layers order monkeys between background vines and foreground
@@ -129,7 +131,7 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-header {
-          position: fixed; top: 24px; left: 0; right: 0; z-index: 11;
+          position: fixed; top: 24px; left: 0; right: 0; z-index: 20;
           display: flex; flex-direction: column; align-items: center;
           pointer-events: none;
           transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -155,7 +157,7 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-hint {
-          position: fixed; bottom: 180px; left: 0; right: 0; z-index: 10;
+          position: fixed; bottom: 180px; left: 0; right: 0; z-index: 20;
           display: flex; flex-direction: column; align-items: center; gap: 6px;
           text-align: center;
           font-family: 'Raleway', sans-serif;
@@ -527,7 +529,7 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-scale-group {
-          position: fixed; top: 18px; right: 18px; z-index: 10;
+          position: fixed; top: 18px; right: 18px; z-index: 20;
           display: flex; align-items: center; gap: 10px;
         }
         .cosmic-scale-label {
@@ -566,7 +568,7 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-axis-label {
-          position: fixed; z-index: 8;
+          position: fixed; z-index: 20;
           font-family: 'Raleway', sans-serif;
           font-size: 9px;
           font-weight: 300;
