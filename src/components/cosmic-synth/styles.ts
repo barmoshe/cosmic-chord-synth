@@ -2,15 +2,13 @@ export const COSMIC_STYLES = `
         /* ── z-layer map ──
            canvas 1 · jungle decor 3 (isolate, inner: back 1 · mid 2 · front 3) ·
            axis 8 · energy-bar 9 · HUD (header/hint/scale) 10 · glow overlays 12 ·
-           DJ panel 14 · flash/error 15 · theme pill 30 · try-v2 40 ·
-           audio badge 50 · splash/warp 100.
-           The jungle decor is purely decorative with pointer-events:none, so it
+           DJ panel 14 · flash/error 15 · theme pill 30 · audio badge 50 ·
+           splash/warp 100. Jungle decor is decorative (pointer-events:none) and
            must stay behind every interactive/textual chrome. 'isolation: isolate'
-           on .jungle-overlay pins its inner stacking context so the back/mid/front
-           scene layers order monkeys between background vines and foreground trees
-           without leaking out. A clip-path on the overlay keeps decor from painting
-           above the top viewport band (header, audio badge, theme pill, try-v2).
-           Keeping it above the canvas lets monkeys still render over the galaxy. */
+           on .jungle-overlay pins its inner stacking context so back/mid/front
+           scene layers order monkeys between background vines and foreground
+           trees without leaking out. A clip-path on the overlay keeps decor from
+           painting above the top viewport band (header, audio badge, theme pill). */
 
         /* ── Cosmic Design System v4 — "Glacial Aurora 2026" lifted-navy theme ── */
         @keyframes cosmicGradient {
@@ -153,7 +151,7 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-hint {
-          position: fixed; bottom: 16%; left: 0; right: 0; z-index: 10;
+          position: fixed; bottom: 180px; left: 0; right: 0; z-index: 10;
           display: flex; flex-direction: column; align-items: center; gap: 6px;
           text-align: center;
           font-family: 'Raleway', sans-serif;
@@ -524,8 +522,8 @@ export const COSMIC_STYLES = `
         }
 
         .cosmic-scale-group {
-          position: fixed; bottom: 28px; right: 24px; z-index: 10;
-          display: flex; align-items: center; gap: 12px;
+          position: fixed; top: 18px; right: 18px; z-index: 10;
+          display: flex; align-items: center; gap: 10px;
         }
         .cosmic-scale-label {
           font-family: 'Orbitron', monospace;
@@ -572,22 +570,12 @@ export const COSMIC_STYLES = `
           pointer-events: none;
           text-transform: uppercase;
         }
-        .cosmic-axis-left {
-          left: 10px; top: 50%;
-          transform: translateY(-50%) rotate(-90deg);
-          transform-origin: center;
-        }
-        .cosmic-axis-right {
-          right: 10px; top: 50%;
-          transform: translateY(-50%) rotate(90deg);
-          transform-origin: center;
-        }
         .cosmic-axis-top {
-          top: 55px; left: 50%;
+          top: 60px; left: 50%;
           transform: translateX(-50%);
         }
         .cosmic-axis-bottom {
-          bottom: 80px; left: 50%;
+          bottom: 128px; left: 50%;
           transform: translateX(-50%);
         }
 
@@ -626,11 +614,11 @@ export const COSMIC_STYLES = `
           box-shadow: 0 0 8px rgba(34,211,238,0.5), 0 0 16px rgba(129,140,248,0.25);
         }
 
-        /* ── Theme chooser (segmented pill, bottom-left corner) ── */
+        /* ── Theme chooser (segmented pill, top-left corner) ── */
         .theme-chooser {
           position: fixed;
           left: 12px;
-          bottom: 12px;
+          top: 12px;
           z-index: 30;
           display: flex;
           padding: 3px;
@@ -678,7 +666,8 @@ export const COSMIC_STYLES = `
 
         /* ── Mobile layout overrides — keep chrome clear of the bottom-docked DJ panel ── */
         @media (max-width: 480px) {
-          /* Theme chooser → top-left, symmetric with the top-right "Try v2" chip */
+          /* Theme chooser → top-left corner on mobile so the bottom band belongs
+             to the DJ panel + drum flowers only. */
           .theme-chooser {
             bottom: auto;
             top: 10px;
@@ -693,33 +682,31 @@ export const COSMIC_STYLES = `
           }
           .theme-chooser-dot { width: 6px; height: 6px; }
 
-          /* Header → sits below chooser + Try v2 chips, slimmed down so it doesn't collide */
+          /* Header → sits below the theme chooser, slimmed down so it doesn't collide */
           .cosmic-header { top: 48px; }
           .cosmic-header-title { font-size: 10px; letter-spacing: 0.28em; }
           .cosmic-header-sub   { font-size: 9px;  letter-spacing: 0.16em; }
 
-          /* Scale group → above the DJ transport row so the arrows remain tappable */
+          /* Scale group → stays top-right but tighter so it clears the header */
           .cosmic-scale-group {
-            bottom: 84px;
+            top: 10px;
             right: 10px;
-            gap: 8px;
+            gap: 6px;
           }
-          .cosmic-scale-label { font-size: 11px; min-width: 54px; letter-spacing: 0.18em; }
-          .cosmic-btn-arrow   { width: 32px; height: 32px; font-size: 16px; }
+          .cosmic-scale-label { font-size: 10px; min-width: 48px; letter-spacing: 0.16em; }
+          .cosmic-btn-arrow   { width: 28px; height: 28px; font-size: 14px; }
 
           /* Axis labels → hide the bottom one (DJ panel eats the space); shrink side ones */
           .cosmic-axis-bottom { display: none; }
-          .cosmic-axis-top    { top: 86px; font-size: 8px; }
-          .cosmic-axis-left,
-          .cosmic-axis-right  { font-size: 8px; }
+          .cosmic-axis-top    { top: 92px; font-size: 8px; }
 
-          /* Hint → lift above the scale group so all three stay visible */
-          .cosmic-hint       { bottom: 136px; font-size: 10px; letter-spacing: 0.18em; }
+          /* Hint → lift above the drum flowers and DJ panel */
+          .cosmic-hint       { bottom: 170px; font-size: 10px; letter-spacing: 0.18em; }
           .cosmic-hint-detail { font-size: 9px; letter-spacing: 0.12em; }
 
-          /* Audio status badge → compact chip, parked above the DJ panel on the left */
+          /* Audio status badge → compact chip, pinned bottom-left above the DJ handle */
           .cosmic-audio-status {
-            bottom: 88px;
+            bottom: 86px;
             left: 10px;
             right: auto;
             padding: 5px 9px;

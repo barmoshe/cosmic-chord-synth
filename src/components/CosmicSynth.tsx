@@ -12,7 +12,6 @@ import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
-import TryV2Prompt from "./cosmic-synth/TryV2Prompt";
 import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
 import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
 
@@ -253,9 +252,6 @@ export default function CosmicSynth() {
         </div>
       )}
 
-      {/* v1 → v2 invitation chip (appears after ~6s, dismissible) */}
-      <TryV2Prompt visible={phase === "play"} />
-
       {/* Jumping monkeys overlay — jungle theme only, play phase only */}
       {isJungle && <JumpingMonkeys visible={phase === "play"} />}
 
@@ -270,7 +266,7 @@ export default function CosmicSynth() {
           {!hintDismissed && (
             <div className="cosmic-hint">
               <div>Touch to play · Drag to explore</div>
-              <div className="cosmic-hint-detail">← Low pitch — High pitch → &nbsp;|&nbsp; ↑ Bright — Dark ↓</div>
+              <div className="cosmic-hint-detail">← pitch → · ↑ filter ↓</div>
             </div>
           )}
 
@@ -301,11 +297,9 @@ export default function CosmicSynth() {
             </button>
           </div>
 
-          {/* Axis guides */}
-          <div className="cosmic-axis-label cosmic-axis-left">Bright</div>
-          <div className="cosmic-axis-label cosmic-axis-right">Dark</div>
+          {/* Axis guides — minimal set: top = Y-axis, bottom = X-axis */}
           <div className="cosmic-axis-label cosmic-axis-top">↑ Filter Open</div>
-          <div className="cosmic-axis-label cosmic-axis-bottom">← Low Pitch — High Pitch →</div>
+          <div className="cosmic-axis-label cosmic-axis-bottom">Pitch: low → high</div>
 
           {/* Energy bar (shows DJ energy when auto-playing) */}
           {autoPlay && (
