@@ -214,14 +214,15 @@ export const COSMIC_STYLES = `
           color: #7C95B5;
         }
 
-        /* ── Cosmic Conductor — bottom-docked DJ console ──
-           Wrapper is pointer-events:none so galaxy taps pass through padding;
-           interactive children re-enable events. Z-index sits above HUD (10) but
-           below transition overlays (15). */
+        /* ── Cosmic Conductor — top-docked DJ console ──
+           Sits below the header so the jungle ground + drum flowers stay
+           visible at the bottom. Wrapper is pointer-events:none so galaxy
+           taps pass through padding; interactive children re-enable events.
+           Z-index sits above HUD (10) but below transition overlays (15). */
         .conductor-root {
           position: fixed;
           left: 50%;
-          bottom: 16px;
+          top: 68px;
           transform: translateX(-50%);
           z-index: 14;
           display: flex; flex-direction: column; align-items: stretch;
@@ -684,6 +685,9 @@ export const COSMIC_STYLES = `
 
           /* Header → sits below the theme chooser, slimmed down so it doesn't collide */
           .cosmic-header { top: 48px; }
+
+          /* Conductor → clears the stacked header/theme chooser on narrow screens */
+          .conductor-root { top: 94px; }
           .cosmic-header-title { font-size: 10px; letter-spacing: 0.28em; }
           .cosmic-header-sub   { font-size: 9px;  letter-spacing: 0.16em; }
 

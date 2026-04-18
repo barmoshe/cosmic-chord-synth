@@ -174,7 +174,7 @@ export function useJungleScene(
       // Ground-row layout: drums bloom from the jungle floor in a horizontal band
       // above the DJ panel. On mobile the panel is taller, so drums lift higher.
       const isNarrow = W <= 640;
-      const groundReserve = isNarrow ? 118 : 102;
+      const groundReserve = isNarrow ? 138 : 122;
       const y = H - groundReserve;
       const xs = [0.14, 0.38, 0.62, 0.86];
       drums.forEach((d, i) => {
@@ -386,7 +386,7 @@ export function useJungleScene(
       for (const d of drums) {
         d.pulse *= 0.88;
         const bloom = 1 + bass * 0.35 + d.pulse * 0.5;
-        const r = (16 + d.pulse * 14) * bloom + Math.sin(tS * 2) * 1.2;
+        const r = (26 + d.pulse * 18) * bloom + Math.sin(tS * 2) * 1.6;
         const cR = Math.floor(d.color[0] * 255);
         const cG = Math.floor(d.color[1] * 255);
         const cB = Math.floor(d.color[2] * 255);
