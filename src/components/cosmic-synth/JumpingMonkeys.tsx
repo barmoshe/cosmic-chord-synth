@@ -155,11 +155,12 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             <g transform="rotate(40)"><path  d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(72)"><path  d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
             <g transform="rotate(110)"><path d="M 0 0 Q 44 -6  92  -8  Q 56 14 10 16 Z" fill="url(#t-frond)" opacity="0.85"/></g>
-            {/* Coconut cluster at crown base — compact trio */}
-            <g className="jungle-coconuts">
-              <circle cx="-3"  cy="8"  r="4.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="6"   cy="10" r="5"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
-              <circle cx="1"   cy="14" r="4"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+            {/* Coconut cluster — nudged below the crown so the trio reads as
+                fruit hanging under the fronds instead of peeking through them. */}
+            <g className="jungle-coconuts" transform="translate(2 14)">
+              <circle cx="-5"  cy="0"  r="5"   fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="5"   cy="2"  r="5.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
+              <circle cx="0"   cy="8"  r="4.5" fill="url(#t-coconut)" stroke="#2a180e" strokeWidth="1"/>
             </g>
           </g>
         </svg>
@@ -182,14 +183,12 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
             <g transform="rotate(-12)"><path d="M 0 0 Q 62 -6  124 -10 Q 74 16 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(-40)"><path d="M 0 0 Q 60 -12 120 -26 Q 72 12 12 16 Z" fill="url(#t-frond)"/></g>
             <g transform="rotate(-72)"><path d="M 0 0 Q 52 -16 104 -28 Q 62  8 10 16 Z" fill="url(#t-frond)" opacity="0.92"/></g>
-            {/* Banana cluster — stem anchored at (0,0) inside the crown translate.
-                Outer static group scales the whole bunch down; inner group owns
-                the CSS sway animation independently. Only 4 bananas fanning
-                downward across ±20° — a real bunch hangs DOWN, it doesn't
-                radiate like a sunburst. */}
-            <g transform="translate(4 2) scale(0.7)">
+            {/* Banana cluster — nudged outward from the crown mass and
+                scaled up to 1.0 so the bunch reads as hanging fruit rather
+                than a tucked leaf. Inner group owns the CSS sway. */}
+            <g transform="translate(10 14)">
               <g className="jungle-banana-cluster jungle-banana-cluster-right">
-                <ellipse cx="0" cy="-2" rx="6" ry="3" fill="#3f2a15"/>
+                <ellipse cx="0" cy="-2" rx="7" ry="3.2" fill="#3f2a15"/>
                 <path transform="rotate(-20)" d="M 0 0 Q 2 14 -2 28 Q -7 38 1 40 Q 9 36 10 22 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
                 <path transform="rotate(-7)"  d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
                 <path transform="rotate(7)"   d="M 0 0 Q 2 15 -2 30 Q -7 40 1 42 Q 9 38 10 24 Q 10 8 4 -2 Z" fill="url(#b-banana)" stroke="#8b6914" strokeWidth="1"/>
@@ -298,13 +297,17 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           width: auto;
           filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55));
         }
-        .jungle-tree-back  { left: 50%; height: 40%; opacity: 0.7;  transform: translateX(-50%); }
-        .jungle-tree-left  { left: -12%; height: 44%; opacity: 0.95; }
-        .jungle-tree-right { right: -14%; height: 42%; opacity: 0.95; }
+        /* Back tree → off-center (70% from left) at 30% height + 0.55 opacity
+           so it frames the horizon without competing with the center action.
+           Front trees → pushed further off-screen so only the canopy peeks in;
+           trunks stay out of the playable band. */
+        .jungle-tree-back  { left: 70%; height: 30%; opacity: 0.55; transform: translateX(-50%); }
+        .jungle-tree-left  { left: -22%; height: 42%; opacity: 0.92; }
+        .jungle-tree-right { right: -24%; height: 40%; opacity: 0.92; }
         @media (max-width: 480px) {
-          .jungle-tree-back  { height: 34%; }
-          .jungle-tree-left  { height: 38%; left: -18%; }
-          .jungle-tree-right { height: 36%; right: -20%; }
+          .jungle-tree-back  { height: 26%; left: 72%; }
+          .jungle-tree-left  { height: 36%; left: -28%; }
+          .jungle-tree-right { height: 34%; right: -30%; }
         }
 
         /* Banana cluster — pivot at the stem attachment (0,0 in its local
