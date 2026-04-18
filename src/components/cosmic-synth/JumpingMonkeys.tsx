@@ -132,7 +132,10 @@ export default function JumpingMonkeys({ visible }: JumpingMonkeysProps) {
           position: fixed;
           inset: 0;
           pointer-events: none;
-          z-index: 11;
+          /* Decorative layer only — must sit behind all HUD chrome (axis labels z:8,
+             hint/header/scale z:10, DJ panel z:14) so monkeys never occlude text or
+             controls. Stays above the canvas (z:1) so sprites render over the galaxy. */
+          z-index: 3;
           opacity: 0;
           transition: opacity 0.6s ease-out;
           overflow: hidden;
