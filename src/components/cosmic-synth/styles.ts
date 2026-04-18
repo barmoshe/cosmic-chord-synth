@@ -7,7 +7,7 @@ export const COSMIC_STYLES = `
            must stay behind every interactive/textual chrome. 'isolation: isolate'
            on .jungle-overlay pins its inner stacking context so back/mid/front
            scene layers order monkeys between background vines and foreground
-           trees without leaking out. A clip-path on the overlay keeps decor from
+           ferns without leaking out. A clip-path on the overlay keeps decor from
            painting above the top viewport band (header, audio badge, theme pill). */
 
         /* ── Cosmic Design System v4 — "Glacial Aurora 2026" lifted-navy theme ── */
@@ -760,7 +760,7 @@ export const COSMIC_STYLES = `
           box-shadow: inset 0 0 0 1px rgba(163,230,53,0.5);
         }
 
-        /* Scale label + arrow buttons — lime outline + banana glow */
+        /* Scale label + arrow buttons — lime outline + amber glow */
         .theme-jungle .cosmic-scale-label {
           color: #ffe14d;
           text-shadow: 0 0 10px rgba(255,225,77,0.55), 0 0 24px rgba(163,230,53,0.35);
