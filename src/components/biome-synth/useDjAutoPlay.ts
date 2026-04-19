@@ -91,12 +91,13 @@ export function useDjAutoPlay(
   touchesRef: React.MutableRefObject<Map<any, any>>,
   userLayerRef?: React.MutableRefObject<DrumPattern>,
   theme: ThemeId = "space",
+  engineReady: boolean = true,
 ) {
   useEffect(() => {
     const dj = djState.current;
     const audio = audioEngine.current;
     const themePreset = THEME_PRESETS[theme] || THEME_PRESETS.space;
-    if (!autoPlay || !audio?.isReady()) {
+    if (!autoPlay || !engineReady || !audio?.isReady()) {
       dj.on = false;
       if (dj.iv != null) { Tone.getTransport().clear(dj.iv); dj.iv = null; }
       audio?.releaseAllLead();
@@ -381,5 +382,5 @@ export function useDjAutoPlay(
         touchesRef.current.delete(id);
       });
     };
-  }, [autoPlay, theme]);
+  }, [autoPlay, theme, engineReady]);
 }

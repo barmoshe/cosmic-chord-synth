@@ -165,7 +165,7 @@ export default function BiomeSynthApp() {
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
   useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide, theme);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
-  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef, userLayerRef, theme);
+  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef, userLayerRef, theme, engineReady);
 
   /* ── Per-theme audio: retune synths/drums/FX + auto-pick fitting scale on theme change ── */
   useEffect(() => {

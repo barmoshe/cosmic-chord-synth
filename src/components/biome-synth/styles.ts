@@ -251,9 +251,9 @@ export const BIOME_STYLES = `
         .conductor-transport,
         .conductor-drawer {
           pointer-events: auto;
-          background: linear-gradient(135deg, rgba(22,37,64,0.78) 0%, rgba(15,27,45,0.86) 100%);
-          border: 1px solid rgba(129,140,248,0.25);
-          box-shadow: 0 12px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(229,244,251,0.06), 0 0 28px rgba(34,211,238,0.08);
+          background: linear-gradient(135deg, rgba(22,37,64,0.92) 0%, rgba(15,27,45,0.96) 100%);
+          border: 1px solid rgba(129,140,248,0.35);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.6), inset 0 1px 0 rgba(229,244,251,0.08), 0 0 28px rgba(34,211,238,0.1);
           backdrop-filter: blur(20px) saturate(140%);
           -webkit-backdrop-filter: blur(20px) saturate(140%);
           border-radius: 14px;
@@ -554,7 +554,7 @@ export const BIOME_STYLES = `
           background: rgba(229,244,251,0.08);
           border: 1px solid rgba(129,140,248,0.14);
           transition: transform 0.08s linear, box-shadow 0.08s linear, border-color 0.15s;
-          opacity: 0.1;
+          opacity: 0.35;
           will-change: opacity, transform;
           cursor: pointer;
           touch-action: manipulation;
@@ -945,11 +945,11 @@ export const BIOME_STYLES = `
         /* DJ panel — frosted canopy glass */
         .theme-jungle .conductor-transport,
         .theme-jungle .conductor-drawer {
-          background: rgba(10,31,20,0.55);
-          border: 1px solid rgba(163,230,53,0.22);
-          box-shadow: 0 12px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(163,230,53,0.08), 0 0 28px rgba(163,230,53,0.12);
-          backdrop-filter: blur(12px) saturate(140%);
-          -webkit-backdrop-filter: blur(12px) saturate(140%);
+          background: rgba(10,31,20,0.88);
+          border: 1px solid rgba(163,230,53,0.32);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.6), inset 0 1px 0 rgba(163,230,53,0.1), 0 0 28px rgba(163,230,53,0.15);
+          backdrop-filter: blur(14px) saturate(140%);
+          -webkit-backdrop-filter: blur(14px) saturate(140%);
         }
         .theme-jungle .conductor-toggle {
           color: #d9f99d;
@@ -1115,11 +1115,11 @@ export const BIOME_STYLES = `
         /* DJ panel — frosted ocean glass */
         .theme-sea .conductor-transport,
         .theme-sea .conductor-drawer {
-          background: rgba(4,26,46,0.55);
-          border: 1px solid rgba(108,217,255,0.22);
-          box-shadow: 0 12px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(108,217,255,0.08), 0 0 28px rgba(108,217,255,0.12);
-          backdrop-filter: blur(12px) saturate(140%);
-          -webkit-backdrop-filter: blur(12px) saturate(140%);
+          background: rgba(4,26,46,0.88);
+          border: 1px solid rgba(108,217,255,0.32);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.6), inset 0 1px 0 rgba(108,217,255,0.1), 0 0 28px rgba(108,217,255,0.15);
+          backdrop-filter: blur(14px) saturate(140%);
+          -webkit-backdrop-filter: blur(14px) saturate(140%);
         }
         .theme-sea .conductor-toggle {
           color: #cbe9f7;
@@ -1507,9 +1507,9 @@ export const BIOME_STYLES = `
         .theme-cyberpunk .biome-hint-detail { color: rgba(33,231,255,0.75); }
         .theme-cyberpunk .conductor-transport,
         .theme-cyberpunk .conductor-drawer {
-          background: rgba(10,4,26,0.72);
-          border-color: rgba(255,43,214,0.3);
-          box-shadow: 0 0 18px rgba(255,43,214,0.2);
+          background: rgba(10,4,26,0.92);
+          border-color: rgba(255,43,214,0.4);
+          box-shadow: 0 0 22px rgba(255,43,214,0.28);
         }
         .theme-cyberpunk .conductor-toggle {
           background: rgba(157,0,255,0.15);
