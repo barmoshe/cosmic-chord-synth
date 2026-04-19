@@ -129,9 +129,14 @@ export default function NeonSkyline({ visible }: NeonSkylineProps) {
           transition: opacity 0.8s ease-out;
           overflow: hidden;
           clip-path: inset(36% 0 0 0);
+          /* Reserve space at the bottom for the drum holo-cards rendered on
+             the canvas (useCyberpunkScene groundReserve ~138px). Buildings
+             anchor to this line instead of the viewport bottom so the drum
+             row stays visible and tappable. */
+          --drum-reserve: 170px;
         }
         @media (max-width: 480px) {
-          .cyber-skyline-overlay { clip-path: inset(44% 0 0 0); }
+          .cyber-skyline-overlay { clip-path: inset(44% 0 0 0); --drum-reserve: 180px; }
         }
         .cyber-skyline-overlay[data-visible="true"] { opacity: 1; }
 
@@ -139,7 +144,7 @@ export default function NeonSkyline({ visible }: NeonSkylineProps) {
         .cyber-skyline-mid,
         .cyber-skyline-near {
           position: absolute;
-          left: 0; right: 0; bottom: 0;
+          left: 0; right: 0; bottom: var(--drum-reserve);
           pointer-events: none;
         }
         .cyber-skyline-far svg,
