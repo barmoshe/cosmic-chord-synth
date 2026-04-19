@@ -1,28 +1,35 @@
 Ambient audio samples for Cosmic Chord Synth
 ==============================================
 
-All three samples are licensed under CC0 1.0 Universal (Public Domain
-Dedication). No attribution required, but credit is given here as a courtesy.
-
-Source repository: https://github.com/EternityForest/Free-SFX
+Samples are attributed per-file with their original source and license.
 
 space-ambient.opus
+  Source: https://github.com/EternityForest/Free-SFX
   Original: Owlish/Sound Effects Pack/Scifi/blackhole2.opus
-  Character: Deep cosmic drone, suitable as background for space theme.
+  License: CC0 1.0 Universal (Public Domain Dedication)
+  Character: Deep cosmic drone.
 
-jungle-ambient.opus
-  Original: LokiF/Swamp/swamp.opus
-  Character: Full layered jungle/swamp mix with insect chorus and
-  creature vocalizations. Note: the source CC0 library has no true
-  primate/monkey samples, so this is the closest available match.
+jungle-ambient.ogg
+  Source: https://github.com/OreCruncher/DynamicSurroundings
+  Original: src/main/resources/assets/dsurround/sounds/ambient/outside/jungle.ogg
+  License: Mod is MIT-licensed; the project README states its sounds are
+           "from the public domain or have Creative Common restrictions"
+           (CREDITS.md does not itemize this specific clip's origin).
+  Character: Layered jungle ambience — documented by the mod's wiki as
+             "sound of gorilla, monkeys, etc. for Jungles."
 
 sea-ambient.opus
+  Source: https://github.com/EternityForest/Free-SFX
   Original: rubberduck/WaterSplashSlime/loop_bubbles_02.opus
-  Character: Underwater bubble loop — watery, playful, suits the sea theme.
+  License: CC0 1.0 Universal (Public Domain Dedication)
+  Character: Underwater bubble loop.
 
-License: Creative Commons CC0 1.0 Universal
-         https://creativecommons.org/publicdomain/zero/1.0/
+--
 
-These files can be swapped for any CC0 / public-domain alternative by
-replacing the files in this directory; the engine only references them by
-the filenames declared in src/components/cosmic-synth/constants.ts.
+License references:
+  - CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/
+  - MIT: https://opensource.org/licenses/MIT
+
+Any file here can be swapped freely — drop a replacement with the same
+filename or update the `ambientUrl` field in
+src/components/cosmic-synth/constants.ts.

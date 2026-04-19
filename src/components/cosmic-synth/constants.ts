@@ -183,7 +183,7 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     djEnergyBias: 0,
     drumKit: "default",
     ambientUrl: "/audio/space-ambient.opus",
-    ambientVolumeDb: -18,
+    ambientVolumeDb: -22,
     ambientFadeSec: 2.0,
   },
   jungle: {
@@ -215,8 +215,8 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     djBarMult: 0.75,          // shorter sections, more movement
     djEnergyBias: 0.1,        // slightly punchier overall
     drumKit: "tribal",
-    ambientUrl: "/audio/jungle-ambient.opus",
-    ambientVolumeDb: -16,
+    ambientUrl: "/audio/jungle-ambient.ogg",
+    ambientVolumeDb: -20,
     ambientFadeSec: 2.0,
   },
   sea: {
@@ -249,7 +249,7 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     djEnergyBias: -0.15,      // gentler overall
     drumKit: "aquatic",
     ambientUrl: "/audio/sea-ambient.opus",
-    ambientVolumeDb: -14,
+    ambientVolumeDb: -18,
     ambientFadeSec: 2.0,
   },
 };
