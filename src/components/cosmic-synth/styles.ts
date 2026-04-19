@@ -238,6 +238,14 @@ export const COSMIC_STYLES = `
           font-family: 'Orbitron', monospace;
           color: #B4C9E0;
           user-select: none; -webkit-user-select: none;
+          transition: width 0.28s cubic-bezier(0.2, 0.8, 0.3, 1.2), gap 0.22s ease;
+          /* Phase accent — set inline per-render from the active phase so the
+             collapsed pill's progress strip + phase dot stay in sync. */
+          --phase-color: #22D3EE;
+        }
+        .conductor-root.is-collapsed {
+          width: min(360px, calc(100vw - 24px));
+          gap: 0;
         }
 
         .conductor-transport,
@@ -257,6 +265,15 @@ export const COSMIC_STYLES = `
           align-items: center;
           gap: 12px;
           padding: 9px 12px;
+          position: relative;
+          transition: border-radius 0.28s cubic-bezier(0.2, 0.8, 0.3, 1.2),
+                      padding 0.22s ease,
+                      box-shadow 0.28s ease;
+        }
+        .conductor-root.is-collapsed .conductor-transport {
+          border-radius: 999px;
+          padding: 7px 10px 7px 8px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(229,244,251,0.08), 0 0 22px rgba(34,211,238,0.12);
         }
 
         /* Play / pause toggle with pulsing aurora ring */
@@ -266,21 +283,46 @@ export const COSMIC_STYLES = `
           width: 44px; height: 44px;
           display: flex; align-items: center; justify-content: center;
           border-radius: 50%;
-          background: rgba(229,244,251,0.04);
-          border: 1px solid rgba(129,140,248,0.25);
+          background: radial-gradient(circle at 30% 25%, rgba(229,244,251,0.08), rgba(229,244,251,0.02) 70%);
+          border: 1px solid rgba(129,140,248,0.35);
           cursor: pointer; touch-action: manipulation;
-          transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
-          color: #B4C9E0;
+          transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.08s ease;
+          color: #E5F4FB;
         }
-        .conductor-toggle:hover { background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.45); }
-        .conductor-toggle:active { transform: scale(0.96); }
+        .conductor-toggle:hover { background: radial-gradient(circle at 30% 25%, rgba(129,140,248,0.22), rgba(129,140,248,0.04) 70%); border-color: rgba(129,140,248,0.55); }
+        .conductor-toggle:active { transform: scale(0.94); }
         .conductor-toggle.is-active {
-          background: rgba(34,211,238,0.14);
-          border-color: rgba(34,211,238,0.55);
-          box-shadow: 0 0 22px rgba(34,211,238,0.3), inset 0 0 10px rgba(34,211,238,0.12);
-          color: #22D3EE;
+          background: radial-gradient(circle at 30% 25%, #5FF2FF 0%, #22D3EE 45%, #4F46E5 100%);
+          border: 1.5px solid rgba(34,211,238,0.9);
+          box-shadow:
+            0 0 26px rgba(34,211,238,0.55),
+            0 0 10px rgba(129,140,248,0.35),
+            inset 0 1px 2px rgba(255,255,255,0.35),
+            inset 0 -2px 6px rgba(79,70,229,0.35);
+          color: #0B1322;
         }
-        .conductor-toggle-icon { font-size: 14px; line-height: 1; pointer-events: none; }
+        /* Always-on ring on the active button — independent of the beat pulse so
+           the "DJ is on" affordance never disappears between beats. */
+        .conductor-toggle.is-active::before {
+          content: "";
+          position: absolute; inset: -5px;
+          border-radius: 50%;
+          border: 1px solid rgba(34,211,238,0.45);
+          box-shadow: 0 0 14px rgba(34,211,238,0.35);
+          pointer-events: none;
+        }
+        .conductor-toggle-icon {
+          font-size: 16px; line-height: 1; font-weight: 700;
+          pointer-events: none;
+          display: inline-block;
+        }
+        /* The ▶ glyph's visual weight sits left of its geometric center —
+           nudge right by 1.5px so it reads as centered in the circle. */
+        .conductor-toggle-icon[data-icon="play"] { transform: translateX(1.5px); }
+        .conductor-toggle.is-active .conductor-toggle-icon[data-icon="stop"] {
+          /* slight shrink so the square doesn't dominate the filled button */
+          font-size: 13px;
+        }
         .conductor-toggle-ring {
           position: absolute; inset: -4px;
           border-radius: 50%;
@@ -292,11 +334,24 @@ export const COSMIC_STYLES = `
 
         .conductor-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
         .conductor-phase {
+          display: flex; align-items: center; gap: 6px;
           font-size: 12px; font-weight: 700; letter-spacing: 0.24em;
           color: #B4C9E0;
           text-shadow: 0 0 10px rgba(34,211,238,0.25);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          white-space: nowrap; overflow: hidden;
         }
+        .conductor-phase-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+        /* Small phase indicator dot next to the label — driven by --phase-color
+           set inline on .conductor-root. Gives the collapsed pill a glanceable
+           status chip. */
+        .conductor-phase-dot {
+          width: 7px; height: 7px; flex: 0 0 7px;
+          border-radius: 50%;
+          background: var(--phase-color);
+          box-shadow: 0 0 8px color-mix(in srgb, var(--phase-color) 70%, transparent);
+          transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        .conductor-phase-idle .conductor-phase-dot { box-shadow: none; opacity: 0.5; }
         .conductor-phase-idle     { color: #7C95B5; text-shadow: none; }
         .conductor-phase-drift    { color: #5FEED0; text-shadow: 0 0 10px rgba(95,238,208,0.5); }
         .conductor-phase-pulse    { color: #818CF8; text-shadow: 0 0 10px rgba(129,140,248,0.5); }
@@ -338,24 +393,67 @@ export const COSMIC_STYLES = `
           border-radius: 8px;
           background: rgba(229,244,251,0.04);
           border: 1px solid rgba(129,140,248,0.22);
-          color: #B4C9E0;
+          color: #E5F4FB;
           cursor: pointer; touch-action: manipulation;
           font-size: 14px; line-height: 1;
-          transition: background 0.2s, border-color 0.2s;
+          transition: background 0.2s, border-color 0.2s, transform 0.08s ease;
         }
+        .conductor-root.is-collapsed .conductor-expand { border-radius: 50%; }
         .conductor-expand:hover { background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.4); }
         .conductor-expand:active { transform: scale(0.94); }
+        .conductor-chevron {
+          display: inline-block;
+          transform: rotate(0deg);
+          transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.2);
+        }
+        .conductor-chevron.is-open { transform: rotate(180deg); }
 
-        /* Drawer */
+        /* Mini progress strip — only mounted on the collapsed pill while DJ is on.
+           Absolute-positioned arc just inside the bottom edge of the pill. */
+        .conductor-mini-progress {
+          position: absolute;
+          left: 18px; right: 18px; bottom: 3px;
+          height: 2px;
+          border-radius: 2px;
+          background: rgba(229,244,251,0.08);
+          pointer-events: none;
+          overflow: hidden;
+        }
+        .conductor-mini-progress-fill {
+          width: 100%; height: 100%;
+          transform-origin: left center;
+          transform: scaleX(0);
+          background: linear-gradient(90deg, color-mix(in srgb, var(--phase-color) 55%, transparent), var(--phase-color));
+          box-shadow: 0 0 8px color-mix(in srgb, var(--phase-color) 60%, transparent);
+          border-radius: 2px;
+          will-change: transform;
+        }
+
+        /* Drawer — always mounted; collapse animates via max-height + opacity
+           + transform so there is no pop on close. */
         .conductor-drawer {
           padding: 12px 14px 14px;
           display: flex; flex-direction: column; gap: 12px;
-          transform-origin: bottom center;
-          animation: conductorDrawerIn 0.24s cubic-bezier(0.2, 0.8, 0.3, 1.2);
+          transform-origin: top center;
+          overflow: hidden;
+          max-height: 420px;
+          opacity: 1;
+          transform: translateY(0) scaleY(1);
+          transition: max-height 0.28s cubic-bezier(0.2, 0.8, 0.3, 1.2),
+                      opacity 0.22s ease,
+                      transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1.2),
+                      padding 0.22s ease,
+                      margin-top 0.22s ease;
         }
-        @keyframes conductorDrawerIn {
-          from { opacity: 0; transform: translateY(6px) scaleY(0.92); }
-          to   { opacity: 1; transform: translateY(0)   scaleY(1); }
+        .conductor-drawer.is-closed {
+          max-height: 0;
+          opacity: 0;
+          transform: translateY(-6px) scaleY(0.94);
+          padding-top: 0;
+          padding-bottom: 0;
+          pointer-events: none;
+          border-top-width: 0;
+          border-bottom-width: 0;
         }
 
         /* Section rail */
@@ -523,7 +621,11 @@ export const COSMIC_STYLES = `
 
         @media (prefers-reduced-motion: reduce) {
           .conductor-toggle-ring { display: none; }
-          .conductor-drawer { animation: none; }
+          .conductor-drawer { transition: opacity 0.2s; transform: none; }
+          .conductor-drawer.is-closed { transform: none; }
+          .conductor-chevron { transition: none; }
+          .conductor-root { transition: none; }
+          .conductor-transport { transition: none; }
           .conductor-cell { transition: none; }
           .conductor-rail-playhead { transition: opacity 0.2s; }
         }
@@ -850,14 +952,23 @@ export const COSMIC_STYLES = `
           -webkit-backdrop-filter: blur(12px) saturate(140%);
         }
         .theme-jungle .conductor-toggle {
-          color: #a3e635;
-          border-color: rgba(163,230,53,0.35);
+          color: #d9f99d;
+          border-color: rgba(163,230,53,0.45);
+          background: radial-gradient(circle at 30% 25%, rgba(163,230,53,0.12), rgba(10,31,20,0.4) 70%);
         }
         .theme-jungle .conductor-toggle.is-active {
-          color: #ffe14d;
-          background: rgba(255,225,77,0.14);
-          border-color: rgba(255,225,77,0.6);
-          box-shadow: 0 0 22px rgba(255,225,77,0.35), inset 0 0 10px rgba(163,230,53,0.15);
+          color: #1a2e0a;
+          background: radial-gradient(circle at 30% 25%, #ffe14d 0%, #a3e635 55%, #4d7c0f 100%);
+          border: 1.5px solid rgba(255,225,77,0.95);
+          box-shadow:
+            0 0 26px rgba(255,225,77,0.55),
+            0 0 10px rgba(163,230,53,0.45),
+            inset 0 1px 2px rgba(255,255,255,0.35),
+            inset 0 -2px 6px rgba(77,124,15,0.35);
+        }
+        .theme-jungle .conductor-toggle.is-active::before {
+          border-color: rgba(255,225,77,0.45);
+          box-shadow: 0 0 14px rgba(255,225,77,0.4);
         }
         .theme-jungle .conductor-bpm {
           background: linear-gradient(90deg, #a3e635, #ffe14d);
@@ -1011,14 +1122,23 @@ export const COSMIC_STYLES = `
           -webkit-backdrop-filter: blur(12px) saturate(140%);
         }
         .theme-sea .conductor-toggle {
-          color: #6cd9ff;
-          border-color: rgba(108,217,255,0.35);
+          color: #cbe9f7;
+          border-color: rgba(108,217,255,0.45);
+          background: radial-gradient(circle at 30% 25%, rgba(108,217,255,0.12), rgba(4,26,46,0.4) 70%);
         }
         .theme-sea .conductor-toggle.is-active {
-          color: #ff6b9d;
-          background: rgba(255,107,157,0.14);
-          border-color: rgba(255,107,157,0.6);
-          box-shadow: 0 0 22px rgba(255,107,157,0.35), inset 0 0 10px rgba(108,217,255,0.15);
+          color: #22142a;
+          background: radial-gradient(circle at 30% 25%, #ffc8dc 0%, #ff6b9d 55%, #6cd9ff 100%);
+          border: 1.5px solid rgba(255,107,157,0.95);
+          box-shadow:
+            0 0 26px rgba(255,107,157,0.55),
+            0 0 10px rgba(108,217,255,0.45),
+            inset 0 1px 2px rgba(255,255,255,0.35),
+            inset 0 -2px 6px rgba(108,217,255,0.35);
+        }
+        .theme-sea .conductor-toggle.is-active::before {
+          border-color: rgba(255,107,157,0.45);
+          box-shadow: 0 0 14px rgba(255,107,157,0.4);
         }
         .theme-sea .conductor-bpm {
           background: linear-gradient(90deg, #6cd9ff, #a8e6cf);
