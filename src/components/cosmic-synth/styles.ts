@@ -890,4 +890,137 @@ export const COSMIC_STYLES = `
         .theme-jungle .cosmic-header-sub {
           color: rgba(82,183,136,0.75);
         }
+
+        /* ── Sea theme overrides (applied when .theme-sea on root wrapper) ── */
+        .theme-sea .cosmic-splash {
+          background: radial-gradient(ellipse at center, rgba(6,58,82,0.85) 0%, rgba(4,26,46,0.96) 100%);
+        }
+        .theme-sea .cosmic-logo {
+          background: linear-gradient(135deg, #6cd9ff 0%, #7ae582 40%, #a8e6cf 70%, #ff6b9d 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-size: 300% 100%;
+          filter: drop-shadow(0 0 30px rgba(108,217,255,0.45));
+        }
+        .theme-sea .cosmic-warp {
+          background: radial-gradient(ellipse at center, rgba(6,58,82,0.9) 0%, rgba(4,26,46,0.98) 100%);
+        }
+        .theme-sea .cosmic-warp-text {
+          background: linear-gradient(90deg, #6cd9ff, #a8e6cf, #ff6b9d);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .theme-sea .cosmic-warp-fill {
+          background: linear-gradient(90deg, #6cd9ff, #a8e6cf, #ff6b9d);
+          box-shadow: 0 0 12px rgba(108,217,255,0.6);
+        }
+        .theme-sea .cosmic-header-title {
+          background: linear-gradient(90deg, #6cd9ff, #a8e6cf, #7ae582);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .theme-sea .cosmic-energy-fill {
+          background: linear-gradient(90deg, #0a3a5e, #6cd9ff, #a8e6cf, #7ae582);
+          box-shadow: 0 0 8px rgba(108,217,255,0.5), 0 0 16px rgba(168,230,207,0.25);
+        }
+        .theme-sea .cosmic-cta-ring {
+          border-color: rgba(108,217,255,0.6);
+        }
+        .theme-sea .theme-chooser-option.is-active {
+          background: linear-gradient(135deg, rgba(108,217,255,0.28), rgba(255,107,157,0.25));
+          box-shadow: inset 0 0 0 1px rgba(108,217,255,0.5);
+        }
+
+        /* Scale label + arrow buttons — cyan outline + seafoam glow */
+        .theme-sea .cosmic-scale-label {
+          color: #a8e6cf;
+          text-shadow: 0 0 10px rgba(168,230,207,0.55), 0 0 24px rgba(108,217,255,0.35);
+        }
+        .theme-sea .cosmic-btn-arrow {
+          color: #6cd9ff;
+          background: rgba(4,26,46,0.45);
+          border: 1px solid rgba(108,217,255,0.45);
+          box-shadow: 0 0 14px rgba(108,217,255,0.18), inset 0 0 8px rgba(168,230,207,0.08);
+        }
+        .theme-sea .cosmic-btn-arrow:hover {
+          background: rgba(108,217,255,0.14);
+          border-color: rgba(168,230,207,0.55);
+          box-shadow: 0 0 22px rgba(168,230,207,0.35), inset 0 0 10px rgba(108,217,255,0.18);
+        }
+        .theme-sea .cosmic-btn-auto {
+          color: #6cd9ff;
+          background: rgba(4,26,46,0.5);
+          border: 1px solid rgba(108,217,255,0.4);
+          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .theme-sea .cosmic-btn-auto.active {
+          color: #ff6b9d;
+          background: rgba(108,217,255,0.18);
+          border-color: rgba(255,107,157,0.65);
+          box-shadow: 0 0 30px rgba(255,107,157,0.35), inset 0 0 15px rgba(108,217,255,0.18);
+        }
+
+        /* Axis labels — muted teal with cyan shadow */
+        .theme-sea .cosmic-axis-label {
+          color: rgba(122,229,130,0.85);
+          text-shadow: 0 0 8px rgba(108,217,255,0.45);
+        }
+
+        /* Hint */
+        .theme-sea .cosmic-hint {
+          color: #6cd9ff;
+          text-shadow: 0 0 8px rgba(108,217,255,0.35);
+        }
+        .theme-sea .cosmic-hint-detail {
+          color: rgba(122,229,130,0.85);
+        }
+
+        /* DJ panel — frosted ocean glass */
+        .theme-sea .conductor-transport,
+        .theme-sea .conductor-drawer {
+          background: rgba(4,26,46,0.55);
+          border: 1px solid rgba(108,217,255,0.22);
+          box-shadow: 0 12px 36px rgba(0,0,0,0.55), inset 0 1px 0 rgba(108,217,255,0.08), 0 0 28px rgba(108,217,255,0.12);
+          backdrop-filter: blur(12px) saturate(140%);
+          -webkit-backdrop-filter: blur(12px) saturate(140%);
+        }
+        .theme-sea .conductor-toggle {
+          color: #6cd9ff;
+          border-color: rgba(108,217,255,0.35);
+        }
+        .theme-sea .conductor-toggle.is-active {
+          color: #ff6b9d;
+          background: rgba(255,107,157,0.14);
+          border-color: rgba(255,107,157,0.6);
+          box-shadow: 0 0 22px rgba(255,107,157,0.35), inset 0 0 10px rgba(108,217,255,0.15);
+        }
+        .theme-sea .conductor-bpm {
+          background: linear-gradient(90deg, #6cd9ff, #a8e6cf);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .theme-sea .conductor-phase { color: #ff6b9d; text-shadow: 0 0 10px rgba(255,107,157,0.4); }
+
+        /* Sea drum cells — coral active highlight on cyan-tinted cells */
+        .theme-sea .conductor-cell { background: rgba(0,53,84,0.55) !important; border-color: rgba(108,217,255,0.22) !important; }
+        .theme-sea .conductor-cell.is-downbeat { border-left: 1px solid rgba(255,107,157,0.45) !important; }
+        .theme-sea .conductor-cell[data-active="1"] {
+          outline: 1.5px solid rgba(255,107,157,0.95);
+          box-shadow: 0 0 14px rgba(255,107,157,0.7);
+        }
+        .theme-sea .conductor-cell[data-user="on"] {
+          border-color: rgba(255,107,157,0.85) !important;
+          box-shadow: inset 0 0 0 1px rgba(255,107,157,0.55), 0 0 10px rgba(255,107,157,0.35);
+        }
+
+        /* Flash — seafoam */
+        .theme-sea .cosmic-flash {
+          color: #a8e6cf;
+          text-shadow: 0 0 14px rgba(168,230,207,0.6), 0 0 30px rgba(108,217,255,0.4);
+        }
+
+        /* Header sub — teal tint */
+        .theme-sea .cosmic-header-sub {
+          color: rgba(122,229,130,0.75);
+        }
 `;
