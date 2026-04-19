@@ -195,7 +195,13 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, use
             const el = row[i];
             if (!el) continue;
             const v = laneVals[i] || 0;
-            el.style.opacity = String(v > 0 ? 0.6 + v * 0.4 : 0.22);
+            if (v > 0) {
+              el.setAttribute("data-hit", "1");
+              el.style.opacity = String(0.85 + v * 0.15);
+            } else {
+              el.removeAttribute("data-hit");
+              el.style.opacity = "0.18";
+            }
             if (i === step) el.setAttribute("data-active", "1");
             else el.removeAttribute("data-active");
           }

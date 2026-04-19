@@ -564,10 +564,10 @@ export const BIOME_STYLES = `
         .conductor-cell:focus-visible { outline: 2px solid rgba(34,211,238,0.8); outline-offset: 2px; }
         .conductor-cell:active { transform: scale(0.92); }
         .conductor-cell.is-downbeat { border-left: 2px solid rgba(129,140,248,0.6); }
-        .conductor-row-kick  .conductor-cell { background: linear-gradient(180deg, rgba(252,211,77,0.9),  rgba(252,211,77,0.4));  border-color: rgba(252,211,77,0.35); }
-        .conductor-row-clap  .conductor-cell { background: linear-gradient(180deg, rgba(248,113,113,0.9), rgba(248,113,113,0.4)); border-color: rgba(248,113,113,0.35); }
-        .conductor-row-hat   .conductor-cell { background: linear-gradient(180deg, rgba(251,146,60,0.9),  rgba(251,146,60,0.4));  border-color: rgba(251,146,60,0.35); }
-        .conductor-row-snare .conductor-cell { background: linear-gradient(180deg, rgba(244,114,182,0.9), rgba(244,114,182,0.4)); border-color: rgba(244,114,182,0.35); }
+        .conductor-row-kick  .conductor-cell[data-hit="1"] { background: linear-gradient(180deg, rgba(252,211,77,0.95), rgba(252,211,77,0.5));  border-color: rgba(252,211,77,0.7); box-shadow: 0 0 6px rgba(252,211,77,0.55); }
+        .conductor-row-clap  .conductor-cell[data-hit="1"] { background: linear-gradient(180deg, rgba(248,113,113,0.95), rgba(248,113,113,0.5)); border-color: rgba(248,113,113,0.7); box-shadow: 0 0 6px rgba(248,113,113,0.55); }
+        .conductor-row-hat   .conductor-cell[data-hit="1"] { background: linear-gradient(180deg, rgba(251,146,60,0.95), rgba(251,146,60,0.5));  border-color: rgba(251,146,60,0.7); box-shadow: 0 0 6px rgba(251,146,60,0.55); }
+        .conductor-row-snare .conductor-cell[data-hit="1"] { background: linear-gradient(180deg, rgba(244,114,182,0.95), rgba(244,114,182,0.5)); border-color: rgba(244,114,182,0.7); box-shadow: 0 0 6px rgba(244,114,182,0.55); }
         .conductor-cell[data-active="1"] {
           outline: 1.5px solid rgba(252,211,77,0.95);
           outline-offset: 1px;
@@ -982,7 +982,11 @@ export const BIOME_STYLES = `
            The coloured gradient backgrounds are muted so the fruit carries the
            visual weight. Cells grow taller to let the sprites read clearly. */
         .theme-jungle .conductor-cell { height: 18px; border-radius: 4px; background: rgba(10,31,20,0.55) !important; border-color: rgba(163,230,53,0.22) !important; }
-        .theme-jungle .conductor-cell.is-downbeat { border-left: 1px solid rgba(255,225,77,0.45) !important; }
+        .theme-jungle .conductor-cell[data-hit="1"] {
+          border-color: rgba(255,225,77,0.7) !important;
+          box-shadow: 0 0 6px rgba(255,225,77,0.45);
+        }
+        .theme-jungle .conductor-cell.is-downbeat { border-left: 2px solid rgba(255,225,77,0.6) !important; }
         .theme-jungle .conductor-cell-fruit { opacity: 0.7; }
         .theme-jungle .conductor-cell[data-active="1"] {
           outline: 1.5px solid rgba(255,225,77,0.95);
@@ -1150,7 +1154,12 @@ export const BIOME_STYLES = `
 
         /* Sea drum cells — coral active highlight on cyan-tinted cells */
         .theme-sea .conductor-cell { background: rgba(0,53,84,0.55) !important; border-color: rgba(108,217,255,0.22) !important; }
-        .theme-sea .conductor-cell.is-downbeat { border-left: 1px solid rgba(255,107,157,0.45) !important; }
+        .theme-sea .conductor-cell[data-hit="1"] {
+          background: linear-gradient(180deg, rgba(255,107,157,0.85), rgba(108,217,255,0.5)) !important;
+          border-color: rgba(255,107,157,0.75) !important;
+          box-shadow: 0 0 6px rgba(255,107,157,0.55);
+        }
+        .theme-sea .conductor-cell.is-downbeat { border-left: 2px solid rgba(255,107,157,0.6) !important; }
         .theme-sea .conductor-cell[data-active="1"] {
           outline: 1.5px solid rgba(255,107,157,0.95);
           box-shadow: 0 0 14px rgba(255,107,157,0.7);
@@ -1535,10 +1544,16 @@ export const BIOME_STYLES = `
           background: rgba(16,6,38,0.65) !important;
           border-color: rgba(157,0,255,0.28) !important;
         }
-        .theme-cyberpunk .conductor-cell.is-downbeat { border-left: 1px solid rgba(255,43,214,0.55) !important; }
+        .theme-cyberpunk .conductor-cell[data-hit="1"] {
+          background: linear-gradient(180deg, rgba(255,43,214,0.9), rgba(255,43,214,0.45)) !important;
+          border-color: rgba(255,43,214,0.85) !important;
+          box-shadow: 0 0 8px rgba(255,43,214,0.65);
+        }
+        .theme-cyberpunk .conductor-cell.is-downbeat { border-left: 2px solid rgba(255,43,214,0.7) !important; }
         .theme-cyberpunk .conductor-cell[data-active="1"] {
-          background: rgba(255,43,214,0.45) !important;
-          box-shadow: 0 0 10px rgba(255,43,214,0.7);
+          outline: 1.5px solid rgba(33,231,255,0.95);
+          outline-offset: 1px;
+          box-shadow: 0 0 12px rgba(33,231,255,0.8);
         }
         .theme-cyberpunk .conductor-cell[data-user="on"] {
           outline: 1px solid rgba(33,231,255,0.8);
@@ -1548,13 +1563,14 @@ export const BIOME_STYLES = `
           display: block;
           position: absolute;
           inset: 2px;
-          opacity: 0.45;
+          opacity: 0.18;
           background:
             linear-gradient(to right, transparent 48%, rgba(33,231,255,0.7) 50%, transparent 52%),
             linear-gradient(to bottom, transparent 48%, rgba(33,231,255,0.7) 50%, transparent 52%);
           pointer-events: none;
         }
-        .theme-cyberpunk .conductor-cell[data-active="1"] .conductor-cell-grid { opacity: 1; background-color: rgba(255,255,255,0.08); }
+        .theme-cyberpunk .conductor-cell[data-hit="1"] .conductor-cell-grid { opacity: 0; }
+        .theme-cyberpunk .conductor-cell[data-active="1"] .conductor-cell-grid { opacity: 0.8; background-color: rgba(255,255,255,0.1); }
         .theme-cyberpunk .biome-flash {
           color: #ff2bd6;
           text-shadow: 0 0 14px rgba(255,43,214,0.7);
