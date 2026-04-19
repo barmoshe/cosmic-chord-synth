@@ -1,4 +1,4 @@
-export type CosmicTheme = "space" | "jungle";
+export type CosmicTheme = "space" | "jungle" | "sea";
 
 interface ThemeChooserProps {
   theme: CosmicTheme;
@@ -8,6 +8,7 @@ interface ThemeChooserProps {
 const OPTIONS: { value: CosmicTheme; label: string; hint: string }[] = [
   { value: "space",  label: "SPACE",  hint: "Cosmic galaxy" },
   { value: "jungle", label: "JUNGLE", hint: "Canopy + monkeys" },
+  { value: "sea",    label: "SEA",    hint: "Reef + fish + waves" },
 ];
 
 export default function ThemeChooser({ theme, onChange }: ThemeChooserProps) {
