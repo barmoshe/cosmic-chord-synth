@@ -1,17 +1,14 @@
 import HomeBackdrop from "@/components/home/HomeBackdrop";
 import HomeHero from "@/components/home/HomeHero";
+import { HomeStateProvider } from "@/components/home/HomeStateContext";
 
 const Home = () => (
-  <div
-    className="relative min-h-screen overflow-hidden"
-    style={{
-      background:
-        "radial-gradient(ellipse at top, #0b1a3a 0%, #06091c 55%, #03040d 100%)",
-    }}
-  >
-    <HomeBackdrop />
-    <HomeHero />
-  </div>
+  <HomeStateProvider>
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top,#0b1a3a_0%,#06091c_55%,#03040d_100%)]">
+      <HomeBackdrop />
+      <HomeHero />
+    </div>
+  </HomeStateProvider>
 );
 
 export default Home;
