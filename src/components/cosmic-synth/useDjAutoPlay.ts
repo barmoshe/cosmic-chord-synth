@@ -228,7 +228,8 @@ export function useDjAutoPlay(
       dj.ce += (dj.te - dj.ce) * 0.06;
       dj.cf += (dj.tf - dj.cf) * 0.04;
       const E = dj.ce;
-      if (s.sweep) dj.cf = lerp(s.ft * 0.3, s.ft, Math.min(dj.tis / (s.bars * 16), 1));
+      const totalSteps = secBars() * 16;
+      if (s.sweep) dj.cf = lerp(s.ft * 0.3, s.ft, Math.min(dj.tis / totalSteps, 1));
 
       const filterVal = Math.round(200 + dj.cf * 5800);
       if (Math.abs(filterVal - lastFilterVal) > 100) {
@@ -281,7 +282,7 @@ export function useDjAutoPlay(
         Draw.schedule(() => ui.setBeat(beat), time);
       }
       if (step % 2 === 0) {
-        const prog01 = dj.tis / (s.bars * 16);
+        const prog01 = dj.tis / totalSteps;
         Draw.schedule(() => ui.setProgress(prog01), time);
       }
       if (step === 0) {
@@ -291,7 +292,7 @@ export function useDjAutoPlay(
 
       // ── Advance tick and handle section boundary ──
       dj.tis++; dj.tt++;
-      if (dj.tis >= s.bars * 16) {
+      if (dj.tis >= totalSteps) {
         advanceSection();
         applySection();
         return;
