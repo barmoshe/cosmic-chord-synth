@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { RIPPLE_POOL } from "../constants";
+import { RIPPLE_POOL } from "../shared/constants";
 import type { RippleEntry } from "./types";
 
 export function createRipples(scene: THREE.Scene): RippleEntry[] {

@@ -1,4 +1,4 @@
-import { DRUM_STARS, type DrumName } from "../constants";
+import { DRUM_STARS, type DrumName } from "../shared/constants";
 import type { DrumGlyph, RGB } from "./types";
 
 export function createDrums(): DrumGlyph[] {

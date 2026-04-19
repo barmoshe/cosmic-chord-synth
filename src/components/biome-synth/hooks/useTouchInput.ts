@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
-import { SCALES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, isMobile } from "./constants";
-import { m2f, quantize, noteColor, haptic } from "./helpers";
-import type { AudioEngine } from "./types";
+import { SCALES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, isMobile } from "../shared/constants";
+import { m2f, quantize, noteColor, haptic } from "../shared/helpers";
+import type { AudioEngine } from "../shared/types";
 
 export function useTouchInput(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,

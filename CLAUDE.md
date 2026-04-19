@@ -26,24 +26,46 @@ npm run lint       # ESLint
 ```
 src/
 ├── components/
-│   ├── BiomeSynthApp.tsx            # Main synth orchestrator
-│   ├── CosmicSequencer.tsx          # 8-track step sequencer
-│   ├── biome-synth/                # Core audio/visual modules
-│   │   ├── useAudioEngine.ts       # Tone.js synth + effects init
-│   │   ├── useThreeScene.ts        # Three.js 3D scene + animation
-│   │   ├── useTouchInput.ts        # Gesture → note triggering
-│   │   ├── useGyroscope.ts         # Device motion → modulation
-│   │   ├── useDjAutoPlay.ts        # AI DJ generative composition
-│   │   ├── constants.ts            # Scales, presets, DJ sections
-│   │   ├── types.ts                # AudioEngine, DjState interfaces
-│   │   ├── helpers.ts              # MIDI→freq, note colors
-│   │   └── shaders.ts              # GLSL galaxy/glow shaders
-│   └── ui/                         # shadcn/ui components
-├── pages/                          # Route pages (Index, NotFound)
-├── hooks/                          # Shared React hooks
-├── lib/                            # Utilities (cn() classname merge)
-└── test/                           # Test setup + specs
+│   ├── BiomeSynthApp.tsx                # Main synth orchestrator (composes hooks + overlays)
+│   ├── NavLink.tsx                      # Router-aware nav link
+│   ├── biome-synth/                     # Core audio/visual system
+│   │   ├── components/                  # Visual TSX overlays (DOM-based, not WebGL)
+│   │   │   ├── DjPanel.tsx              # DJ mode controls UI
+│   │   │   ├── HelpOverlay.tsx          # First-run instructions
+│   │   │   ├── ThemeChooser.tsx         # Biome switcher
+│   │   │   ├── FloatingBananas.tsx, JumpingMonkeys.tsx, JungleFlora.tsx
+│   │   │   ├── FloatingBubbles.tsx, SeaCorals.tsx, SwimmingFish.tsx
+│   │   │   └── HologramBillboards.tsx, NeonRain.tsx, NeonSkyline.tsx
+│   │   ├── hooks/                       # Audio + scene React hooks
+│   │   │   ├── useAudioEngine.ts        # Tone.js synths + graph construction
+│   │   │   ├── useSetupEffects.ts       # Effects chain + shared reverb bus
+│   │   │   ├── useDjAutoPlay.ts         # Generative DJ composition
+│   │   │   ├── useTouchInput.ts         # Gesture → note triggering
+│   │   │   ├── useKeyboardShortcuts.ts  # Keyboard bindings
+│   │   │   ├── useGlowOverlays.ts       # CSS glow/bloom on touch
+│   │   │   ├── useThreeScene.ts         # Space biome (WebGL / Three.js)
+│   │   │   ├── useJungleScene.ts        # Jungle biome (Canvas2D)
+│   │   │   ├── useSeaScene.ts           # Sea biome (Canvas2D + wave sim)
+│   │   │   └── useCyberpunkScene.ts     # Cyberpunk biome (Canvas2D)
+│   │   ├── shared/                      # Reusable primitives
+│   │   │   ├── constants.ts             # Scales, presets, DJ sections, isMobile
+│   │   │   ├── helpers.ts               # m2f, noteColor, clamp, haptic
+│   │   │   ├── types.ts                 # AudioEngine, AnalysisData, DrumName
+│   │   │   ├── shaders.ts               # GLSL vertex/fragment for space biome
+│   │   │   └── styles.ts                # Per-biome palette + UI tokens
+│   │   ├── space/                       # Space-biome rendering modules (Three.js)
+│   │   ├── jungle/                      # Jungle-biome rendering modules (Canvas2D)
+│   │   ├── sea/                         # Sea-biome rendering modules (Canvas2D)
+│   │   └── cyberpunk/                   # Cyberpunk-biome rendering modules (Canvas2D)
+│   ├── home/                            # Landing-page pieces (HomeBackdrop, HomeHero)
+│   └── ui/                              # shadcn/ui components
+├── pages/                               # Home.tsx, Play.tsx, NotFound.tsx
+├── hooks/                               # Generic hooks (use-mobile, use-toast)
+├── lib/                                 # Utilities (cn() classname merge)
+└── test/                                # Test setup + shared specs
 ```
+
+A walkthrough of the audio signal chain, scene pipeline, and DJ phases lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Audio Architecture
 

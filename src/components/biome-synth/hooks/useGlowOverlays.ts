@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { noteHex } from "./helpers";
+import { noteHex } from "../shared/helpers";
 
 export function useGlowOverlays(
   touchesRef: React.MutableRefObject<Map<any, any>>,

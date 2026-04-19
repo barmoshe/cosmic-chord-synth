@@ -1,4 +1,4 @@
-import { clamp } from "../helpers";
+import { clamp } from "../shared/helpers";
 
 export function drawNeonGrid(
   ctx: CanvasRenderingContext2D,

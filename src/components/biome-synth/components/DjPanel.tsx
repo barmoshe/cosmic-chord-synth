@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { DJ_SECTIONS, isMobile } from "./constants";
-import type { DjUi, DrumPattern, DrumLane } from "./useDjAutoPlay";
+import { DJ_SECTIONS, isMobile } from "../shared/constants";
+import type { DjUi, DrumPattern, DrumLane } from "../hooks/useDjAutoPlay";
 import type { BiomeTheme } from "./ThemeChooser";
 
 interface DjPanelProps {

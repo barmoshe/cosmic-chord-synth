@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { PARTICLE_POOL } from "../constants";
-import { PARTICLE_VERT, PARTICLE_FRAG } from "../shaders";
+import { PARTICLE_POOL } from "../shared/constants";
+import { PARTICLE_VERT, PARTICLE_FRAG } from "../shared/shaders";
 import type { ParticleBuffers } from "./types";
 
 export function createParticles(PR: number): { points: THREE.Points; buffers: ParticleBuffers } {

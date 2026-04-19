@@ -1,4 +1,4 @@
-import { RIPPLE_POOL } from "../constants";
+import { RIPPLE_POOL } from "../shared/constants";
 import type { Ripple, RGB } from "./types";
 
 export interface RipplePool {

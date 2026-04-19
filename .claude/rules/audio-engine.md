@@ -1,9 +1,10 @@
 ---
 paths:
-  - "src/components/cosmic-synth/useAudioEngine.ts"
-  - "src/components/cosmic-synth/useDjAutoPlay.ts"
-  - "src/components/cosmic-synth/constants.ts"
-  - "src/components/cosmic-synth/types.ts"
+  - "src/components/biome-synth/hooks/useAudioEngine.ts"
+  - "src/components/biome-synth/hooks/useSetupEffects.ts"
+  - "src/components/biome-synth/hooks/useDjAutoPlay.ts"
+  - "src/components/biome-synth/shared/constants.ts"
+  - "src/components/biome-synth/shared/types.ts"
 ---
 
 # Tone.js Audio Engine Rules
@@ -17,5 +18,5 @@ paths:
 - Use `Tone.now()` for precise timing, not `Date.now()`
 - Keep synth voices minimal: `maxPolyphony` ≤ 8 for PolySynth on mobile
 - FFT analysis uses 128 bins — don't increase without checking mobile performance
-- DJ sections follow: INTRO → VERSE → BUILD → DROP → BREAK → BUILD2 → PEAK → OUTRO
-- Musical helpers (`m2f`, `noteColor`) are in `helpers.ts` — reuse them
+- DJ sections follow: DRIFT → PULSE → BLOOM → SURGE → DISSOLVE (see `DJ_SECTIONS` in `shared/constants.ts`)
+- Musical helpers (`m2f`, `noteColor`) are in `biome-synth/shared/helpers.ts` — reuse them

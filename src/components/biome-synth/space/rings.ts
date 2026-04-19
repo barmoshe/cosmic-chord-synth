@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { PAL } from "../constants";
+import { PAL } from "../shared/constants";
 
 export function makeRings(): THREE.Mesh[] {
   const rings: THREE.Mesh[] = [];

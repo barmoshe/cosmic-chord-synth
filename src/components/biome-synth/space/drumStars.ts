@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { DRUM_STARS, DRUM_ORBIT_R, type DrumName } from "../constants";
-import { DRUM_STAR_VERT, DRUM_STAR_FRAG } from "../shaders";
+import { DRUM_STARS, DRUM_ORBIT_R, type DrumName } from "../shared/constants";
+import { DRUM_STAR_VERT, DRUM_STAR_FRAG } from "../shared/shaders";
 import type { DrumMesh } from "./types";
 
 export function makeDrumStars(): { group: THREE.Group; meshes: DrumMesh[] } {

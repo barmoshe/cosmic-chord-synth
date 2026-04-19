@@ -1,4 +1,4 @@
-import { PARTICLE_POOL } from "../constants";
+import { PARTICLE_POOL } from "../shared/constants";
 import { rand } from "./utils";
 import type { Particle, RGB } from "./types";
 

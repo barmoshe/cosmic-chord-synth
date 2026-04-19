@@ -1,19 +1,19 @@
 import { useEffect } from "react";
 import * as THREE from "three";
 import * as Tone from "tone";
-import { isMobile, SCALES, type DrumName } from "./constants";
-import { clamp, haptic } from "./helpers";
-import { makeBgStars } from "./space/bgStars";
-import { makeGalaxy, addDustLanes } from "./space/galaxy";
-import { makeCentralStar } from "./space/centralStar";
-import { makeRings } from "./space/rings";
-import { makeNebulae } from "./space/nebulae";
-import { makeShootingStars, stepShootingStars } from "./space/shootingStars";
-import { makeDrumStars, createDrumPicker, updateDrumStars } from "./space/drumStars";
-import { createParticles, spawnParticles, stepParticles } from "./space/particles";
-import { createRipples, addRipple as addRippleFn, shockwave, stepRipples } from "./space/ripples";
-import { makeFftBars, updateFftBars, tintFftBars } from "./space/fftBars";
-import { createPostPipeline, renderPost } from "./space/postProcess";
+import { isMobile, SCALES, type DrumName } from "../shared/constants";
+import { clamp, haptic } from "../shared/helpers";
+import { makeBgStars } from "../space/bgStars";
+import { makeGalaxy, addDustLanes } from "../space/galaxy";
+import { makeCentralStar } from "../space/centralStar";
+import { makeRings } from "../space/rings";
+import { makeNebulae } from "../space/nebulae";
+import { makeShootingStars, stepShootingStars } from "../space/shootingStars";
+import { makeDrumStars, createDrumPicker, updateDrumStars } from "../space/drumStars";
+import { createParticles, spawnParticles, stepParticles } from "../space/particles";
+import { createRipples, addRipple as addRippleFn, shockwave, stepRipples } from "../space/ripples";
+import { makeFftBars, updateFftBars, tintFftBars } from "../space/fftBars";
+import { createPostPipeline, renderPost } from "../space/postProcess";
 
 export function useThreeScene(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,

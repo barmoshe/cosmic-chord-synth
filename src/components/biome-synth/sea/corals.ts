@@ -1,4 +1,4 @@
-import { isMobile } from "../constants";
+import { isMobile } from "../shared/constants";
 import { rand } from "./utils";
 import type { Coral } from "./types";
 

@@ -80,7 +80,7 @@ vi.mock("tone", async () => {
 });
 
 import { useAudioEngine } from "./useAudioEngine";
-import { m2f } from "./helpers";
+import { m2f } from "../shared/helpers";
 
 function last(kind: string): any {
   const list = made[kind];

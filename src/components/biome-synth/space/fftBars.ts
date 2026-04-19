@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { FFT_BARS, PAL } from "../constants";
+import { FFT_BARS, PAL } from "../shared/constants";
 
 export function makeFftBars(): { group: THREE.Group; meshes: THREE.Mesh[] } {
   const group = new THREE.Group();

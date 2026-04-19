@@ -1,5 +1,5 @@
-import { isMobile } from "../constants";
-import { clamp } from "../helpers";
+import { isMobile } from "../shared/constants";
+import { clamp } from "../shared/helpers";
 import { rand } from "./utils";
 
 export const NSAMPLES = isMobile ? 96 : 160;

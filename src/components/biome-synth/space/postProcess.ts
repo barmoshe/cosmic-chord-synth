@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { PP_VERT, BRIGHT_FRAG, BLUR_FRAG, COMPOSITE_FRAG } from "../shaders";
+import { PP_VERT, BRIGHT_FRAG, BLUR_FRAG, COMPOSITE_FRAG } from "../shared/shaders";
 
 export interface PostPipeline {
   renderTarget: THREE.WebGLRenderTarget;

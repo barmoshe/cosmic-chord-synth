@@ -10,7 +10,7 @@ paths:
 - One component per file; filename matches component name (PascalCase)
 - Props interface defined above component: `interface FooProps { ... }`
 - Event handlers prefixed with `handle`: `handleClick`, `handleChange`
-- Extract reusable logic into custom hooks (`use*.ts`) in `cosmic-synth/` or `hooks/`
+- Extract reusable logic into custom hooks (`use*.ts`) in `biome-synth/hooks/` or `hooks/`
 - Use `cn()` from `@/lib/utils` for conditional Tailwind classes
 - shadcn/ui components live in `components/ui/` — import from `@/components/ui/*`
 - Avoid inline styles; use Tailwind utilities exclusively

@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { isMobile } from "../constants";
-import { GALAXY_VERT, GALAXY_FRAG } from "../shaders";
+import { isMobile } from "../shared/constants";
+import { GALAXY_VERT, GALAXY_FRAG } from "../shared/shaders";
 
 export function makeBgStars(PR: number, sharedUniforms: Record<string, THREE.IUniform>): THREE.Points {
   const count = isMobile ? 2000 : 4000;

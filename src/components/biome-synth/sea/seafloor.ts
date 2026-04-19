@@ -1,4 +1,4 @@
-import { isMobile } from "../constants";
+import { isMobile } from "../shared/constants";
 import { rand } from "./utils";
 
 export function buildFloor(canvas: HTMLCanvasElement, W: number, H: number, PR: number) {

@@ -1,4 +1,4 @@
-import type { DrumName } from "../constants";
+import type { DrumName } from "../shared/constants";
 
 export type RGB = number[];
 

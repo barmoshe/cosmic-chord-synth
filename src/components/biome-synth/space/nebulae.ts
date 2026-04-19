@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { isMobile } from "../constants";
+import { isMobile } from "../shared/constants";
 import type { NebulaSprite } from "./types";
 
 const NEBULA_COLORS = [

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { STAR_VERT, STAR_FRAG, HALO_FRAG } from "../shaders";
+import { STAR_VERT, STAR_FRAG, HALO_FRAG } from "../shared/shaders";
 
 export interface CentralStar {
   star: THREE.Mesh;

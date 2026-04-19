@@ -1,26 +1,20 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
-import { isMobile, type DrumName } from "./constants";
-import { clamp, haptic } from "./helpers";
-import type { RGB } from "./sea/types";
+import { isMobile, type DrumName } from "../shared/constants";
+import { clamp, haptic } from "../shared/helpers";
+import type { RGB } from "../jungle/types";
 import {
-  createWaveField, injectWaveAt, stepWave,
-  drawWaveSurface, drawCaustics,
-} from "./sea/wave";
-import { buildFloor } from "./sea/seafloor";
-import { drawSky, drawWaterBody, makeLightRays, drawLightRays } from "./sea/water";
-import { makeBubbles, drawBubbles } from "./sea/bubbles";
-import { makeFish, drawFish, scatterFishFrom } from "./sea/fish";
-import { buildCorals, drawCorals, kickCoralsFrom } from "./sea/corals";
-import { createParticlePool, spawnParticles, drawParticles } from "./sea/particles";
-import { createRipplePool, spawnRipple, drawRipples } from "./sea/ripples";
-import {
-  createDrums, layoutDrums, pickDrumStar,
-  burstFloorBubbles, drawDrums,
-} from "./sea/drums";
-import { drawWarp, drawFlash, drawVignette } from "./sea/overlays";
+  buildMountains, buildUndergrowth,
+  drawSky, drawGround,
+  createMistBands, drawMistBands,
+} from "../jungle/background";
+import { makeFireflies, drawFireflies } from "../jungle/fireflies";
+import { createParticlePool, spawnParticles, drawParticles } from "../jungle/particles";
+import { createRipplePool, spawnRipple, drawRipples } from "../jungle/ripples";
+import { createDrums, layoutDrums, pickDrumStar, drawDrums } from "../jungle/drums";
+import { drawWarp, drawFlash, drawVignette } from "../jungle/overlays";
 
-export function useSeaScene(
+export function useJungleScene(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,
   audioRef: React.MutableRefObject<any>,
   analysisRef: React.MutableRefObject<any>,
@@ -55,20 +49,17 @@ export function useSeaScene(
     resize();
     window.addEventListener("resize", resize);
 
-    const wave = createWaveField();
+    const mtCanvas = document.createElement("canvas");
+    const ugCanvas = document.createElement("canvas");
+    const rebuildOffscreens = () => {
+      buildMountains(mtCanvas, W, H, PR);
+      buildUndergrowth(ugCanvas, W, H, PR);
+    };
+    rebuildOffscreens();
+    window.addEventListener("resize", rebuildOffscreens);
 
-    const floorCanvas = document.createElement("canvas");
-    const onResizeFloor = () => buildFloor(floorCanvas, W, H, PR);
-    onResizeFloor();
-    window.addEventListener("resize", onResizeFloor);
-
-    const bubbles = makeBubbles(W, H);
-    const fish = makeFish(W, H);
-    let corals = buildCorals(W, H);
-    const onResizeCorals = () => { corals = buildCorals(W, H); };
-    window.addEventListener("resize", onResizeCorals);
-    const rays = makeLightRays(W);
-
+    const mistBands = createMistBands();
+    const fireflies = makeFireflies(W, H);
     const particles = createParticlePool();
     const ripples = createRipplePool();
     const drums = createDrums();
@@ -78,7 +69,6 @@ export function useSeaScene(
 
     function addRipple(x: number, y: number, _z: number, col: RGB, intensity = 1) {
       spawnRipple(ripples, x, y, col, intensity);
-      injectWaveAt(wave, x, 4 + intensity * 6, W);
     }
     function emitParticles(x: number, y: number, _z: number, col: RGB, count: number, vel: number) {
       spawnParticles(particles, x, y, col, count, vel);
@@ -90,15 +80,11 @@ export function useSeaScene(
       const run = () => {
         if (!d) return;
         d.pulse = Math.max(d.pulse, v * (auto ? 0.6 : 1.2));
-        emitParticles(d.x, d.y, 0, d.color, auto ? 4 : 12, auto ? 0.5 : 1.0);
+        emitParticles(d.x, d.y, 0, d.color, auto ? 4 : 10, auto ? 0.4 : 0.9);
         addRipple(d.x, d.y, 0, d.color, auto ? 0.5 : 1.1);
-        injectWaveAt(wave, d.x, 6 + v * 10, W);
-        scatterFishFrom(fish, d.x, d.y, (auto ? 1.2 : 2.6) * v);
-        kickCoralsFrom(corals, d.x, v);
         if (name === "kick") {
-          const f = (auto ? 0.08 : 0.22) * v;
+          const f = (auto ? 0.06 : 0.18) * v;
           if (f > flashIntensity.current) flashIntensity.current = f;
-          burstFloorBubbles(bubbles, d.x, H, auto ? 4 : 10);
         }
       };
       if (audioTime !== undefined) Tone.Draw.schedule(run, audioTime);
@@ -136,21 +122,17 @@ export function useSeaScene(
       const mid = a.mid ?? 0;
       const high = a.high ?? 0;
 
-      stepWave(wave, dt, bass);
-
       drawSky(ctx, W, H);
-      drawWaterBody(ctx, W, H);
-      drawLightRays(ctx, rays, W, H, mid, flashIntensity.current);
-      drawCaustics(ctx, wave, W, H, mid);
+      ctx.drawImage(mtCanvas, 0, H * 0.30, W, H * 0.45);
+      drawMistBands(ctx, mistBands, W, H, mid);
+      drawFireflies(ctx, fireflies, W, H, tS, mid);
 
-      ctx.drawImage(floorCanvas, 0, H - H * 0.18, W, H * 0.18);
-      drawWaveSurface(ctx, wave, W, H, flashIntensity.current);
+      drawGround(ctx, W, H);
+      const groundY = H * 0.95;
+      ctx.drawImage(ugCanvas, 0, groundY - H * 0.18 + 12, W, H * 0.18);
 
-      drawBubbles(ctx, bubbles, wave, W, H, tS, mid);
-      drawFish(ctx, fish, W, H, tS, high);
-      drawCorals(ctx, corals, tS, bass);
       drawRipples(ctx, ripples.pool);
-      drawParticles(ctx, particles.pool);
+      drawParticles(ctx, particles.pool, high);
       drawDrums(ctx, drums, bass, tS);
 
       drawWarp(ctx, W, H, warpState.current, dt);
@@ -164,10 +146,10 @@ export function useSeaScene(
       rafRef.current = null;
       window.removeEventListener("resize", resize);
       window.removeEventListener("resize", relayoutDrums);
-      window.removeEventListener("resize", onResizeFloor);
-      window.removeEventListener("resize", onResizeCorals);
+      window.removeEventListener("resize", rebuildOffscreens);
       engineRef.current = null;
-      floorCanvas.width = floorCanvas.height = 0;
+      mtCanvas.width = mtCanvas.height = 0;
+      ugCanvas.width = ugCanvas.height = 0;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, cv.width, cv.height);
     };

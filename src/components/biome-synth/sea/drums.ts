@@ -1,4 +1,4 @@
-import { DRUM_STARS, type DrumName } from "../constants";
+import { DRUM_STARS, type DrumName } from "../shared/constants";
 import { rand } from "./utils";
 import type { DrumGlyph, RGB, Bubble } from "./types";
 

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { DrumName } from "../constants";
+import type { DrumName } from "../shared/constants";
 
 export type DrumMesh = THREE.Mesh & {
   userData: { name: DrumName; pulse: number; col: number[] };

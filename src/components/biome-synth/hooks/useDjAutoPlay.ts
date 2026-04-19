@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
 import { Draw } from "tone";
-import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, THEME_PRESETS } from "./constants";
-import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
-import type { AudioEngine, ThemeId } from "./types";
+import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, THEME_PRESETS } from "../shared/constants";
+import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "../shared/helpers";
+import type { AudioEngine, ThemeId } from "../shared/types";
 
 export type DrumLane = "kick" | "clap" | "hat" | "snare";
 export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };

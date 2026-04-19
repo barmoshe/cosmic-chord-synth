@@ -18,11 +18,9 @@ npm run dev      # Opens on http://localhost:8080
 
 ## Features
 
-- Interactive 3D galaxy that responds to touch/mouse input
-- Real-time audio synthesis with customizable effects chain
+- Four interactive 3D biomes (space, jungle, sea, cyberpunk) that respond to touch/mouse input
+- Real-time audio synthesis with a customizable Tone.js effects chain
 - AI DJ mode with generative composition across 8 musical sections
-- 8-track step sequencer with drum and melodic patterns
-- Gyroscope support for device-motion-controlled modulation
 - Audio-reactive particle visualization
 - Mobile-optimized with adaptive performance
 

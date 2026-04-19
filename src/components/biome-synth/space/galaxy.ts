@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { isMobile, GALAXY_COUNT } from "../constants";
-import { GALAXY_VERT, GALAXY_FRAG } from "../shaders";
+import { isMobile, GALAXY_COUNT } from "../shared/constants";
+import { GALAXY_VERT, GALAXY_FRAG } from "../shared/shaders";
 
 const ARM_COUNT = 4;
 const TWIST_FACTOR = 0.0035;

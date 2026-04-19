@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { isMobile } from "@/components/biome-synth/constants";
+import { isMobile } from "@/components/biome-synth/shared/constants";
 
 const BIOME_COLORS = [
   new THREE.Color("#6CE5FF"),

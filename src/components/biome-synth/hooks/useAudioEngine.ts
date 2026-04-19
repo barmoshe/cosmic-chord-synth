@@ -1,8 +1,8 @@
 import { useRef, useCallback, useMemo } from "react";
 import * as Tone from "tone";
-import { m2f } from "./helpers";
-import { SMOOTH, isMobile, THEME_PRESETS } from "./constants";
-import type { AnalysisData, AudioEngine, DrumName, LeadEnvelope, ThemeId } from "./types";
+import { m2f } from "../shared/helpers";
+import { SMOOTH, isMobile, THEME_PRESETS } from "../shared/constants";
+import type { AnalysisData, AudioEngine, DrumName, LeadEnvelope, ThemeId } from "../shared/types";
 
 interface InternalGraph {
   lead: Tone.PolySynth;
