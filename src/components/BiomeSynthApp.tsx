@@ -116,6 +116,7 @@ export default function BiomeSynthApp() {
 
   const handleThemeChange = useCallback((t: BiomeTheme) => {
     setTheme(t);
+    setAutoPlay(false);
     try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch { /* storage unavailable */ }
   }, []);
 

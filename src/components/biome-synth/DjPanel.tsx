@@ -195,7 +195,7 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, use
             const el = row[i];
             if (!el) continue;
             const v = laneVals[i] || 0;
-            el.style.opacity = String(0.35 + v * 0.65);
+            el.style.opacity = String(v > 0 ? 0.6 + v * 0.4 : 0.22);
             if (i === step) el.setAttribute("data-active", "1");
             else el.removeAttribute("data-active");
           }
@@ -245,8 +245,8 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, use
       {/* Transport row — always visible */}
       <div className="conductor-transport">
         <button
+          type="button"
           className={`conductor-toggle ${autoPlay ? "is-active" : ""}`}
-          onTouchStart={(e) => { e.preventDefault(); handleToggle(); }}
           onClick={handleToggle}
           aria-label={autoPlay ? "Pause auto DJ" : "Start auto DJ"}
           aria-pressed={autoPlay}
@@ -288,8 +288,8 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, use
         </svg>
 
         <button
+          type="button"
           className="conductor-expand"
-          onTouchStart={(e) => { e.preventDefault(); handleExpand(); }}
           onClick={handleExpand}
           aria-label={expanded ? "Collapse DJ console" : "Expand DJ console"}
           aria-expanded={expanded}
@@ -354,7 +354,6 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, use
                         className={`conductor-cell ${i % 4 === 0 ? "is-downbeat" : ""}`}
                         data-user={userState}
                         aria-label={`${lane} step ${i + 1}${userState ? ` (user ${userState})` : ""}`}
-                        onTouchStart={(e) => { e.preventDefault(); handleCellTap(lane, i); }}
                         onClick={() => handleCellTap(lane, i)}
                       >
                         {isJungle && <span className="conductor-cell-fruit" aria-hidden="true" />}

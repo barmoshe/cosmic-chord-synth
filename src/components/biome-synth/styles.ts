@@ -261,10 +261,10 @@ export const BIOME_STYLES = `
 
         .conductor-transport {
           display: grid;
-          grid-template-columns: 44px 1fr 26px 32px;
+          grid-template-columns: 52px 1fr 26px 36px;
           align-items: center;
           gap: 12px;
-          padding: 9px 12px;
+          padding: 10px 12px;
           position: relative;
           transition: border-radius 0.28s cubic-bezier(0.2, 0.8, 0.3, 1.2),
                       padding 0.22s ease,
@@ -279,14 +279,15 @@ export const BIOME_STYLES = `
         /* Play / pause toggle with pulsing aurora ring */
         .conductor-toggle {
           all: unset;
+          box-sizing: border-box;
           position: relative;
-          width: 44px; height: 44px;
+          width: 52px; height: 52px;
           display: flex; align-items: center; justify-content: center;
           border-radius: 50%;
-          background: radial-gradient(circle at 30% 25%, rgba(229,244,251,0.08), rgba(229,244,251,0.02) 70%);
-          border: 1px solid rgba(129,140,248,0.35);
+          background: radial-gradient(circle at 30% 25%, rgba(129,140,248,0.22), rgba(129,140,248,0.08) 70%);
+          border: 1.5px solid rgba(129,140,248,0.55);
           cursor: pointer; touch-action: manipulation;
-          transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.08s ease;
+          transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.08s ease;
           color: #E5F4FB;
         }
         .conductor-toggle:hover { background: radial-gradient(circle at 30% 25%, rgba(129,140,248,0.22), rgba(129,140,248,0.04) 70%); border-color: rgba(129,140,248,0.55); }
@@ -553,8 +554,8 @@ export const BIOME_STYLES = `
           border-radius: 3px;
           background: rgba(229,244,251,0.08);
           border: 1px solid rgba(129,140,248,0.14);
-          transition: transform 0.08s linear, box-shadow 0.08s linear, border-color 0.15s;
-          opacity: 0.35;
+          transition: transform 0.08s linear, box-shadow 0.08s linear, border-color 0.15s, opacity 0.12s;
+          opacity: 0.22;
           will-change: opacity, transform;
           cursor: pointer;
           touch-action: manipulation;
@@ -608,10 +609,10 @@ export const BIOME_STYLES = `
             gap: 8px;
           }
           .conductor-transport {
-            grid-template-columns: 40px 1fr 24px 28px;
-            padding: 8px 10px;
+            grid-template-columns: 48px 1fr 24px 32px;
+            padding: 9px 10px;
           }
-          .conductor-toggle { width: 40px; height: 40px; }
+          .conductor-toggle { width: 48px; height: 48px; }
           .conductor-drawer { padding: 10px 10px 12px; gap: 10px; }
           .conductor-row { grid-template-columns: 26px 1fr; gap: 6px; }
           .conductor-cell { height: 14px; }
