@@ -372,6 +372,43 @@ export function useAudioEngine() {
       const g = graphRef.current; if (!g) return;
       try { g.lead.set({ envelope: env }); } catch { /* noop */ }
     },
+
+    setTheme(theme: ThemeId) {
+      const g = graphRef.current; if (!g) return;
+      const p = THEME_PRESETS[theme];
+      if (!p) return;
+      try {
+        // Synth voicings — change oscillator type live
+        g.lead.set({ oscillator: p.lead as any, envelope: p.leadEnv });
+        g.sub.set({ oscillator: p.sub as any });
+        g.pad.set({ oscillator: p.pad as any, envelope: p.padEnv });
+        g.bass.set({ oscillator: p.bass as any });
+        g.arp.set({ oscillator: p.arp as any });
+        g.drone.set({ oscillator: p.drone as any });
+
+        // Filters
+        g.leadFilter.frequency.rampTo(p.leadCutoff, 0.4);
+        g.padFilter.frequency.rampTo(p.padCutoff, 0.4);
+        g.snareFilter.frequency.rampTo(p.snareFilterHz, 0.3);
+        g.clapFilter.frequency.rampTo(p.clapFilterHz, 0.3);
+
+        // FX character
+        g.reverb.roomSize.value = p.reverbRoom;
+        g.reverb.dampening = p.reverbDamp as any;
+        g.reverb.wet.rampTo(p.reverbWet, 0.6);
+        g.delay.wet.rampTo(p.delayWet, 0.6);
+        g.delay.delayTime.rampTo(p.delayTime, 0.4);
+        g.chorus.wet.rampTo(p.chorusWet, 0.4);
+
+        // Drum tuning
+        g.kickPitch = p.kickPitch;
+        g.kick.set({ envelope: { decay: p.kickDecay } as any });
+        g.snare.set({ envelope: { decay: p.snareDecay } as any });
+        g.hihat.set({ harmonicity: p.hatHarm, resonance: p.hatRes } as any);
+      } catch (e) {
+        console.warn("setTheme failed:", e);
+      }
+    },
   }), [dispose]);
 
   // Keep the ref in sync with the memoized engine instance.
