@@ -24,6 +24,14 @@ sea-ambient.opus
   License: CC0 1.0 Universal (Public Domain Dedication)
   Character: Underwater bubble loop.
 
+cyberpunk-ambient.ogg
+  Source: https://github.com/OreCruncher/DynamicSurroundings
+  Original: src/main/resources/assets/dsurround/sounds/ambient/end/end.ogg
+  License: Mod is MIT-licensed; the project README states its sounds are
+           "from the public domain or have Creative Common restrictions"
+           (CREDITS.md does not itemize this specific clip's origin).
+  Character: Dark synth drone — industrial / otherworldly dystopian bed.
+
 --
 
 License references:

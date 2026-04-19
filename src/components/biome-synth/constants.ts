@@ -257,32 +257,32 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     bpm: 128,                 // driving synthwave pulse
     lead: isMobile ? { type: "sawtooth" } : { type: "fatsawtooth", spread: 30, count: 3 }, // supersaw lead
     sub: { type: "square" },             // punchy sub
-    pad: { type: "fmsine" },             // metallic pad
+    pad: { type: "amsine" },             // ring-mod metallic pad — grittier under the drone
     bass: { type: "square" },            // reese-adjacent bass
     arp: { type: "pulse" },              // sharp pulse arp
-    drone: { type: "sawtooth" },
+    drone: isMobile ? { type: "sawtooth" } : { type: "fatsawtooth", spread: 20, count: 2 }, // thick detuned foundation
     padEnv: { attack: 0.05, decay: 0.25, sustain: 0.7, release: 0.8 },
     leadEnv: { attack: 0.003, decay: 0.15, sustain: 0.5, release: 0.4 }, // punchy attack
     leadCutoff: 5200,
-    padCutoff: 2800,
+    padCutoff: 2200,          // darker pad — lets the ambient drone breathe
     reverbRoom: 0.55,         // drier, industrial space
-    reverbDamp: 3200,
+    reverbDamp: 2400,         // duskier tail — industrial weight over air
     reverbWet: 0.2,
     delayWet: 0.24,
-    delayTime: "8n",          // rhythmic slapback
+    delayTime: "8n.",         // dotted-eighth slapback — canonical synthwave feel
     chorusWet: 0,             // no chorus — keep harsh
     kickPitch: "C1",
     kickDecay: 0.22,          // tight industrial kick
     snareFilterHz: 2400,      // snappy electronic snare
     snareDecay: 0.1,
-    hatHarm: 6.4,             // bright metallic hat
+    hatHarm: 7.0,             // brighter tin-can / circuit-board hat
     hatRes: 5200,
     clapFilterHz: 1800,
     djBarMult: 0.9,           // snappier sections
     djEnergyBias: 0.15,       // higher overall energy
     drumKit: "default",
-    ambientUrl: "",           // no ambient bed in this pass
-    ambientVolumeDb: -24,
+    ambientUrl: "/audio/cyberpunk-ambient.ogg",
+    ambientVolumeDb: -22,     // same floor as space — sits under the synth
     ambientFadeSec: 2.0,
   },
 };
