@@ -1,8 +1,8 @@
 import { useRef, useCallback, useMemo } from "react";
 import * as Tone from "tone";
 import { m2f } from "./helpers";
-import { SMOOTH, isMobile } from "./constants";
-import type { AnalysisData, AudioEngine, DrumName, LeadEnvelope } from "./types";
+import { SMOOTH, isMobile, THEME_PRESETS } from "./constants";
+import type { AnalysisData, AudioEngine, DrumName, LeadEnvelope, ThemeId } from "./types";
 
 interface InternalGraph {
   lead: Tone.PolySynth;
@@ -31,6 +31,7 @@ interface InternalGraph {
   lfo: Tone.LFO;
   activeLead: Map<number, number>;
   droneOn: boolean;
+  kickPitch: string;
 }
 
 function buildGraph(): InternalGraph {
@@ -171,6 +172,7 @@ function buildGraph(): InternalGraph {
     fft, lfo,
     activeLead: new Map<number, number>(),
     droneOn: false,
+    kickPitch: "C1",
   };
 }
 
@@ -295,7 +297,7 @@ export function useAudioEngine() {
     triggerDrum(name, velocity, time) {
       const g = graphRef.current; if (!g) return;
       try {
-        if (name === "kick") g.kick.triggerAttackRelease("C1", "8n", time, velocity);
+        if (name === "kick") g.kick.triggerAttackRelease(g.kickPitch, "8n", time, velocity);
         else if (name === "snare") g.snare.triggerAttackRelease("16n", time, velocity);
         else if (name === "hat") g.hihat.triggerAttackRelease("C2", "32n", time, velocity * 0.6);
         else if (name === "clap") g.clap.triggerAttackRelease("16n", time, velocity);
@@ -369,6 +371,43 @@ export function useAudioEngine() {
     setLeadEnvelope(env: LeadEnvelope) {
       const g = graphRef.current; if (!g) return;
       try { g.lead.set({ envelope: env }); } catch { /* noop */ }
+    },
+
+    setTheme(theme: ThemeId) {
+      const g = graphRef.current; if (!g) return;
+      const p = THEME_PRESETS[theme];
+      if (!p) return;
+      try {
+        // Synth voicings — change oscillator type live
+        g.lead.set({ oscillator: p.lead as any, envelope: p.leadEnv });
+        g.sub.set({ oscillator: p.sub as any });
+        g.pad.set({ oscillator: p.pad as any, envelope: p.padEnv });
+        g.bass.set({ oscillator: p.bass as any });
+        g.arp.set({ oscillator: p.arp as any });
+        g.drone.set({ oscillator: p.drone as any });
+
+        // Filters
+        g.leadFilter.frequency.rampTo(p.leadCutoff, 0.4);
+        g.padFilter.frequency.rampTo(p.padCutoff, 0.4);
+        g.snareFilter.frequency.rampTo(p.snareFilterHz, 0.3);
+        g.clapFilter.frequency.rampTo(p.clapFilterHz, 0.3);
+
+        // FX character
+        g.reverb.roomSize.value = p.reverbRoom;
+        g.reverb.dampening = p.reverbDamp as any;
+        g.reverb.wet.rampTo(p.reverbWet, 0.6);
+        g.delay.wet.rampTo(p.delayWet, 0.6);
+        g.delay.delayTime.rampTo(p.delayTime, 0.4);
+        g.chorus.wet.rampTo(p.chorusWet, 0.4);
+
+        // Drum tuning
+        g.kickPitch = p.kickPitch;
+        g.kick.set({ envelope: { decay: p.kickDecay } as any });
+        g.snare.set({ envelope: { decay: p.snareDecay } as any });
+        g.hihat.set({ harmonicity: p.hatHarm, resonance: p.hatRes } as any);
+      } catch (e) {
+        console.warn("setTheme failed:", e);
+      }
     },
   }), [dispose]);
 

@@ -1,7 +1,7 @@
 import type * as Tone from "tone";
-import type { DrumName } from "./constants";
+import type { DrumName, ThemeId } from "./constants";
 
-export type { DrumName };
+export type { DrumName, ThemeId };
 
 export interface AnalysisData {
   bass: number;
@@ -67,6 +67,7 @@ export interface AudioEngine {
   setReverbWet(w: number, rampTime?: number): void;
   setDelayWet(w: number, rampTime?: number): void;
   setLeadEnvelope(env: LeadEnvelope): void;
+  setTheme(theme: ThemeId): void;
 }
 
 export interface DjState {

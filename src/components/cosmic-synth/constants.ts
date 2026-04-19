@@ -3,13 +3,16 @@ export const SCALES: Record<string, { notes: number[]; label: string; mood: numb
   minor: { notes: [0, 2, 3, 5, 7, 8, 10], label: "MINOR", mood: 0.2, chords: [[0, 3, 7], [2, 5, 8], [3, 7, 10], [5, 8, 12], [7, 10, 14], [8, 12, 15], [10, 14, 17]] },
   major: { notes: [0, 2, 4, 5, 7, 9, 11], label: "MAJOR", mood: 0.85, chords: [[0, 4, 7], [2, 5, 9], [4, 7, 11], [5, 9, 12], [7, 11, 14], [9, 12, 16], [11, 14, 17]] },
   arabic: { notes: [0, 1, 4, 5, 7, 8, 11], label: "ARABIC", mood: 0.25, chords: [[0, 4, 7], [1, 5, 8], [4, 7, 11], [5, 8, 12], [7, 11, 13], [8, 12, 16]] },
+  // Lydian — bright & floaty; #4 gives the "dreamy underwater" lift. Used by SEA theme.
+  lydian: { notes: [0, 2, 4, 6, 7, 9, 11], label: "LYDIAN", mood: 0.7, chords: [[0, 4, 7, 11], [2, 6, 9], [4, 7, 11], [6, 9, 12], [7, 11, 14], [9, 12, 16], [11, 14, 18]] },
 };
-export const SCALE_ORDER = ["pentatonic", "minor", "major", "arabic"];
+export const SCALE_ORDER = ["pentatonic", "minor", "major", "arabic", "lydian"];
 export const PROGS: Record<string, number[][]> = {
   pentatonic: [[0, 3, 0, 4], [0, 1, 2, 0]],
   minor: [[0, 3, 4, 0], [0, 5, 3, 4], [0, 2, 5, 4]],
   major: [[0, 4, 5, 3], [0, 3, 4, 0]],
   arabic: [[0, 3, 4, 0], [0, 2, 4, 0]],
+  lydian: [[0, 3, 4, 0], [0, 4, 5, 3], [0, 2, 5, 4]],
 };
 
 export const isMobile = typeof navigator !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);
@@ -91,3 +94,148 @@ export const DRUM_STARS = [
   { name: "snare", angle: Math.PI * 1.5,     color: [0.95, 0.35, 0.55], label: "S" }, // rose (W)
 ] as const;
 export type DrumName = typeof DRUM_STARS[number]["name"];
+
+/* ── Per-theme sound design ──
+   Each theme is a complete sonic identity: synth voicing, drum tuning, BPM,
+   default scale, reverb/delay character, and DJ section pacing.
+   The audio engine reads this on theme change to retune the graph in place
+   (no rebuild — synths/filters/effects update via .set()/rampTo). */
+export type ThemeId = "space" | "jungle" | "sea";
+
+export interface SynthVoice {
+  type: "sine" | "sawtooth" | "square" | "triangle" | "fatsawtooth" | "fmsine" | "amsine" | "pulse";
+  spread?: number;
+  count?: number;
+}
+
+export interface ThemePreset {
+  scale: string;             // default scale auto-selected on theme switch
+  bpm: number;               // transport BPM
+  // Synth oscillator presets
+  lead: SynthVoice;
+  sub: SynthVoice;
+  pad: SynthVoice;
+  bass: SynthVoice;
+  arp: SynthVoice;
+  drone: SynthVoice;
+  // Pad envelope (slow attack for atmospheric, faster for plucky)
+  padEnv: { attack: number; decay: number; sustain: number; release: number };
+  // Lead default envelope (overridden per DJ section)
+  leadEnv: { attack: number; decay: number; sustain: number; release: number };
+  // Filter cutoffs
+  leadCutoff: number;
+  padCutoff: number;
+  // FX character
+  reverbRoom: number;        // 0..1
+  reverbDamp: number;        // Hz
+  reverbWet: number;
+  delayWet: number;
+  delayTime: string;
+  chorusWet: number;
+  // Drum tuning
+  kickPitch: string;         // e.g. "C1", "A0"
+  kickDecay: number;
+  snareFilterHz: number;     // bandpass center
+  snareDecay: number;
+  hatHarm: number;           // MetalSynth harmonicity
+  hatRes: number;            // resonance
+  clapFilterHz: number;
+  // DJ section pacing — multiplier on bars and energy curve shape
+  djBarMult: number;         // 1 = default; <1 = faster cycles, >1 = slower
+  djEnergyBias: number;      // -0.3..+0.3 added to per-section energy
+  // Section transition flash palette (inherited from DJ_SECTIONS if undefined)
+  drumKit: "default" | "tribal" | "aquatic";
+}
+
+export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
+  space: {
+    scale: "pentatonic",
+    bpm: 94,
+    lead: isMobile ? { type: "sawtooth" } : { type: "fatsawtooth", spread: 20, count: 2 },
+    sub: { type: "sine" },
+    pad: { type: "sine" },
+    bass: { type: "square" },
+    arp: { type: "triangle" },
+    drone: { type: "sine" },
+    padEnv: { attack: 0.5, decay: 0.6, sustain: 0.6, release: 1.0 },
+    leadEnv: { attack: 0.05, decay: 0.25, sustain: 0.4, release: 0.35 },
+    leadCutoff: 4500,
+    padCutoff: 1200,
+    reverbRoom: isMobile ? 0.7 : 0.82,
+    reverbDamp: 3500,
+    reverbWet: isMobile ? 0.22 : 0.3,
+    delayWet: 0.14,
+    delayTime: "8n.",
+    chorusWet: isMobile ? 0 : 0.14,
+    kickPitch: "C1",
+    kickDecay: 0.25,
+    snareFilterHz: 3000,
+    snareDecay: 0.13,
+    hatHarm: 5.1,
+    hatRes: 4000,
+    clapFilterHz: 1500,
+    djBarMult: 1,
+    djEnergyBias: 0,
+    drumKit: "default",
+  },
+  jungle: {
+    scale: "pentatonic",
+    bpm: 108,                 // brisker, more rhythmic
+    lead: { type: "triangle" },          // marimba-ish soft attack
+    sub: { type: "sine" },
+    pad: { type: "fmsine" },             // organic, woody pad
+    bass: { type: "sine" },              // round upright-bass-like
+    arp: { type: "triangle" },           // kalimba-like pluck
+    drone: { type: "sine" },
+    padEnv: { attack: 0.3, decay: 0.4, sustain: 0.45, release: 0.8 },
+    leadEnv: { attack: 0.005, decay: 0.35, sustain: 0.15, release: 0.5 }, // pluck/marimba
+    leadCutoff: 3200,
+    padCutoff: 900,
+    reverbRoom: 0.6,
+    reverbDamp: 2200,
+    reverbWet: 0.18,
+    delayWet: 0.08,
+    delayTime: "16n",
+    chorusWet: 0.05,
+    kickPitch: "A0",          // deeper, tom-like
+    kickDecay: 0.4,
+    snareFilterHz: 1800,      // wood/rim feel
+    snareDecay: 0.08,
+    hatHarm: 3.2,             // softer hat → shaker-like
+    hatRes: 2200,
+    clapFilterHz: 2200,       // wood-block clap
+    djBarMult: 0.75,          // shorter sections, more movement
+    djEnergyBias: 0.1,        // slightly punchier overall
+    drumKit: "tribal",
+  },
+  sea: {
+    scale: "lydian",
+    bpm: 76,                  // slow, breathing tempo
+    lead: { type: "sine" },              // pure bell-like
+    sub: { type: "sine" },
+    pad: { type: "amsine" },             // shimmering pad
+    bass: { type: "sine" },              // deep sub-bass
+    arp: { type: "sine" },               // glassy bell arp
+    drone: { type: "sine" },
+    padEnv: { attack: 1.2, decay: 1.5, sustain: 0.7, release: 2.5 },
+    leadEnv: { attack: 0.02, decay: 1.2, sustain: 0.15, release: 1.8 }, // bell-like
+    leadCutoff: 5500,
+    padCutoff: 1500,
+    reverbRoom: 0.92,         // cathedral-cave wash
+    reverbDamp: 2800,
+    reverbWet: 0.5,
+    delayWet: 0.28,
+    delayTime: "4n.",         // slow dotted-quarter pings
+    chorusWet: 0.25,
+    kickPitch: "G0",          // soft, muffled — like distant whale
+    kickDecay: 0.6,
+    snareFilterHz: 800,       // dull splash
+    snareDecay: 0.2,
+    hatHarm: 8,               // shimmer-bell hat
+    hatRes: 6000,
+    clapFilterHz: 900,        // soft droplet
+    djBarMult: 1.5,           // long, breathing sections
+    djEnergyBias: -0.15,      // gentler overall
+    drumKit: "aquatic",
+  },
+};

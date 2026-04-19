@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 
-import { SCALES, SCALE_ORDER, isMobile } from "./cosmic-synth/constants";
+import { SCALES, SCALE_ORDER, isMobile, THEME_PRESETS } from "./cosmic-synth/constants";
 import { m2f, noteColor } from "./cosmic-synth/helpers";
 import { COSMIC_STYLES } from "./cosmic-synth/styles";
 import { useAudioEngine } from "./cosmic-synth/useAudioEngine";
@@ -131,7 +131,27 @@ export default function CosmicSynth() {
   const { resetUIHide } = useSetupEffects(hideTimerRef, setShowUI, hintDismissed, setHintDismissed);
   useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide, theme);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
-  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef, userLayerRef);
+  useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef, userLayerRef, theme);
+
+  /* ── Per-theme audio: retune synths/drums/FX + auto-pick fitting scale on theme change ── */
+  useEffect(() => {
+    const preset = THEME_PRESETS[theme];
+    if (!preset) return;
+    // Auto-switch the musical scale to the theme's preferred one
+    setScale(preset.scale);
+    scaleRef.current = preset.scale;
+    // Retune the audio graph (no-op until engine is ready; safe to call again on start)
+    if (engine.current?.isReady()) {
+      engine.current.setTheme(theme);
+    }
+  }, [theme, engine]);
+
+  /* ── Apply theme preset on first audio start (engine wasn't ready when theme effect ran) ── */
+  useEffect(() => {
+    if (engineReady) {
+      try { engine.current?.setTheme(theme); } catch { /* noop */ }
+    }
+  }, [engineReady, theme, engine]);
 
   /* ── Cleanup audio on unmount ── */
   useEffect(() => () => { dispose(); }, [dispose]);

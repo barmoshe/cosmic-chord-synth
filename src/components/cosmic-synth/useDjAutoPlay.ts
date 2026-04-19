@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
 import { Draw } from "tone";
-import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES } from "./constants";
+import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, THEME_PRESETS } from "./constants";
 import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
-import type { AudioEngine } from "./types";
+import type { AudioEngine, ThemeId } from "./types";
 
 export type DrumLane = "kick" | "clap" | "hat" | "snare";
 export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
@@ -90,10 +90,12 @@ export function useDjAutoPlay(
   ui: DjUi,
   touchesRef: React.MutableRefObject<Map<any, any>>,
   userLayerRef?: React.MutableRefObject<DrumPattern>,
+  theme: ThemeId = "space",
 ) {
   useEffect(() => {
     const dj = djState.current;
     const audio = audioEngine.current;
+    const themePreset = THEME_PRESETS[theme] || THEME_PRESETS.space;
     if (!autoPlay || !audio?.isReady()) {
       dj.on = false;
       if (dj.iv != null) { Tone.getTransport().clear(dj.iv); dj.iv = null; }
@@ -113,6 +115,10 @@ export function useDjAutoPlay(
 
     const sn = () => SCALES[scaleRef.current];
     const sec = () => DJ_SECTIONS[dj.si];
+    // Theme-adjusted bar count + energy. Bar mult shapes section length;
+    // energy bias shifts the overall intensity of the journey.
+    const secBars = () => Math.max(2, Math.round((sec().bars as number) * themePreset.djBarMult));
+    const secEnergy = () => Math.max(0.05, Math.min(1, (sec().e as number) + themePreset.djEnergyBias));
     let prog = (PROGS[scaleRef.current] || PROGS.minor)[0];
     dj.motif = genMotif(sn().notes);
     dj.phrase = [...dj.motif];
@@ -125,7 +131,7 @@ export function useDjAutoPlay(
     // Fresh variation recomputed at each bar boundary (step === 0); changes every 16 steps.
     let currentPattern = variatePattern(
       DRUM_PATTERNS[sec().drums] || DRUM_PATTERNS.nebula,
-      0.25 + sec().e,
+      0.25 + secEnergy(),
     );
     mergeUserLayer(currentPattern, userLayerRef?.current);
 
@@ -162,16 +168,17 @@ export function useDjAutoPlay(
       ui.setPhase(s.name);
       ui.setNextPhase(next.name);
       ui.setProgress(0);
-      ui.setEnergy(s.e);
+      const e = secEnergy();
+      ui.setEnergy(e);
       // Seed the beat grid with this section's pattern immediately so the widget
       // shows its shape on toggle, before the first audio tick lands.
       // User edits don't carry across section boundaries — the generative nature of
       // the DJ takes back over on each transition.
       resetUserLayer(userLayerRef?.current);
-      currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + s.e);
+      currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + e);
       ui.setStep(-1, currentPattern);
 
-      dj.tf = s.ft; dj.te = s.e;
+      dj.tf = s.ft; dj.te = e;
       dj.am = pick(ARP_MODES); dj.as = 0;
       const [at, dc, su, rl] = s.adsr;
       audio.setLeadEnvelope({ attack: at, decay: dc, sustain: su, release: rl });
@@ -204,10 +211,10 @@ export function useDjAutoPlay(
     applySection();
 
     const transport = Tone.getTransport();
-    if (transport.state !== "started") {
-      transport.bpm.value = 94;
-    }
-    ui.setBpm(transport.bpm.value);
+    // Apply per-theme BPM whenever the DJ (re)starts. Always set so theme
+    // switches while AUTO is on update tempo cleanly.
+    transport.bpm.rampTo(themePreset.bpm, 0.5);
+    ui.setBpm(themePreset.bpm);
 
     dj.iv = transport.scheduleRepeat((time) => {
       if (!audio.isReady() || !dj.on) return;
@@ -221,7 +228,8 @@ export function useDjAutoPlay(
       dj.ce += (dj.te - dj.ce) * 0.06;
       dj.cf += (dj.tf - dj.cf) * 0.04;
       const E = dj.ce;
-      if (s.sweep) dj.cf = lerp(s.ft * 0.3, s.ft, Math.min(dj.tis / (s.bars * 16), 1));
+      const totalSteps = secBars() * 16;
+      if (s.sweep) dj.cf = lerp(s.ft * 0.3, s.ft, Math.min(dj.tis / totalSteps, 1));
 
       const filterVal = Math.round(200 + dj.cf * 5800);
       if (Math.abs(filterVal - lastFilterVal) > 100) {
@@ -274,7 +282,7 @@ export function useDjAutoPlay(
         Draw.schedule(() => ui.setBeat(beat), time);
       }
       if (step % 2 === 0) {
-        const prog01 = dj.tis / (s.bars * 16);
+        const prog01 = dj.tis / totalSteps;
         Draw.schedule(() => ui.setProgress(prog01), time);
       }
       if (step === 0) {
@@ -284,7 +292,7 @@ export function useDjAutoPlay(
 
       // ── Advance tick and handle section boundary ──
       dj.tis++; dj.tt++;
-      if (dj.tis >= s.bars * 16) {
+      if (dj.tis >= totalSteps) {
         advanceSection();
         applySection();
         return;
@@ -373,5 +381,5 @@ export function useDjAutoPlay(
         touchesRef.current.delete(id);
       });
     };
-  }, [autoPlay]);
+  }, [autoPlay, theme]);
 }
