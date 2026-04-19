@@ -8,6 +8,7 @@ import { useAudioEngine } from "./cosmic-synth/useAudioEngine";
 import { useSetupEffects } from "./cosmic-synth/useSetupEffects";
 import { useThreeScene } from "./cosmic-synth/useThreeScene";
 import { useJungleScene } from "./cosmic-synth/useJungleScene";
+import { useSeaScene } from "./cosmic-synth/useSeaScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
@@ -15,6 +16,9 @@ import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
 import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
 import JungleFlora from "./cosmic-synth/JungleFlora";
 import FloatingBananas from "./cosmic-synth/FloatingBananas";
+import SwimmingFish from "./cosmic-synth/SwimmingFish";
+import SeaCorals from "./cosmic-synth/SeaCorals";
+import FloatingBubbles from "./cosmic-synth/FloatingBubbles";
 import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
 
 const THEME_STORAGE_KEY = "cosmic-synth-theme";
@@ -43,10 +47,15 @@ function JungleSceneMount(p: SceneMountProps) {
   return null;
 }
 
+function SeaSceneMount(p: SceneMountProps) {
+  useSeaScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze);
+  return null;
+}
+
 function readStoredTheme(): CosmicTheme {
   try {
     const v = localStorage.getItem(THEME_STORAGE_KEY);
-    if (v === "jungle" || v === "space") return v;
+    if (v === "jungle" || v === "space" || v === "sea") return v;
   } catch { /* storage unavailable */ }
   return "space";
 }
@@ -66,8 +75,9 @@ export default function CosmicSynth() {
   const [theme, setTheme] = useState<CosmicTheme>(readStoredTheme);
 
   const isJungle = theme === "jungle";
-  const productName = isJungle ? "JUNGLE SYNTH" : "COSMIC SYNTH";
-  const warpText = isJungle ? "ENTERING THE JUNGLE" : "ENTERING THE COSMOS";
+  const isSea = theme === "sea";
+  const productName = isJungle ? "JUNGLE SYNTH" : isSea ? "SEA SYNTH" : "COSMIC SYNTH";
+  const warpText = isJungle ? "ENTERING THE JUNGLE" : isSea ? "DIVING INTO THE REEF" : "ENTERING THE COSMOS";
 
   const handleThemeChange = useCallback((t: CosmicTheme) => {
     setTheme(t);
@@ -208,8 +218,8 @@ export default function CosmicSynth() {
   /* ── JSX ── */
   return (
     <div
-      className={isJungle ? "theme-jungle" : "theme-space"}
-      style={{ position: "fixed", inset: 0, overflow: "hidden", background: isJungle ? "#0a1f14" : "#162540", touchAction: "none" }}
+      className={isJungle ? "theme-jungle" : isSea ? "theme-sea" : "theme-space"}
+      style={{ position: "fixed", inset: 0, overflow: "hidden", background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : "#162540", touchAction: "none" }}
     >
       <canvas key={`canvas-${theme}`} ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
@@ -217,6 +227,8 @@ export default function CosmicSynth() {
       {/* Scene mount — one hook set at a time; key forces clean remount on theme change */}
       {isJungle
         ? <JungleSceneMount key="scene-jungle" {...sceneProps} />
+        : isSea
+        ? <SeaSceneMount key="scene-sea" {...sceneProps} />
         : <SpaceSceneMount key="scene-space" {...sceneProps} />}
 
       {/* Theme chooser — always accessible */}
@@ -260,6 +272,15 @@ export default function CosmicSynth() {
           <JungleFlora visible={phase === "play"} />
           <JumpingMonkeys visible={phase === "play"} />
           <FloatingBananas visible={phase === "play"} />
+        </>
+      )}
+
+      {/* Sea overlays — corals + distant fish + drifting bubbles */}
+      {isSea && (
+        <>
+          <SeaCorals visible={phase === "play"} />
+          <SwimmingFish visible={phase === "play"} />
+          <FloatingBubbles visible={phase === "play"} />
         </>
       )}
 
