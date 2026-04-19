@@ -32,6 +32,31 @@ vi.mock("tone", async () => {
     return node;
   };
   const Ctor = (kind: string) => v.fn().mockImplementation(() => makeNode(kind));
+  // Player needs extra instance state so tests can drive its onload callback
+  // and inspect the url/loop/fade config it was given.
+  const PlayerCtor = v.fn().mockImplementation((opts: any = {}) => {
+    const node = makeNode("Player");
+    node.url = opts.url;
+    node.loop = opts.loop;
+    node.autostart = opts.autostart;
+    node.fadeIn = opts.fadeIn;
+    node.fadeOut = opts.fadeOut;
+    node.onload = opts.onload;
+    node.onerror = opts.onerror;
+    node.stop = v.fn();
+    return node;
+  });
+  // Volume exposes a `.volume` param with cancelScheduledValues, which the
+  // default makeNode param() stub doesn't cover.
+  const VolumeCtor = v.fn().mockImplementation(() => {
+    const node = makeNode("Volume");
+    node.volume = {
+      value: 0,
+      rampTo: v.fn(),
+      cancelScheduledValues: v.fn(),
+    };
+    return node;
+  });
   const destination = makeNode("Destination");
   return {
     PolySynth: Ctor("PolySynth"),
@@ -47,6 +72,8 @@ vi.mock("tone", async () => {
     Limiter: Ctor("Limiter"),
     FFT: Ctor("FFT"),
     LFO: Ctor("LFO"),
+    Player: PlayerCtor,
+    Volume: VolumeCtor,
     getDestination: () => destination,
     now: () => 0,
   };
@@ -135,6 +162,50 @@ describe("useAudioEngine", () => {
     act(() => { result.current.engine.current!.triggerPadChord([60, 64, 67], 5, 0.3); });
     expect(pad.releaseAll).toHaveBeenCalledWith(5);
     expect(pad.triggerAttack).toHaveBeenCalledWith([m2f(60), m2f(64), m2f(67)], 5, 0.3);
+  });
+
+  it("playAmbient creates a looping Player and ramps the ambient bus volume", async () => {
+    const { result } = renderHook(() => useAudioEngine());
+    await act(async () => { await result.current.engine.current!.start(); });
+
+    act(() => { result.current.engine.current!.playAmbient("/audio/x.mp3", -12, 1); });
+
+    const player = last("Player");
+    expect(player.loop).toBe(true);
+    expect(player.autostart).toBe(false);
+    expect(player.url).toBe("/audio/x.mp3");
+    expect(player.fadeIn).toBeGreaterThan(0);
+
+    // Simulate the buffer finishing load — the engine should start playback
+    // and ramp the bus up to the target dB.
+    act(() => { player.onload?.(); });
+    expect(player.start).toHaveBeenCalled();
+    const volumeNode = last("Volume");
+    expect(volumeNode.volume.rampTo).toHaveBeenCalledWith(-12, expect.any(Number), expect.any(Number));
+  });
+
+  it("playAmbient with a new URL stops and disposes the previous player", async () => {
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useAudioEngine());
+      await act(async () => { await result.current.engine.current!.start(); });
+
+      act(() => { result.current.engine.current!.playAmbient("/audio/a.mp3", -18, 0.5); });
+      const first = last("Player");
+      act(() => { first.onload?.(); });
+
+      act(() => { result.current.engine.current!.playAmbient("/audio/b.mp3", -14, 0.5); });
+      expect(first.stop).toHaveBeenCalled();
+
+      // Dispose is scheduled via setTimeout — advance past fade duration.
+      act(() => { vi.advanceTimersByTime(2000); });
+      expect(first.dispose).toHaveBeenCalled();
+
+      const second = last("Player");
+      expect(second.url).toBe("/audio/b.mp3");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("dispose() disposes every created node and flips isReady to false", async () => {

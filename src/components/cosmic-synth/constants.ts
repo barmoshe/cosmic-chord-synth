@@ -145,6 +145,11 @@ export interface ThemePreset {
   djEnergyBias: number;      // -0.3..+0.3 added to per-section energy
   // Section transition flash palette (inherited from DJ_SECTIONS if undefined)
   drumKit: "default" | "tribal" | "aquatic";
+  // Real-world ambient bed layered beneath the synth. CC0 samples committed to
+  // public/audio/ — see public/audio/CREDITS.txt.
+  ambientUrl: string;        // "/audio/space-ambient.opus"
+  ambientVolumeDb: number;   // target gain under the synth (negative dB)
+  ambientFadeSec: number;    // cross-fade length on theme switch
 }
 
 export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
@@ -177,6 +182,9 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     djBarMult: 1,
     djEnergyBias: 0,
     drumKit: "default",
+    ambientUrl: "/audio/space-ambient.opus",
+    ambientVolumeDb: -18,
+    ambientFadeSec: 2.0,
   },
   jungle: {
     scale: "pentatonic",
@@ -207,6 +215,9 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     djBarMult: 0.75,          // shorter sections, more movement
     djEnergyBias: 0.1,        // slightly punchier overall
     drumKit: "tribal",
+    ambientUrl: "/audio/jungle-ambient.opus",
+    ambientVolumeDb: -16,
+    ambientFadeSec: 2.0,
   },
   sea: {
     scale: "lydian",
@@ -237,5 +248,8 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     djBarMult: 1.5,           // long, breathing sections
     djEnergyBias: -0.15,      // gentler overall
     drumKit: "aquatic",
+    ambientUrl: "/audio/sea-ambient.opus",
+    ambientVolumeDb: -14,
+    ambientFadeSec: 2.0,
   },
 };

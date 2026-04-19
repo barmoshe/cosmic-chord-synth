@@ -68,6 +68,10 @@ export interface AudioEngine {
   setDelayWet(w: number, rampTime?: number): void;
   setLeadEnvelope(env: LeadEnvelope): void;
   setTheme(theme: ThemeId): void;
+
+  playAmbient(url: string, volumeDb: number, fadeSec?: number): void;
+  stopAmbient(fadeSec?: number): void;
+  setAmbientVolume(db: number, rampSec?: number): void;
 }
 
 export interface DjState {

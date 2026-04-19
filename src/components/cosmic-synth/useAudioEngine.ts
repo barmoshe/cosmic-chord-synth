@@ -32,6 +32,12 @@ interface InternalGraph {
   activeLead: Map<number, number>;
   droneOn: boolean;
   kickPitch: string;
+  // Ambience bus: a single looping Tone.Player → Tone.Volume → masterComp.
+  // Bypasses the per-voice reverb so the pre-baked spatial character of each
+  // recording stays intact; the master limiter still catches any peaks.
+  ambientVolume: Tone.Volume;
+  ambientPlayer: Tone.Player | null;
+  ambientUrl: string | null;
 }
 
 function buildGraph(): InternalGraph {
@@ -163,6 +169,11 @@ function buildGraph(): InternalGraph {
   clap.volume.value = -16;
   clap.connect(clapFilter);
 
+  // Ambience bus — starts at -Infinity dB so there's no click when the first
+  // sample loads. playAmbient() ramps this up to the preset's target.
+  const ambientVolume = new Tone.Volume(-Infinity);
+  ambientVolume.connect(masterComp);
+
   return {
     lead, sub, pad, bass, arp, drone,
     kick, snare, hihat, clap,
@@ -173,6 +184,9 @@ function buildGraph(): InternalGraph {
     activeLead: new Map<number, number>(),
     droneOn: false,
     kickPitch: "C1",
+    ambientVolume,
+    ambientPlayer: null,
+    ambientUrl: null,
   };
 }
 
@@ -184,10 +198,12 @@ function disposeGraph(g: InternalGraph) {
     g.reverb, g.delay, g.chorus,
     g.masterComp, g.masterLimiter,
     g.fft, g.lfo,
+    g.ambientPlayer, g.ambientVolume,
   ];
   for (const n of nodes) {
-    try { n.dispose?.(); } catch { /* node already disposed */ }
+    try { n?.dispose?.(); } catch { /* node already disposed */ }
   }
+  g.ambientPlayer = null;
   g.activeLead.clear();
 }
 
@@ -405,9 +421,84 @@ export function useAudioEngine() {
         g.kick.set({ envelope: { decay: p.kickDecay } as any });
         g.snare.set({ envelope: { decay: p.snareDecay } as any });
         g.hihat.set({ harmonicity: p.hatHarm, resonance: p.hatRes } as any);
+
+        // Ambience cross-fade to the new theme's sample. Best-effort —
+        // network / decode failure must not break synth retuning.
+        if (p.ambientUrl) {
+          this.playAmbient(p.ambientUrl, p.ambientVolumeDb, p.ambientFadeSec);
+        }
       } catch (e) {
         console.warn("setTheme failed:", e);
       }
+    },
+
+    playAmbient(url: string, volumeDb: number, fadeSec: number = 2) {
+      const g = graphRef.current; if (!g) return;
+      if (g.ambientUrl === url && g.ambientPlayer) {
+        // Same URL already playing — just ramp volume in case preset changed.
+        try { g.ambientVolume.volume.rampTo(volumeDb, Math.max(0.05, fadeSec)); } catch { /* noop */ }
+        return;
+      }
+      const prevPlayer = g.ambientPlayer;
+      const fade = Math.max(0.05, fadeSec);
+      try {
+        const player = new Tone.Player({
+          url,
+          loop: true,
+          autostart: false,
+          fadeIn: fade,
+          fadeOut: fade,
+          onload: () => {
+            try {
+              const now = Tone.now();
+              player.start(now);
+              // Ramp the bus up to target — covers first-play silence and
+              // also the case where volume was ducked during splash/warp.
+              g.ambientVolume.volume.cancelScheduledValues(now);
+              g.ambientVolume.volume.rampTo(volumeDb, fade, now);
+            } catch { /* context gone */ }
+          },
+          onerror: (err) => { console.warn("Ambient load failed:", url, err); },
+        }).connect(g.ambientVolume);
+        g.ambientPlayer = player;
+        g.ambientUrl = url;
+      } catch (e) {
+        console.warn("playAmbient failed:", e);
+      }
+      // Fade out + dispose the previous player once the overlap ends.
+      if (prevPlayer) {
+        try {
+          const now = Tone.now();
+          prevPlayer.fadeOut = fade;
+          prevPlayer.stop(now + fade);
+          setTimeout(() => {
+            try { prevPlayer.dispose(); } catch { /* already gone */ }
+          }, fade * 1000 + 100);
+        } catch { /* already stopped */ }
+      }
+    },
+
+    stopAmbient(fadeSec: number = 1) {
+      const g = graphRef.current; if (!g) return;
+      const fade = Math.max(0.05, fadeSec);
+      try {
+        g.ambientVolume.volume.rampTo(-Infinity, fade);
+        const player = g.ambientPlayer;
+        if (player) {
+          const now = Tone.now();
+          player.stop(now + fade);
+          setTimeout(() => {
+            try { player.dispose(); } catch { /* already gone */ }
+          }, fade * 1000 + 100);
+        }
+        g.ambientPlayer = null;
+        g.ambientUrl = null;
+      } catch { /* noop */ }
+    },
+
+    setAmbientVolume(db: number, rampSec: number = 0.3) {
+      const g = graphRef.current; if (!g) return;
+      try { g.ambientVolume.volume.rampTo(db, Math.max(0, rampSec)); } catch { /* noop */ }
     },
   }), [dispose]);
 

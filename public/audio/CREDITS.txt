@@ -1,0 +1,26 @@
+Ambient audio samples for Cosmic Chord Synth
+==============================================
+
+All three samples are licensed under CC0 1.0 Universal (Public Domain
+Dedication). No attribution required, but credit is given here as a courtesy.
+
+Source repository: https://github.com/EternityForest/Free-SFX
+
+space-ambient.opus
+  Original: Owlish/Sound Effects Pack/Scifi/blackhole2.opus
+  Character: Deep cosmic drone, suitable as background for space theme.
+
+jungle-ambient.opus
+  Original: LokiF/Swamp/atmosphere_1.opus
+  Character: Forest/swamp ambience with insect and creature sounds.
+
+sea-ambient.opus
+  Original: rubberduck/SFX100V2/sfx100v2_loop_water_03.opus
+  Character: Looping water sound suitable for sea/ocean theme.
+
+License: Creative Commons CC0 1.0 Universal
+         https://creativecommons.org/publicdomain/zero/1.0/
+
+These files can be swapped for any CC0 / public-domain alternative by
+replacing the files in this directory; the engine only references them by
+the filenames declared in src/components/cosmic-synth/constants.ts.
