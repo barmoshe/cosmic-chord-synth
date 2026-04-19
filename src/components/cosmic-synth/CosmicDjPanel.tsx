@@ -25,6 +25,13 @@ const PHASE_CLASS: Record<string, string> = {
   DRIFT: "drift", PULSE: "pulse", BLOOM: "bloom", SURGE: "surge", DISSOLVE: "dissolve",
 };
 
+// Per-phase accent colors — mirrored from styles.ts `.conductor-phase-*` rules so the
+// mini progress strip and phase dot stay in sync with the phase label.
+const PHASE_COLOR: Record<string, string> = {
+  drift: "#5FEED0", pulse: "#818CF8", bloom: "#22D3EE", surge: "#FCD34D", dissolve: "#14B8A6",
+  idle: "#7C95B5",
+};
+
 // Cumulative bar offsets for the section rail — lets the playhead scrub smoothly
 // across all segments (widths ∝ bars) using the current section + local progress.
 const TOTAL_BARS = DJ_SECTIONS.reduce((sum, s) => sum + (s.bars as number), 0);
@@ -58,6 +65,8 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   const playheadEl = useRef<HTMLDivElement>(null);
   const energyArcEl = useRef<SVGCircleElement>(null);
   const ringEl = useRef<HTMLDivElement>(null);
+  const miniProgressEl = useRef<HTMLDivElement>(null);
+  const drawerEl = useRef<HTMLDivElement>(null);
   const phaseRef = useRef<string>("");
   // Version counter bumped on every setStep — lets the RAF loop detect pattern
   // reseeds (from applySection) even when step value is unchanged.
@@ -102,6 +111,16 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   // Sync bpm prop → state when DJ is off (transport bpm isn't being pushed)
   useEffect(() => { if (!autoPlay) setBpm(bpmProp); }, [autoPlay, bpmProp]);
 
+  // Drawer is always mounted so collapse can animate; toggle `inert` on the
+  // DOM node directly — React 18's typed HTML props don't include `inert`,
+  // and we need to block focus + pointer events when hidden.
+  useEffect(() => {
+    const el = drawerEl.current;
+    if (!el) return;
+    if (expanded) el.removeAttribute("inert");
+    else el.setAttribute("inert", "");
+  }, [expanded]);
+
   // Single RAF loop with time-based exponential decay — frame-rate independent.
   useEffect(() => {
     let raf = 0;
@@ -126,15 +145,22 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
       }
 
       // Playhead — position = section start + local progress * section width.
+      const seg = SECTION_OFFSETS[phaseRef.current];
+      const globalPct = seg
+        ? seg.start + Math.max(0, Math.min(1, progressRef.current)) * seg.width
+        : 0;
       if (playheadEl.current) {
-        const seg = SECTION_OFFSETS[phaseRef.current];
         if (seg) {
-          const pct = (seg.start + Math.max(0, Math.min(1, progressRef.current)) * seg.width) * 100;
-          playheadEl.current.style.left = `${pct}%`;
+          playheadEl.current.style.left = `${globalPct * 100}%`;
           playheadEl.current.style.opacity = "1";
         } else {
           playheadEl.current.style.opacity = "0";
         }
+      }
+
+      // Mini progress strip (collapsed pill) — same math, scaleX from 0..1.
+      if (miniProgressEl.current) {
+        miniProgressEl.current.style.transform = `scaleX(${seg ? globalPct : 0})`;
       }
 
       // Energy arc (circumference of r=10 circle = 2πr ≈ 62.83)
@@ -206,10 +232,15 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   }, [userLayerRef]);
 
   const phaseClass = PHASE_CLASS[phase] || "idle";
+  const phaseColor = PHASE_COLOR[phaseClass] || PHASE_COLOR.idle;
   const isJungle = theme === "jungle";
+  const showMiniProgress = !expanded && autoPlay;
 
   return (
-    <div className={`conductor-root ${expanded ? "is-expanded" : "is-collapsed"}`}>
+    <div
+      className={`conductor-root ${expanded ? "is-expanded" : "is-collapsed"}`}
+      style={{ ["--phase-color" as string]: phaseColor }}
+    >
       {/* Transport row — always visible */}
       <div className="conductor-transport">
         <button
@@ -220,11 +251,20 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
           aria-pressed={autoPlay}
         >
           <span className="conductor-toggle-ring" ref={ringEl} aria-hidden="true" />
-          <span className="conductor-toggle-icon" aria-hidden="true">{autoPlay ? "■" : "▶"}</span>
+          <span
+            className="conductor-toggle-icon"
+            data-icon={autoPlay ? "stop" : "play"}
+            aria-hidden="true"
+          >
+            {autoPlay ? "■" : "▶"}
+          </span>
         </button>
 
         <div className="conductor-meta">
-          <div className={`conductor-phase conductor-phase-${phaseClass}`}>{phase || "IDLE"}</div>
+          <div className={`conductor-phase conductor-phase-${phaseClass}`}>
+            <span className="conductor-phase-dot" aria-hidden="true" />
+            <span className="conductor-phase-text">{phase || "IDLE"}</span>
+          </div>
           <div className="conductor-sub">
             <span className="conductor-bpm">{bpm}<span className="conductor-bpm-unit">BPM</span></span>
             {nextPhase && (
@@ -253,13 +293,25 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
           aria-label={expanded ? "Collapse DJ console" : "Expand DJ console"}
           aria-expanded={expanded}
         >
-          <span aria-hidden="true">{expanded ? "⌄" : "⌃"}</span>
+          <span className={`conductor-chevron ${expanded ? "is-open" : ""}`} aria-hidden="true">⌄</span>
         </button>
+
+        {/* Mini progress strip — only visible when collapsed + DJ on. Tracks global
+            timeline so a glance at the pill tells you where in the set you are. */}
+        {showMiniProgress && (
+          <div className="conductor-mini-progress" aria-hidden="true">
+            <div className="conductor-mini-progress-fill" ref={miniProgressEl} />
+          </div>
+        )}
       </div>
 
-      {/* Drawer — section rail + beat grid */}
-      {expanded && (
-        <div className="conductor-drawer">
+      {/* Drawer — section rail + beat grid. Always rendered so collapse can animate;
+          hidden from AT + focus via aria-hidden + inert when collapsed. */}
+      <div
+        ref={drawerEl}
+        className={`conductor-drawer ${expanded ? "is-open" : "is-closed"}`}
+        aria-hidden={!expanded}
+      >
           {/* Section rail — widths ∝ bars; playhead scrubs across globally */}
           <div className="conductor-rail" role="img" aria-label="Section timeline">
             <div className="conductor-rail-track">
@@ -313,7 +365,6 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
             ))}
           </div>
         </div>
-      )}
     </div>
   );
 }
