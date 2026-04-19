@@ -11,12 +11,14 @@ space-ambient.opus
   Character: Deep cosmic drone, suitable as background for space theme.
 
 jungle-ambient.opus
-  Original: LokiF/Swamp/atmosphere_1.opus
-  Character: Forest/swamp ambience with insect and creature sounds.
+  Original: LokiF/Swamp/swamp.opus
+  Character: Full layered jungle/swamp mix with insect chorus and
+  creature vocalizations. Note: the source CC0 library has no true
+  primate/monkey samples, so this is the closest available match.
 
 sea-ambient.opus
-  Original: rubberduck/SFX100V2/sfx100v2_loop_water_03.opus
-  Character: Looping water sound suitable for sea/ocean theme.
+  Original: rubberduck/WaterSplashSlime/loop_bubbles_02.opus
+  Character: Underwater bubble loop — watery, playful, suits the sea theme.
 
 License: Creative Commons CC0 1.0 Universal
          https://creativecommons.org/publicdomain/zero/1.0/
