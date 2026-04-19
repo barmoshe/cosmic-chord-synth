@@ -515,8 +515,8 @@ export const COSMIC_STYLES = `
           }
           .conductor-toggle { width: 40px; height: 40px; }
           .conductor-drawer { padding: 10px 10px 12px; gap: 10px; }
-          .conductor-row { grid-template-columns: 24px 1fr; gap: 6px; }
-          .conductor-cell { height: 10px; }
+          .conductor-row { grid-template-columns: 26px 1fr; gap: 6px; }
+          .conductor-cell { height: 14px; }
           .conductor-rail-track { height: 18px; }
           .conductor-rail-label { font-size: 7px; letter-spacing: 0.15em; }
         }
@@ -532,13 +532,26 @@ export const COSMIC_STYLES = `
           position: fixed; top: 18px; right: 18px; z-index: 20;
           display: flex; align-items: center; gap: 10px;
         }
+        .cosmic-scale-meta {
+          display: flex; flex-direction: column; align-items: center; gap: 2px;
+          min-width: 72px;
+        }
         .cosmic-scale-label {
           font-family: 'Orbitron', monospace;
           font-size: clamp(11px, 2vw, 14px);
           font-weight: 500;
           letter-spacing: 0.22em;
           color: #B4C9E0;
-          min-width: 65px; text-align: center;
+          text-align: center;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+        }
+        .cosmic-scale-index {
+          font-family: 'Raleway', sans-serif;
+          font-size: 9px;
+          font-weight: 400;
+          letter-spacing: 0.22em;
+          color: #7C95B5;
+          opacity: 0.85;
         }
 
         .cosmic-flash {
@@ -570,20 +583,28 @@ export const COSMIC_STYLES = `
         .cosmic-axis-label {
           position: fixed; z-index: 20;
           font-family: 'Raleway', sans-serif;
-          font-size: 9px;
-          font-weight: 300;
-          letter-spacing: 0.2em;
-          color: #4A5F7A;
+          font-size: 11px;
+          font-weight: 400;
+          letter-spacing: 0.24em;
+          color: #8FA6C4;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75), 0 0 10px rgba(34, 211, 238, 0.15);
           pointer-events: none;
           text-transform: uppercase;
+          opacity: 0.75;
         }
         .cosmic-axis-top {
           top: 60px; left: 50%;
           transform: translateX(-50%);
         }
-        .cosmic-axis-bottom {
-          bottom: 128px; left: 50%;
-          transform: translateX(-50%);
+        .cosmic-axis-left {
+          top: 50%; left: 14px;
+          writing-mode: vertical-rl;
+          transform: translateY(-50%) rotate(180deg);
+        }
+        .cosmic-axis-right {
+          top: 50%; right: 14px;
+          writing-mode: vertical-rl;
+          transform: translateY(-50%);
         }
 
         /* ── Audio status badge — bottom-right on desktop, repositioned on mobile ── */
@@ -604,7 +625,11 @@ export const COSMIC_STYLES = `
           transition: background 0.3s ease, transform 0.2s ease;
           box-shadow: 0 4px 14px rgba(0,0,0,0.4);
         }
-        .cosmic-audio-status.is-ok  { background: rgba(30,180,120,0.85); }
+        .cosmic-audio-status.is-ok  {
+          background: rgba(20, 140, 95, 0.6);
+          opacity: 0.55;
+        }
+        .cosmic-audio-status.is-ok:hover { opacity: 0.9; }
         .cosmic-audio-status.is-err { background: rgba(220,60,60,0.9); animation: cosmicPulse 2s ease-in-out infinite; }
         .cosmic-audio-status:active { transform: scale(0.96); }
         .cosmic-audio-status-short { display: none; }
@@ -706,9 +731,10 @@ export const COSMIC_STYLES = `
           .cosmic-scale-label { font-size: 10px; min-width: 48px; letter-spacing: 0.16em; }
           .cosmic-btn-arrow   { width: 28px; height: 28px; font-size: 14px; }
 
-          /* Axis labels → hide the bottom one (DJ panel eats the space); shrink side ones */
-          .cosmic-axis-bottom { display: none; }
-          .cosmic-axis-top    { top: 92px; font-size: 8px; }
+          /* Axis labels → shrink, lift top guide above DJ panel + headers */
+          .cosmic-axis-top    { top: 92px; font-size: 9px; letter-spacing: 0.18em; }
+          .cosmic-axis-left   { left: 8px; font-size: 9px; letter-spacing: 0.18em; }
+          .cosmic-axis-right  { right: 8px; font-size: 9px; letter-spacing: 0.18em; }
 
           /* Hint → lift above the drum flowers and DJ panel */
           .cosmic-hint       { bottom: 170px; font-size: 10px; letter-spacing: 0.18em; }
@@ -1022,5 +1048,314 @@ export const COSMIC_STYLES = `
         /* Header sub — teal tint */
         .theme-sea .cosmic-header-sub {
           color: rgba(122,229,130,0.75);
+        }
+
+        /* ── Splash onboarding — three mini cards that preview controls ── */
+        .cosmic-onboard {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          width: min(420px, calc(100vw - 48px));
+          margin-top: 6px;
+        }
+        .cosmic-onboard-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 12px 8px 10px;
+          border-radius: 12px;
+          background: rgba(229,244,251,0.04);
+          border: 1px solid rgba(129,140,248,0.22);
+          box-shadow: inset 0 1px 0 rgba(229,244,251,0.05);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+        .cosmic-onboard-icon {
+          font-family: 'Orbitron', monospace;
+          font-size: 18px;
+          color: #22D3EE;
+          text-shadow: 0 0 12px rgba(34,211,238,0.55);
+          line-height: 1;
+        }
+        .cosmic-onboard-label {
+          font-family: 'Orbitron', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          color: #E5F4FB;
+          text-transform: uppercase;
+          text-align: center;
+        }
+        .cosmic-onboard-hint {
+          font-family: 'Raleway', sans-serif;
+          font-size: 10px;
+          font-weight: 300;
+          letter-spacing: 0.1em;
+          color: #7C95B5;
+          text-align: center;
+        }
+        .theme-jungle .cosmic-onboard-card {
+          border-color: rgba(163,230,53,0.28);
+        }
+        .theme-jungle .cosmic-onboard-icon {
+          color: #a3e635;
+          text-shadow: 0 0 12px rgba(163,230,53,0.55);
+        }
+        .theme-sea .cosmic-onboard-card {
+          border-color: rgba(108,217,255,0.28);
+        }
+        .theme-sea .cosmic-onboard-icon {
+          color: #6cd9ff;
+          text-shadow: 0 0 12px rgba(108,217,255,0.55);
+        }
+
+        /* ── Persistent help trigger (? button, bottom-left on desktop) ── */
+        .cosmic-help-trigger {
+          all: unset;
+          position: fixed;
+          left: 12px; bottom: 12px;
+          z-index: 50;
+          width: 36px; height: 36px;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(15, 27, 45, 0.55);
+          border: 1px solid rgba(34,211,238,0.35);
+          color: #22D3EE;
+          font-family: 'Orbitron', monospace;
+          font-size: 15px; font-weight: 700;
+          cursor: pointer;
+          touch-action: manipulation;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(34,211,238,0.15);
+          transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+        .cosmic-help-trigger:hover {
+          background: rgba(34,211,238,0.18);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 22px rgba(34,211,238,0.35);
+        }
+        .cosmic-help-trigger:active { transform: scale(0.94); }
+        .cosmic-help-trigger:focus-visible {
+          outline: 2px solid rgba(34,211,238,0.9);
+          outline-offset: 2px;
+        }
+        .theme-jungle .cosmic-help-trigger {
+          color: #a3e635; border-color: rgba(163,230,53,0.4);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(163,230,53,0.18);
+        }
+        .theme-sea .cosmic-help-trigger {
+          color: #6cd9ff; border-color: rgba(108,217,255,0.4);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(108,217,255,0.18);
+        }
+
+        /* ── Help overlay (modal-style controls reference) ── */
+        .cosmic-help-backdrop {
+          position: fixed; inset: 0;
+          z-index: 110;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(6, 12, 22, 0.65);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          padding: 24px 16px;
+          animation: cosmicFadeIn 0.25s ease-out;
+          overscroll-behavior: contain;
+        }
+        .cosmic-help-card {
+          position: relative;
+          width: min(460px, 100%);
+          max-height: calc(100vh - 48px);
+          overflow-y: auto;
+          padding: 24px 22px 18px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, rgba(22,37,64,0.95) 0%, rgba(15,27,45,0.98) 100%);
+          border: 1px solid rgba(129,140,248,0.3);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(34,211,238,0.15);
+          color: #E5F4FB;
+          -webkit-overflow-scrolling: touch;
+        }
+        .cosmic-help-close {
+          all: unset;
+          position: absolute;
+          top: 10px; right: 12px;
+          width: 32px; height: 32px;
+          display: flex; align-items: center; justify-content: center;
+          border-radius: 50%;
+          color: #B4C9E0;
+          font-size: 22px; line-height: 1;
+          cursor: pointer;
+          touch-action: manipulation;
+          transition: background 0.2s, color 0.2s;
+        }
+        .cosmic-help-close:hover { background: rgba(229,244,251,0.08); color: #fff; }
+        .cosmic-help-close:focus-visible {
+          outline: 2px solid rgba(34,211,238,0.9);
+          outline-offset: 2px;
+        }
+        .cosmic-help-title {
+          font-family: 'Orbitron', monospace;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          background: linear-gradient(90deg, #22D3EE, #818CF8);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 4px;
+        }
+        .cosmic-help-subtitle {
+          font-family: 'Raleway', sans-serif;
+          font-size: 12px;
+          font-weight: 300;
+          letter-spacing: 0.14em;
+          color: #7C95B5;
+          margin-bottom: 16px;
+        }
+        .cosmic-help-section {
+          margin-bottom: 14px;
+        }
+        .cosmic-help-section:last-of-type { margin-bottom: 10px; }
+        .cosmic-help-section-title {
+          font-family: 'Orbitron', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.28em;
+          color: #22D3EE;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+          padding-bottom: 6px;
+          border-bottom: 1px solid rgba(129,140,248,0.15);
+        }
+        .cosmic-help-list {
+          list-style: none;
+          padding: 0; margin: 0;
+          display: flex; flex-direction: column; gap: 8px;
+          font-family: 'Raleway', sans-serif;
+          font-size: 13px;
+          font-weight: 300;
+          letter-spacing: 0.02em;
+          color: #B4C9E0;
+        }
+        .cosmic-help-list li {
+          display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+          line-height: 1.35;
+        }
+        .cosmic-help-list strong {
+          font-weight: 600;
+          color: #E5F4FB;
+          letter-spacing: 0.04em;
+        }
+        .cosmic-help-key,
+        .cosmic-help-kbd {
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 2px 8px;
+          min-width: 28px;
+          border-radius: 6px;
+          font-family: 'Orbitron', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          background: rgba(34,211,238,0.12);
+          border: 1px solid rgba(34,211,238,0.35);
+          color: #22D3EE;
+          text-transform: uppercase;
+          text-shadow: 0 0 6px rgba(34,211,238,0.3);
+          white-space: nowrap;
+        }
+        .cosmic-help-kbd {
+          background: rgba(229,244,251,0.06);
+          border-color: rgba(229,244,251,0.2);
+          color: #E5F4FB;
+          text-shadow: none;
+          box-shadow: inset 0 -1px 0 rgba(0,0,0,0.35);
+        }
+        .cosmic-help-footer {
+          margin-top: 14px;
+          padding-top: 12px;
+          border-top: 1px solid rgba(129,140,248,0.15);
+          font-family: 'Raleway', sans-serif;
+          font-size: 10px;
+          font-weight: 300;
+          letter-spacing: 0.18em;
+          color: #5A7295;
+          text-align: center;
+          text-transform: uppercase;
+        }
+        .theme-jungle .cosmic-help-card {
+          background: linear-gradient(135deg, rgba(20,61,40,0.95) 0%, rgba(10,31,20,0.98) 100%);
+          border-color: rgba(163,230,53,0.3);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(163,230,53,0.15);
+        }
+        .theme-jungle .cosmic-help-title {
+          background: linear-gradient(90deg, #a3e635, #ffe14d);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .theme-jungle .cosmic-help-section-title { color: #a3e635; border-bottom-color: rgba(163,230,53,0.2); }
+        .theme-jungle .cosmic-help-key {
+          background: rgba(163,230,53,0.14);
+          border-color: rgba(163,230,53,0.45);
+          color: #a3e635;
+          text-shadow: 0 0 6px rgba(163,230,53,0.35);
+        }
+        .theme-sea .cosmic-help-card {
+          background: linear-gradient(135deg, rgba(6,58,82,0.95) 0%, rgba(4,26,46,0.98) 100%);
+          border-color: rgba(108,217,255,0.3);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(108,217,255,0.15);
+        }
+        .theme-sea .cosmic-help-title {
+          background: linear-gradient(90deg, #6cd9ff, #a8e6cf);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .theme-sea .cosmic-help-section-title { color: #6cd9ff; border-bottom-color: rgba(108,217,255,0.2); }
+        .theme-sea .cosmic-help-key {
+          background: rgba(108,217,255,0.14);
+          border-color: rgba(108,217,255,0.45);
+          color: #6cd9ff;
+          text-shadow: 0 0 6px rgba(108,217,255,0.35);
+        }
+
+        /* Focus-visible rings across all interactive chrome */
+        .theme-chooser-option:focus-visible,
+        .conductor-toggle:focus-visible,
+        .conductor-expand:focus-visible,
+        .cosmic-btn-arrow:focus-visible,
+        .cosmic-audio-status:focus-visible {
+          outline: 2px solid rgba(34,211,238,0.85);
+          outline-offset: 2px;
+        }
+
+        /* Mobile tweaks for the new chrome */
+        @media (max-width: 480px) {
+          .cosmic-onboard {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            width: calc(100vw - 32px);
+          }
+          .cosmic-onboard-card { padding: 8px 4px 7px; gap: 2px; border-radius: 10px; }
+          .cosmic-onboard-icon { font-size: 14px; }
+          .cosmic-onboard-label { font-size: 8px; letter-spacing: 0.14em; }
+          .cosmic-onboard-hint  { font-size: 8px; letter-spacing: 0.08em; }
+
+          /* Help trigger → keep bottom-left but above audio badge */
+          .cosmic-help-trigger {
+            left: 10px; bottom: 130px;
+            width: 32px; height: 32px;
+            font-size: 14px;
+          }
+
+          /* Help card full-bleed feel on phones */
+          .cosmic-help-card { padding: 20px 18px 14px; border-radius: 14px; }
+          .cosmic-help-title { font-size: 16px; letter-spacing: 0.18em; }
+          .cosmic-help-list { font-size: 12px; }
+          .cosmic-help-key, .cosmic-help-kbd { font-size: 9px; padding: 2px 6px; }
+
+          /* Scale meta — keep index visible under the label */
+          .cosmic-scale-meta { min-width: 56px; }
+          .cosmic-scale-index { font-size: 8px; letter-spacing: 0.18em; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .cosmic-help-backdrop { animation: none; }
         }
 `;

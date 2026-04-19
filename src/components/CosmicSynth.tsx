@@ -12,7 +12,9 @@ import { useSeaScene } from "./cosmic-synth/useSeaScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
+import { useKeyboardShortcuts } from "./cosmic-synth/useKeyboardShortcuts";
 import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
+import HelpOverlay from "./cosmic-synth/HelpOverlay";
 import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
 import JungleFlora from "./cosmic-synth/JungleFlora";
 import FloatingBananas from "./cosmic-synth/FloatingBananas";
@@ -73,6 +75,7 @@ export default function CosmicSynth() {
   const [ctxState, setCtxState] = useState<"suspended" | "running" | "closed" | "interrupted">("suspended");
   const [engineReady, setEngineReady] = useState(false);
   const [theme, setTheme] = useState<CosmicTheme>(readStoredTheme);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const isJungle = theme === "jungle";
   const isSea = theme === "sea";
@@ -230,6 +233,21 @@ export default function CosmicSynth() {
     changeScale(SCALE_ORDER[(i - 1 + SCALE_ORDER.length) % SCALE_ORDER.length]);
   }, [scale, changeScale]);
 
+  const toggleDj = useCallback(() => setAutoPlay(p => !p), []);
+  const toggleHelp = useCallback(() => setHelpOpen(v => !v), []);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
+
+  useKeyboardShortcuts({
+    enabled: phase === "play",
+    onToggleDj: toggleDj,
+    onPrevScale: prevScale,
+    onNextScale: nextScale,
+    onToggleHelp: toggleHelp,
+    onCloseHelp: closeHelp,
+  });
+
+  const scaleIndex = SCALE_ORDER.indexOf(scale);
+
   const sceneProps: SceneMountProps = {
     canvasRef, engine, analysisRef, fftBuffer, scaleRef, engineRef,
     flashIntensity, warpState, frameCount, rafRef, analyze,
@@ -268,6 +286,25 @@ export default function CosmicSynth() {
               <div className="cosmic-subtitle">INTERACTIVE MUSIC EXPERIENCE</div>
               <div className="cosmic-line" />
             </div>
+
+            <div className="cosmic-onboard" aria-label="Quick controls">
+              <div className="cosmic-onboard-card">
+                <div className="cosmic-onboard-icon" aria-hidden="true">◉</div>
+                <div className="cosmic-onboard-label">Touch &amp; drag</div>
+                <div className="cosmic-onboard-hint">play notes</div>
+              </div>
+              <div className="cosmic-onboard-card">
+                <div className="cosmic-onboard-icon" aria-hidden="true">▶</div>
+                <div className="cosmic-onboard-label">AI DJ</div>
+                <div className="cosmic-onboard-hint">plays for you</div>
+              </div>
+              <div className="cosmic-onboard-card">
+                <div className="cosmic-onboard-icon" aria-hidden="true">◐</div>
+                <div className="cosmic-onboard-label">Themes</div>
+                <div className="cosmic-onboard-hint">space · jungle · sea</div>
+              </div>
+            </div>
+
             <div className="cosmic-cta">
               <div className="cosmic-cta-ring" />
               <span>TAP TO ENTER</span>
@@ -321,34 +358,42 @@ export default function CosmicSynth() {
 
           <CosmicDjPanel
             autoPlay={autoPlay}
-            onToggle={() => setAutoPlay(p => !p)}
+            onToggle={toggleDj}
             onReady={handleDjUiReady}
             bpm={94}
             userLayerRef={userLayerRef}
             theme={theme}
           />
 
-          <div className="cosmic-scale-group">
+          <div className="cosmic-scale-group" aria-label="Scale selector">
             <button
               onTouchStart={(e) => { e.preventDefault(); prevScale(); }}
               onClick={() => prevScale()}
               className="cosmic-btn cosmic-btn-arrow"
+              aria-label="Previous scale"
             >
               ‹
             </button>
-            <div className="cosmic-scale-label">{SCALES[scale].label}</div>
+            <div className="cosmic-scale-meta">
+              <div className="cosmic-scale-label">{SCALES[scale].label}</div>
+              <div className="cosmic-scale-index" aria-hidden="true">
+                {scaleIndex + 1} / {SCALE_ORDER.length}
+              </div>
+            </div>
             <button
               onTouchStart={(e) => { e.preventDefault(); nextScale(); }}
               onClick={() => nextScale()}
               className="cosmic-btn cosmic-btn-arrow"
+              aria-label="Next scale"
             >
               ›
             </button>
           </div>
 
-          {/* Axis guides — minimal set: top = Y-axis, bottom = X-axis */}
+          {/* Axis guides — left/right = pitch, top = filter */}
           <div className="cosmic-axis-label cosmic-axis-top">↑ Filter Open</div>
-          <div className="cosmic-axis-label cosmic-axis-bottom">Pitch: low → high</div>
+          <div className="cosmic-axis-label cosmic-axis-left" aria-hidden="true">♪ Low</div>
+          <div className="cosmic-axis-label cosmic-axis-right" aria-hidden="true">High ♫</div>
 
           {/* Energy bar (shows DJ energy when auto-playing) */}
           {autoPlay && (
@@ -387,6 +432,20 @@ export default function CosmicSynth() {
               {ctxState === "running" && engineReady ? "AUDIO OK" : "AUDIO ⚠ TAP"}
             </span>
           </div>
+
+          {/* Persistent help trigger — always accessible while playing */}
+          <button
+            type="button"
+            className="cosmic-help-trigger"
+            onTouchStart={(e) => { e.preventDefault(); toggleHelp(); }}
+            onClick={toggleHelp}
+            aria-label="Open controls help"
+            aria-expanded={helpOpen}
+          >
+            <span aria-hidden="true">?</span>
+          </button>
+
+          <HelpOverlay open={helpOpen} onClose={closeHelp} />
         </>
       )}
 
