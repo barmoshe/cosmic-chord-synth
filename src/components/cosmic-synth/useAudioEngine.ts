@@ -31,6 +31,7 @@ interface InternalGraph {
   lfo: Tone.LFO;
   activeLead: Map<number, number>;
   droneOn: boolean;
+  kickPitch: string;
 }
 
 function buildGraph(): InternalGraph {
@@ -171,6 +172,7 @@ function buildGraph(): InternalGraph {
     fft, lfo,
     activeLead: new Map<number, number>(),
     droneOn: false,
+    kickPitch: "C1",
   };
 }
 
@@ -295,7 +297,7 @@ export function useAudioEngine() {
     triggerDrum(name, velocity, time) {
       const g = graphRef.current; if (!g) return;
       try {
-        if (name === "kick") g.kick.triggerAttackRelease("C1", "8n", time, velocity);
+        if (name === "kick") g.kick.triggerAttackRelease(g.kickPitch, "8n", time, velocity);
         else if (name === "snare") g.snare.triggerAttackRelease("16n", time, velocity);
         else if (name === "hat") g.hihat.triggerAttackRelease("C2", "32n", time, velocity * 0.6);
         else if (name === "clap") g.clap.triggerAttackRelease("16n", time, velocity);
