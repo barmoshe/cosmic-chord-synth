@@ -8,9 +8,6 @@ import type { AudioEngine, ThemeId } from "./types";
 export type DrumLane = "kick" | "clap" | "hat" | "snare";
 export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
 
-export type DrumLane = "kick" | "clap" | "hat" | "snare";
-export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
-
 export interface DjUi {
   setPhase: (p: string) => void;
   setNextPhase: (p: string) => void;
