@@ -32,6 +32,7 @@ const LEGACY_THEME_STORAGE_KEY = "cosmic-synth-theme";
 
 interface SceneMountProps {
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
+  drumCanvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
   engine: React.MutableRefObject<any>;
   analysisRef: React.MutableRefObject<any>;
   fftBuffer: React.MutableRefObject<Float32Array>;
@@ -60,7 +61,7 @@ function SeaSceneMount(p: SceneMountProps) {
 }
 
 function CyberpunkSceneMount(p: SceneMountProps) {
-  useCyberpunkScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze);
+  useCyberpunkScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze, p.drumCanvasRef);
   return null;
 }
 
@@ -137,6 +138,7 @@ export default function BiomeSynthApp() {
 
   /* ── Refs ── */
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drumCanvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<any>(null);
   const touchesRef = useRef(new Map());
   const scaleRef = useRef("pentatonic");
@@ -280,7 +282,7 @@ export default function BiomeSynthApp() {
   const scaleIndex = SCALE_ORDER.indexOf(scale);
 
   const sceneProps: SceneMountProps = {
-    canvasRef, engine, analysisRef, fftBuffer, scaleRef, engineRef,
+    canvasRef, drumCanvasRef, engine, analysisRef, fftBuffer, scaleRef, engineRef,
     flashIntensity, warpState, frameCount, rafRef, analyze,
   };
 
@@ -297,6 +299,13 @@ export default function BiomeSynthApp() {
       }}
     >
       <canvas key={`canvas-${theme}`} ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
+      {isCyberpunk && (
+        <canvas
+          key={`drum-canvas-${theme}`}
+          ref={drumCanvasRef}
+          style={{ position: "fixed", inset: 0, zIndex: 4, pointerEvents: "none" }}
+        />
+      )}
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
 
       {/* Scene mount — one hook set at a time; key forces clean remount on theme change */}
