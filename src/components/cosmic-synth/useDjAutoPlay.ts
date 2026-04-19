@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import * as Tone from "tone";
 import { Draw } from "tone";
-import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES } from "./constants";
+import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, THEME_PRESETS } from "./constants";
 import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "./helpers";
-import type { AudioEngine } from "./types";
+import type { AudioEngine, ThemeId } from "./types";
+
+export type DrumLane = "kick" | "clap" | "hat" | "snare";
+export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
 
 export type DrumLane = "kick" | "clap" | "hat" | "snare";
 export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
@@ -90,10 +93,12 @@ export function useDjAutoPlay(
   ui: DjUi,
   touchesRef: React.MutableRefObject<Map<any, any>>,
   userLayerRef?: React.MutableRefObject<DrumPattern>,
+  theme: ThemeId = "space",
 ) {
   useEffect(() => {
     const dj = djState.current;
     const audio = audioEngine.current;
+    const themePreset = THEME_PRESETS[theme] || THEME_PRESETS.space;
     if (!autoPlay || !audio?.isReady()) {
       dj.on = false;
       if (dj.iv != null) { Tone.getTransport().clear(dj.iv); dj.iv = null; }
