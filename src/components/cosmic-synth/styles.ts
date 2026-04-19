@@ -1435,6 +1435,161 @@ export const COSMIC_STYLES = `
           text-shadow: 0 0 6px rgba(108,217,255,0.35);
         }
 
+        /* ── Cyberpunk theme overrides (applied when .theme-cyberpunk on root wrapper) ── */
+        .theme-cyberpunk .cosmic-splash {
+          background: radial-gradient(ellipse at center, rgba(22,4,40,0.9) 0%, rgba(7,2,26,0.97) 100%);
+        }
+        .theme-cyberpunk .cosmic-logo {
+          background: linear-gradient(135deg, #ff2bd6 0%, #9d00ff 40%, #21e7ff 80%, #ffffff 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter: drop-shadow(0 0 30px rgba(255,43,214,0.55));
+        }
+        .theme-cyberpunk .cosmic-warp {
+          background: radial-gradient(ellipse at center, rgba(34,0,60,0.85) 0%, rgba(7,2,26,0.95) 100%);
+        }
+        .theme-cyberpunk .cosmic-warp-text {
+          color: #ff2bd6;
+          text-shadow: 0 0 14px rgba(255,43,214,0.7), 0 0 30px rgba(33,231,255,0.4);
+          letter-spacing: 0.3em;
+        }
+        .theme-cyberpunk .cosmic-warp-fill {
+          background: linear-gradient(90deg, #9d00ff, #ff2bd6, #21e7ff);
+          box-shadow: 0 0 14px rgba(255,43,214,0.75);
+        }
+        .theme-cyberpunk .cosmic-header-title {
+          background: linear-gradient(90deg, #ff2bd6, #21e7ff);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .theme-cyberpunk .cosmic-energy-fill {
+          background: linear-gradient(90deg, #9d00ff, #ff2bd6, #21e7ff);
+        }
+        .theme-cyberpunk .cosmic-cta-ring {
+          border-color: rgba(255,43,214,0.55);
+          box-shadow: 0 0 22px rgba(255,43,214,0.5), inset 0 0 12px rgba(33,231,255,0.3);
+        }
+        .theme-cyberpunk .theme-chooser-option.is-active {
+          background: rgba(255,43,214,0.18);
+          border-color: rgba(255,43,214,0.65);
+          box-shadow: 0 0 12px rgba(255,43,214,0.4);
+        }
+        .theme-cyberpunk .cosmic-scale-label {
+          color: #ff2bd6;
+          text-shadow: 0 0 10px rgba(255,43,214,0.6);
+        }
+        .theme-cyberpunk .cosmic-btn-arrow {
+          color: #21e7ff;
+          border-color: rgba(33,231,255,0.45);
+          background: rgba(10,4,26,0.55);
+          text-shadow: 0 0 8px rgba(33,231,255,0.5);
+        }
+        .theme-cyberpunk .cosmic-btn-arrow:hover {
+          background: rgba(33,231,255,0.12);
+          border-color: rgba(33,231,255,0.75);
+        }
+        .theme-cyberpunk .cosmic-btn-auto {
+          background: rgba(10,4,26,0.6);
+          border-color: rgba(157,0,255,0.45);
+          color: #9d00ff;
+        }
+        .theme-cyberpunk .cosmic-btn-auto.active {
+          background: rgba(255,43,214,0.22);
+          border-color: rgba(255,43,214,0.9);
+          color: #ff2bd6;
+          box-shadow: 0 0 20px rgba(255,43,214,0.55);
+        }
+        .theme-cyberpunk .cosmic-axis-label {
+          color: rgba(33,231,255,0.85);
+          text-shadow: 0 0 6px rgba(33,231,255,0.5);
+        }
+        .theme-cyberpunk .cosmic-hint { color: rgba(255,122,226,0.95); }
+        .theme-cyberpunk .cosmic-hint-detail { color: rgba(33,231,255,0.75); }
+        .theme-cyberpunk .conductor-transport,
+        .theme-cyberpunk .conductor-drawer {
+          background: rgba(10,4,26,0.72);
+          border-color: rgba(255,43,214,0.3);
+          box-shadow: 0 0 18px rgba(255,43,214,0.2);
+        }
+        .theme-cyberpunk .conductor-toggle {
+          background: rgba(157,0,255,0.15);
+          border-color: rgba(157,0,255,0.55);
+          color: #ff2bd6;
+        }
+        .theme-cyberpunk .conductor-toggle.is-active {
+          background: rgba(255,43,214,0.28);
+          border-color: #ff2bd6;
+          color: #ffffff;
+          box-shadow: 0 0 18px rgba(255,43,214,0.6);
+        }
+        .theme-cyberpunk .conductor-toggle.is-active::before {
+          box-shadow: 0 0 14px rgba(33,231,255,0.65);
+        }
+        .theme-cyberpunk .conductor-bpm {
+          color: #21e7ff;
+          text-shadow: 0 0 6px rgba(33,231,255,0.4);
+        }
+        .theme-cyberpunk .conductor-phase { color: #ff2bd6; text-shadow: 0 0 10px rgba(255,43,214,0.5); }
+        .theme-cyberpunk .conductor-cell {
+          background: rgba(16,6,38,0.65) !important;
+          border-color: rgba(157,0,255,0.28) !important;
+        }
+        .theme-cyberpunk .conductor-cell.is-downbeat { border-left: 1px solid rgba(255,43,214,0.55) !important; }
+        .theme-cyberpunk .conductor-cell[data-active="1"] {
+          background: rgba(255,43,214,0.45) !important;
+          box-shadow: 0 0 10px rgba(255,43,214,0.7);
+        }
+        .theme-cyberpunk .conductor-cell[data-user="on"] {
+          outline: 1px solid rgba(33,231,255,0.8);
+          outline-offset: -1px;
+        }
+        .theme-cyberpunk .conductor-cell-grid {
+          display: block;
+          position: absolute;
+          inset: 2px;
+          opacity: 0.45;
+          background:
+            linear-gradient(to right, transparent 48%, rgba(33,231,255,0.7) 50%, transparent 52%),
+            linear-gradient(to bottom, transparent 48%, rgba(33,231,255,0.7) 50%, transparent 52%);
+          pointer-events: none;
+        }
+        .theme-cyberpunk .conductor-cell[data-active="1"] .conductor-cell-grid { opacity: 1; background-color: rgba(255,255,255,0.08); }
+        .theme-cyberpunk .cosmic-flash {
+          color: #ff2bd6;
+          text-shadow: 0 0 14px rgba(255,43,214,0.7);
+        }
+        .theme-cyberpunk .cosmic-header-sub { color: rgba(33,231,255,0.8); }
+        .theme-cyberpunk .cosmic-onboard-card {
+          background: rgba(16,6,38,0.6);
+          border-color: rgba(255,43,214,0.35);
+        }
+        .theme-cyberpunk .cosmic-onboard-icon {
+          color: #ff2bd6;
+          text-shadow: 0 0 8px rgba(255,43,214,0.55);
+        }
+        .theme-cyberpunk .cosmic-help-trigger {
+          background: rgba(255,43,214,0.2);
+          border-color: rgba(255,43,214,0.65);
+          color: #ffffff;
+          box-shadow: 0 0 12px rgba(255,43,214,0.45);
+        }
+        .theme-cyberpunk .cosmic-help-card {
+          background: linear-gradient(135deg, rgba(20,6,46,0.96), rgba(7,2,26,0.96));
+          border-color: rgba(255,43,214,0.35);
+        }
+        .theme-cyberpunk .cosmic-help-title {
+          background: linear-gradient(90deg, #ff2bd6, #21e7ff);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .theme-cyberpunk .cosmic-help-section-title { color: #ff2bd6; border-bottom-color: rgba(255,43,214,0.25); }
+        .theme-cyberpunk .cosmic-help-key {
+          background: rgba(255,43,214,0.14);
+          border-color: rgba(255,43,214,0.55);
+          color: #ff2bd6;
+          text-shadow: 0 0 6px rgba(255,43,214,0.4);
+        }
+
         /* Focus-visible rings across all interactive chrome */
         .theme-chooser-option:focus-visible,
         .conductor-toggle:focus-visible,

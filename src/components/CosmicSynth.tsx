@@ -9,6 +9,7 @@ import { useSetupEffects } from "./cosmic-synth/useSetupEffects";
 import { useThreeScene } from "./cosmic-synth/useThreeScene";
 import { useJungleScene } from "./cosmic-synth/useJungleScene";
 import { useSeaScene } from "./cosmic-synth/useSeaScene";
+import { useCyberpunkScene } from "./cosmic-synth/useCyberpunkScene";
 import { useTouchInput } from "./cosmic-synth/useTouchInput";
 import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
@@ -21,6 +22,9 @@ import FloatingBananas from "./cosmic-synth/FloatingBananas";
 import SwimmingFish from "./cosmic-synth/SwimmingFish";
 import SeaCorals from "./cosmic-synth/SeaCorals";
 import FloatingBubbles from "./cosmic-synth/FloatingBubbles";
+import NeonSkyline from "./cosmic-synth/NeonSkyline";
+import HologramBillboards from "./cosmic-synth/HologramBillboards";
+import NeonRain from "./cosmic-synth/NeonRain";
 import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
 
 const THEME_STORAGE_KEY = "cosmic-synth-theme";
@@ -54,10 +58,15 @@ function SeaSceneMount(p: SceneMountProps) {
   return null;
 }
 
+function CyberpunkSceneMount(p: SceneMountProps) {
+  useCyberpunkScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze);
+  return null;
+}
+
 function readStoredTheme(): CosmicTheme {
   try {
     const v = localStorage.getItem(THEME_STORAGE_KEY);
-    if (v === "jungle" || v === "space" || v === "sea") return v;
+    if (v === "jungle" || v === "space" || v === "sea" || v === "cyberpunk") return v;
   } catch { /* storage unavailable */ }
   return "space";
 }
@@ -79,8 +88,21 @@ export default function CosmicSynth() {
 
   const isJungle = theme === "jungle";
   const isSea = theme === "sea";
-  const productName = isJungle ? "JUNGLE SYNTH" : isSea ? "SEA SYNTH" : "COSMIC SYNTH";
-  const warpText = isJungle ? "ENTERING THE JUNGLE" : isSea ? "DIVING INTO THE REEF" : "ENTERING THE COSMOS";
+  const isCyberpunk = theme === "cyberpunk";
+  const productName = isJungle
+    ? "JUNGLE SYNTH"
+    : isSea
+    ? "SEA SYNTH"
+    : isCyberpunk
+    ? "NEON SYNTH"
+    : "COSMIC SYNTH";
+  const warpText = isJungle
+    ? "ENTERING THE JUNGLE"
+    : isSea
+    ? "DIVING INTO THE REEF"
+    : isCyberpunk
+    ? "JACKING INTO THE GRID"
+    : "ENTERING THE COSMOS";
 
   const handleThemeChange = useCallback((t: CosmicTheme) => {
     setTheme(t);
@@ -256,8 +278,14 @@ export default function CosmicSynth() {
   /* ── JSX ── */
   return (
     <div
-      className={isJungle ? "theme-jungle" : isSea ? "theme-sea" : "theme-space"}
-      style={{ position: "fixed", inset: 0, overflow: "hidden", background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : "#162540", touchAction: "none" }}
+      className={isJungle ? "theme-jungle" : isSea ? "theme-sea" : isCyberpunk ? "theme-cyberpunk" : "theme-space"}
+      style={{
+        position: "fixed",
+        inset: 0,
+        overflow: "hidden",
+        background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : isCyberpunk ? "#07021a" : "#162540",
+        touchAction: "none",
+      }}
     >
       <canvas key={`canvas-${theme}`} ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 1, touchAction: "none" }} />
       <div ref={glowContainerRef} style={{ position: "fixed", inset: 0, zIndex: 12, pointerEvents: "none" }} />
@@ -267,6 +295,8 @@ export default function CosmicSynth() {
         ? <JungleSceneMount key="scene-jungle" {...sceneProps} />
         : isSea
         ? <SeaSceneMount key="scene-sea" {...sceneProps} />
+        : isCyberpunk
+        ? <CyberpunkSceneMount key="scene-cyberpunk" {...sceneProps} />
         : <SpaceSceneMount key="scene-space" {...sceneProps} />}
 
       {/* Theme chooser — always accessible */}
@@ -301,7 +331,7 @@ export default function CosmicSynth() {
               <div className="cosmic-onboard-card">
                 <div className="cosmic-onboard-icon" aria-hidden="true">◐</div>
                 <div className="cosmic-onboard-label">Themes</div>
-                <div className="cosmic-onboard-hint">space · jungle · sea</div>
+                <div className="cosmic-onboard-hint">space · jungle · sea · cyberpunk</div>
               </div>
             </div>
 
@@ -338,6 +368,15 @@ export default function CosmicSynth() {
           <SeaCorals visible={phase === "play"} />
           <SwimmingFish visible={phase === "play"} />
           <FloatingBubbles visible={phase === "play"} />
+        </>
+      )}
+
+      {/* Cyberpunk overlays — skyline behind, holograms, rain in front */}
+      {isCyberpunk && (
+        <>
+          <NeonSkyline visible={phase === "play"} />
+          <HologramBillboards visible={phase === "play"} />
+          <NeonRain visible={phase === "play"} />
         </>
       )}
 

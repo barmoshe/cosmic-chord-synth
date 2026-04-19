@@ -100,7 +100,7 @@ export type DrumName = typeof DRUM_STARS[number]["name"];
    default scale, reverb/delay character, and DJ section pacing.
    The audio engine reads this on theme change to retune the graph in place
    (no rebuild — synths/filters/effects update via .set()/rampTo). */
-export type ThemeId = "space" | "jungle" | "sea";
+export type ThemeId = "space" | "jungle" | "sea" | "cyberpunk";
 
 export interface SynthVoice {
   type: "sine" | "sawtooth" | "square" | "triangle" | "fatsawtooth" | "fmsine" | "amsine" | "pulse";
@@ -250,6 +250,39 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     drumKit: "aquatic",
     ambientUrl: "/audio/sea-ambient.opus",
     ambientVolumeDb: -18,
+    ambientFadeSec: 2.0,
+  },
+  cyberpunk: {
+    scale: "arabic",          // dystopian, exotic tension
+    bpm: 128,                 // driving synthwave pulse
+    lead: isMobile ? { type: "sawtooth" } : { type: "fatsawtooth", spread: 30, count: 3 }, // supersaw lead
+    sub: { type: "square" },             // punchy sub
+    pad: { type: "fmsine" },             // metallic pad
+    bass: { type: "square" },            // reese-adjacent bass
+    arp: { type: "pulse" },              // sharp pulse arp
+    drone: { type: "sawtooth" },
+    padEnv: { attack: 0.05, decay: 0.25, sustain: 0.7, release: 0.8 },
+    leadEnv: { attack: 0.003, decay: 0.15, sustain: 0.5, release: 0.4 }, // punchy attack
+    leadCutoff: 5200,
+    padCutoff: 2800,
+    reverbRoom: 0.55,         // drier, industrial space
+    reverbDamp: 3200,
+    reverbWet: 0.2,
+    delayWet: 0.24,
+    delayTime: "8n",          // rhythmic slapback
+    chorusWet: 0,             // no chorus — keep harsh
+    kickPitch: "C1",
+    kickDecay: 0.22,          // tight industrial kick
+    snareFilterHz: 2400,      // snappy electronic snare
+    snareDecay: 0.1,
+    hatHarm: 6.4,             // bright metallic hat
+    hatRes: 5200,
+    clapFilterHz: 1800,
+    djBarMult: 0.9,           // snappier sections
+    djEnergyBias: 0.15,       // higher overall energy
+    drumKit: "default",
+    ambientUrl: "",           // no ambient bed in this pass
+    ambientVolumeDb: -24,
     ambientFadeSec: 2.0,
   },
 };

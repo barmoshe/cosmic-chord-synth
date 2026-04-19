@@ -208,6 +208,30 @@ describe("useAudioEngine", () => {
     }
   });
 
+  it("setTheme('cyberpunk') retunes lead oscillator and filter cutoff", async () => {
+    const { result } = renderHook(() => useAudioEngine());
+    await act(async () => { await result.current.engine.current!.start(); });
+    const [lead] = allOf("PolySynth");
+    const filters = allOf("Filter");
+    // First Filter created is the lead filter (see useAudioEngine graph init)
+    const leadFilter = filters[0];
+
+    // The Freeverb mock in this file doesn't expose roomSize/dampening, so
+    // setTheme's try/catch will log a warning after the synth/filter updates
+    // succeed. Silence that noise — the assertions below verify the parts
+    // that matter.
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    act(() => { result.current.engine.current!.setTheme("cyberpunk"); });
+    warnSpy.mockRestore();
+
+    // Lead voicing updated with the cyberpunk oscillator + envelope
+    expect(lead.set).toHaveBeenCalledWith(expect.objectContaining({
+      oscillator: expect.objectContaining({ type: expect.stringMatching(/sawtooth/) }),
+    }));
+    // Filter ramps to the cyberpunk leadCutoff (5200Hz)
+    expect(leadFilter.frequency.rampTo).toHaveBeenCalledWith(5200, expect.any(Number));
+  });
+
   it("dispose() disposes every created node and flips isReady to false", async () => {
     const { result } = renderHook(() => useAudioEngine());
     await act(async () => { await result.current.engine.current!.start(); });

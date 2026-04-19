@@ -234,6 +234,7 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
   const phaseClass = PHASE_CLASS[phase] || "idle";
   const phaseColor = PHASE_COLOR[phaseClass] || PHASE_COLOR.idle;
   const isJungle = theme === "jungle";
+  const isCyberpunk = theme === "cyberpunk";
   const showMiniProgress = !expanded && autoPlay;
 
   return (
@@ -357,6 +358,7 @@ export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmPro
                         onClick={() => handleCellTap(lane, i)}
                       >
                         {isJungle && <span className="conductor-cell-fruit" aria-hidden="true" />}
+                        {isCyberpunk && <span className="conductor-cell-grid" aria-hidden="true" />}
                       </button>
                     );
                   })}
