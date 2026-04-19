@@ -115,6 +115,10 @@ export function useDjAutoPlay(
 
     const sn = () => SCALES[scaleRef.current];
     const sec = () => DJ_SECTIONS[dj.si];
+    // Theme-adjusted bar count + energy. Bar mult shapes section length;
+    // energy bias shifts the overall intensity of the journey.
+    const secBars = () => Math.max(2, Math.round((sec().bars as number) * themePreset.djBarMult));
+    const secEnergy = () => Math.max(0.05, Math.min(1, (sec().e as number) + themePreset.djEnergyBias));
     let prog = (PROGS[scaleRef.current] || PROGS.minor)[0];
     dj.motif = genMotif(sn().notes);
     dj.phrase = [...dj.motif];
@@ -127,7 +131,7 @@ export function useDjAutoPlay(
     // Fresh variation recomputed at each bar boundary (step === 0); changes every 16 steps.
     let currentPattern = variatePattern(
       DRUM_PATTERNS[sec().drums] || DRUM_PATTERNS.nebula,
-      0.25 + sec().e,
+      0.25 + secEnergy(),
     );
     mergeUserLayer(currentPattern, userLayerRef?.current);
 
@@ -164,16 +168,17 @@ export function useDjAutoPlay(
       ui.setPhase(s.name);
       ui.setNextPhase(next.name);
       ui.setProgress(0);
-      ui.setEnergy(s.e);
+      const e = secEnergy();
+      ui.setEnergy(e);
       // Seed the beat grid with this section's pattern immediately so the widget
       // shows its shape on toggle, before the first audio tick lands.
       // User edits don't carry across section boundaries — the generative nature of
       // the DJ takes back over on each transition.
       resetUserLayer(userLayerRef?.current);
-      currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + s.e);
+      currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + e);
       ui.setStep(-1, currentPattern);
 
-      dj.tf = s.ft; dj.te = s.e;
+      dj.tf = s.ft; dj.te = e;
       dj.am = pick(ARP_MODES); dj.as = 0;
       const [at, dc, su, rl] = s.adsr;
       audio.setLeadEnvelope({ attack: at, decay: dc, sustain: su, release: rl });
@@ -206,10 +211,10 @@ export function useDjAutoPlay(
     applySection();
 
     const transport = Tone.getTransport();
-    if (transport.state !== "started") {
-      transport.bpm.value = 94;
-    }
-    ui.setBpm(transport.bpm.value);
+    // Apply per-theme BPM whenever the DJ (re)starts. Always set so theme
+    // switches while AUTO is on update tempo cleanly.
+    transport.bpm.rampTo(themePreset.bpm, 0.5);
+    ui.setBpm(themePreset.bpm);
 
     dj.iv = transport.scheduleRepeat((time) => {
       if (!audio.isReady() || !dj.on) return;
