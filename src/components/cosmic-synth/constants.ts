@@ -3,13 +3,16 @@ export const SCALES: Record<string, { notes: number[]; label: string; mood: numb
   minor: { notes: [0, 2, 3, 5, 7, 8, 10], label: "MINOR", mood: 0.2, chords: [[0, 3, 7], [2, 5, 8], [3, 7, 10], [5, 8, 12], [7, 10, 14], [8, 12, 15], [10, 14, 17]] },
   major: { notes: [0, 2, 4, 5, 7, 9, 11], label: "MAJOR", mood: 0.85, chords: [[0, 4, 7], [2, 5, 9], [4, 7, 11], [5, 9, 12], [7, 11, 14], [9, 12, 16], [11, 14, 17]] },
   arabic: { notes: [0, 1, 4, 5, 7, 8, 11], label: "ARABIC", mood: 0.25, chords: [[0, 4, 7], [1, 5, 8], [4, 7, 11], [5, 8, 12], [7, 11, 13], [8, 12, 16]] },
+  // Lydian — bright & floaty; #4 gives the "dreamy underwater" lift. Used by SEA theme.
+  lydian: { notes: [0, 2, 4, 6, 7, 9, 11], label: "LYDIAN", mood: 0.7, chords: [[0, 4, 7, 11], [2, 6, 9], [4, 7, 11], [6, 9, 12], [7, 11, 14], [9, 12, 16], [11, 14, 18]] },
 };
-export const SCALE_ORDER = ["pentatonic", "minor", "major", "arabic"];
+export const SCALE_ORDER = ["pentatonic", "minor", "major", "arabic", "lydian"];
 export const PROGS: Record<string, number[][]> = {
   pentatonic: [[0, 3, 0, 4], [0, 1, 2, 0]],
   minor: [[0, 3, 4, 0], [0, 5, 3, 4], [0, 2, 5, 4]],
   major: [[0, 4, 5, 3], [0, 3, 4, 0]],
   arabic: [[0, 3, 4, 0], [0, 2, 4, 0]],
+  lydian: [[0, 3, 4, 0], [0, 4, 5, 3], [0, 2, 5, 4]],
 };
 
 export const isMobile = typeof navigator !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);
