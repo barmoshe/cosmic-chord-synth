@@ -45,10 +45,10 @@ const SECTION_OFFSETS: Record<string, { start: number; width: number }> = (() =>
   return out;
 })();
 
-export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94, userLayerRef, theme = "space" }: DjPanelProps) {
+export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, userLayerRef, theme = "space" }: DjPanelProps) {
   const [phase, setPhase] = useState("");
   const [nextPhase, setNextPhase] = useState("");
-  const [bpm, setBpm] = useState(bpmProp);
+  const [bpm, setBpm] = useState(bpmProp ?? 0);
   const [expanded, setExpanded] = useState(!isMobile);
   const [reducedMotion, setReducedMotion] = useState(false);
   // Bump to force a re-render after user tap edits so `data-user` attributes refresh.
@@ -109,7 +109,7 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94
   }, []);
 
   // Sync bpm prop → state when DJ is off (transport bpm isn't being pushed)
-  useEffect(() => { if (!autoPlay) setBpm(bpmProp); }, [autoPlay, bpmProp]);
+  useEffect(() => { if (!autoPlay && bpmProp != null) setBpm(bpmProp); }, [autoPlay, bpmProp]);
 
   // Drawer is always mounted so collapse can animate; toggle `inert` on the
   // DOM node directly — React 18's typed HTML props don't include `inert`,
@@ -235,7 +235,7 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94
   const phaseColor = PHASE_COLOR[phaseClass] || PHASE_COLOR.idle;
   const isJungle = theme === "jungle";
   const isCyberpunk = theme === "cyberpunk";
-  const showMiniProgress = !expanded && autoPlay;
+  const showMiniProgress = autoPlay;
 
   return (
     <div
@@ -267,7 +267,7 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94
             <span className="conductor-phase-text">{phase || "IDLE"}</span>
           </div>
           <div className="conductor-sub">
-            <span className="conductor-bpm">{bpm}<span className="conductor-bpm-unit">BPM</span></span>
+            <span className="conductor-bpm">{bpm > 0 ? bpm : "—"}<span className="conductor-bpm-unit">BPM</span></span>
             {nextPhase && (
               <span className="conductor-next">→ {nextPhase}</span>
             )}

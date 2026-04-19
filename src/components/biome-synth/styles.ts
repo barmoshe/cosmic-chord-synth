@@ -335,7 +335,7 @@ export const BIOME_STYLES = `
         .conductor-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
         .conductor-phase {
           display: flex; align-items: center; gap: 6px;
-          font-size: 12px; font-weight: 700; letter-spacing: 0.24em;
+          font-size: 12px; font-weight: 700; letter-spacing: 0.18em;
           color: #B4C9E0;
           text-shadow: 0 0 10px rgba(34,211,238,0.25);
           white-space: nowrap; overflow: hidden;
@@ -562,7 +562,7 @@ export const BIOME_STYLES = `
         }
         .conductor-cell:focus-visible { outline: 2px solid rgba(34,211,238,0.8); outline-offset: 2px; }
         .conductor-cell:active { transform: scale(0.92); }
-        .conductor-cell.is-downbeat { border-left: 1px solid rgba(129,140,248,0.35); }
+        .conductor-cell.is-downbeat { border-left: 2px solid rgba(129,140,248,0.6); }
         .conductor-row-kick  .conductor-cell { background: linear-gradient(180deg, rgba(252,211,77,0.9),  rgba(252,211,77,0.4));  border-color: rgba(252,211,77,0.35); }
         .conductor-row-clap  .conductor-cell { background: linear-gradient(180deg, rgba(248,113,113,0.9), rgba(248,113,113,0.4)); border-color: rgba(248,113,113,0.35); }
         .conductor-row-hat   .conductor-cell { background: linear-gradient(180deg, rgba(251,146,60,0.9),  rgba(251,146,60,0.4));  border-color: rgba(251,146,60,0.35); }

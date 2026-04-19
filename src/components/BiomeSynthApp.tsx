@@ -408,7 +408,7 @@ export default function BiomeSynthApp() {
             autoPlay={autoPlay}
             onToggle={toggleDj}
             onReady={handleDjUiReady}
-            bpm={94}
+            bpm={THEME_PRESETS[theme].bpm}
             userLayerRef={userLayerRef}
             theme={theme}
           />
