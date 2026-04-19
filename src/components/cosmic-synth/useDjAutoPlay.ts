@@ -381,5 +381,5 @@ export function useDjAutoPlay(
         touchesRef.current.delete(id);
       });
     };
-  }, [autoPlay]);
+  }, [autoPlay, theme]);
 }
