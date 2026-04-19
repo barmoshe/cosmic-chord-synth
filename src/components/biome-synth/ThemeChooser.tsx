@@ -1,11 +1,11 @@
-export type CosmicTheme = "space" | "jungle" | "sea" | "cyberpunk";
+export type BiomeTheme = "space" | "jungle" | "sea" | "cyberpunk";
 
 interface ThemeChooserProps {
-  theme: CosmicTheme;
-  onChange: (t: CosmicTheme) => void;
+  theme: BiomeTheme;
+  onChange: (t: BiomeTheme) => void;
 }
 
-const OPTIONS: { value: CosmicTheme; label: string; hint: string }[] = [
+const OPTIONS: { value: BiomeTheme; label: string; hint: string }[] = [
   { value: "space",     label: "SPACE",     hint: "Cosmic galaxy" },
   { value: "jungle",    label: "JUNGLE",    hint: "Canopy + monkeys" },
   { value: "sea",       label: "SEA",       hint: "Reef + fish + waves" },

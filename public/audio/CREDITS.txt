@@ -1,5 +1,5 @@
-Ambient audio samples for Cosmic Chord Synth
-==============================================
+Ambient audio samples for Biome Synth
+=====================================
 
 Samples are attributed per-file with their original source and license.
 
@@ -32,4 +32,4 @@ License references:
 
 Any file here can be swapped freely — drop a replacement with the same
 filename or update the `ambientUrl` field in
-src/components/cosmic-synth/constants.ts.
+src/components/biome-synth/constants.ts.

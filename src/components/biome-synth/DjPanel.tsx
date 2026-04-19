@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { DJ_SECTIONS, isMobile } from "./constants";
 import type { DjUi, DrumPattern, DrumLane } from "./useDjAutoPlay";
-import type { CosmicTheme } from "./ThemeChooser";
+import type { BiomeTheme } from "./ThemeChooser";
 
-interface CosmicDjPanelProps {
+interface DjPanelProps {
   autoPlay: boolean;
   onToggle: () => void;
   onReady: (ui: DjUi) => void;
   bpm?: number;
   userLayerRef?: React.MutableRefObject<DrumPattern>;
-  theme?: CosmicTheme;
+  theme?: BiomeTheme;
 }
 
 // Default velocity written when a user force-enables a step via tap.
@@ -45,7 +45,7 @@ const SECTION_OFFSETS: Record<string, { start: number; width: number }> = (() =>
   return out;
 })();
 
-export default function CosmicDjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94, userLayerRef, theme = "space" }: CosmicDjPanelProps) {
+export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp = 94, userLayerRef, theme = "space" }: DjPanelProps) {
   const [phase, setPhase] = useState("");
   const [nextPhase, setNextPhase] = useState("");
   const [bpm, setBpm] = useState(bpmProp);

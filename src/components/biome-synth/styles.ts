@@ -1,4 +1,4 @@
-export const COSMIC_STYLES = `
+export const BIOME_STYLES = `
         /* ── z-layer map ──
            canvas 1 · jungle decor 3 (isolate, inner: back 1 · mid 2 · front 3) ·
            energy-bar 9 · glow overlays 12 · DJ panel 14 · flash/error 15 ·
@@ -13,11 +13,11 @@ export const COSMIC_STYLES = `
            painting above the top viewport band (header, audio badge, theme pill). */
 
         /* ── Cosmic Design System v4 — "Glacial Aurora 2026" lifted-navy theme ── */
-        @keyframes cosmicGradient {
+        @keyframes biomeGradient {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-        @keyframes cosmicPulse {
+        @keyframes biomePulse {
           0%, 100% { opacity: 0.5; }
           50% { opacity: 1; }
         }
@@ -43,18 +43,18 @@ export const COSMIC_STYLES = `
           50% { opacity: 1; }
         }
 
-        .cosmic-splash {
+        .biome-splash {
           position: fixed; inset: 0; z-index: 100;
           display: flex; align-items: center; justify-content: center;
           background: radial-gradient(ellipse at center, rgba(22,37,64,0.85) 0%, rgba(15,27,45,0.95) 100%);
           backdrop-filter: blur(8px);
           cursor: pointer; touch-action: none;
         }
-        .cosmic-splash-inner {
+        .biome-splash-inner {
           display: flex; flex-direction: column; align-items: center; gap: 28px;
           animation: cosmicFadeIn 1.2s ease-out;
         }
-        .cosmic-logo {
+        .biome-logo {
           font-family: 'Orbitron', monospace;
           font-size: clamp(28px, 7vw, 58px);
           font-weight: 900;
@@ -63,39 +63,39 @@ export const COSMIC_STYLES = `
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-size: 300% 100%;
-          animation: cosmicGradient 6s ease infinite;
+          animation: biomeGradient 6s ease infinite;
           text-align: center;
           filter: drop-shadow(0 0 30px rgba(34,211,238,0.4));
         }
-        .cosmic-subtitle-group {
+        .biome-subtitle-group {
           display: flex; align-items: center; gap: 16px;
         }
-        .cosmic-line {
+        .biome-line {
           width: clamp(30px, 8vw, 80px); height: 1px;
           background: linear-gradient(90deg, transparent, rgba(229,244,251,0.35), transparent);
         }
-        .cosmic-subtitle {
+        .biome-subtitle {
           font-family: 'Raleway', sans-serif;
           font-size: clamp(10px, 1.8vw, 14px);
           font-weight: 300;
           letter-spacing: 0.35em;
           color: #B4C9E0;
         }
-        .cosmic-cta {
+        .biome-cta {
           position: relative;
           display: flex; align-items: center; justify-content: center;
           margin-top: 20px;
           animation: cosmicFloat 3s ease-in-out infinite;
         }
-        .cosmic-cta span {
+        .biome-cta span {
           font-family: 'Orbitron', monospace;
           font-size: clamp(11px, 2.2vw, 15px);
           font-weight: 400;
           letter-spacing: 0.3em;
           color: #22D3EE;
-          animation: cosmicPulse 2.5s ease-in-out infinite;
+          animation: biomePulse 2.5s ease-in-out infinite;
         }
-        .cosmic-cta-ring {
+        .biome-cta-ring {
           position: absolute;
           width: 100px; height: 100px;
           border: 1px solid rgba(34,211,238,0.3);
@@ -103,13 +103,13 @@ export const COSMIC_STYLES = `
           animation: cosmicRing 3s ease-in-out infinite;
         }
 
-        .cosmic-warp {
+        .biome-warp {
           position: fixed; inset: 0; z-index: 100;
           display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
           background: radial-gradient(ellipse at center, rgba(22,37,64,0.7) 0%, rgba(15,27,45,0.9) 100%);
           backdrop-filter: blur(4px);
         }
-        .cosmic-warp-text {
+        .biome-warp-text {
           font-family: 'Orbitron', monospace;
           font-size: clamp(11px, 2.2vw, 15px);
           font-weight: 400;
@@ -117,12 +117,12 @@ export const COSMIC_STYLES = `
           color: #22D3EE;
           animation: cosmicWarpPulse 1s ease-in-out infinite;
         }
-        .cosmic-warp-bar {
+        .biome-warp-bar {
           width: clamp(180px, 50vw, 350px); height: 3px;
           background: rgba(229,244,251,0.1);
           border-radius: 2px; overflow: hidden;
         }
-        .cosmic-warp-fill {
+        .biome-warp-fill {
           height: 100%;
           background: linear-gradient(90deg, #22D3EE, #818CF8);
           border-radius: 2px;
@@ -130,7 +130,7 @@ export const COSMIC_STYLES = `
           box-shadow: 0 0 12px rgba(34,211,238,0.5);
         }
 
-        .cosmic-header {
+        .biome-header {
           position: fixed; top: 24px; left: 0; right: 0; z-index: 20;
           display: flex; flex-direction: column; align-items: center;
           pointer-events: none;
@@ -139,7 +139,7 @@ export const COSMIC_STYLES = `
              decor (bananas, monkeys) drifts behind them. */
           filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 6px rgba(0, 0, 0, 0.55));
         }
-        .cosmic-header-title {
+        .biome-header-title {
           font-family: 'Orbitron', monospace;
           font-size: clamp(11px, 2vw, 15px);
           font-weight: 500;
@@ -148,7 +148,7 @@ export const COSMIC_STYLES = `
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           margin-bottom: 4px;
         }
-        .cosmic-header-sub {
+        .biome-header-sub {
           font-family: 'Raleway', sans-serif;
           font-size: 11px; font-weight: 300;
           letter-spacing: 0.2em;
@@ -156,7 +156,7 @@ export const COSMIC_STYLES = `
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
         }
 
-        .cosmic-hint {
+        .biome-hint {
           position: fixed; bottom: 180px; left: 0; right: 0; z-index: 20;
           display: flex; flex-direction: column; align-items: center; gap: 6px;
           text-align: center;
@@ -166,15 +166,15 @@ export const COSMIC_STYLES = `
           letter-spacing: 0.25em;
           color: #7C95B5;
           pointer-events: none;
-          animation: cosmicPulse 3.5s ease-in-out infinite;
+          animation: biomePulse 3.5s ease-in-out infinite;
         }
-        .cosmic-hint-detail {
+        .biome-hint-detail {
           font-size: clamp(9px, 1.4vw, 11px);
           letter-spacing: 0.15em;
           color: #5A7295;
         }
 
-        .cosmic-btn {
+        .biome-btn {
           all: unset;
           display: flex; align-items: center; justify-content: center;
           background: rgba(229,244,251,0.05);
@@ -185,35 +185,35 @@ export const COSMIC_STYLES = `
           user-select: none; -webkit-user-select: none;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .cosmic-btn:hover {
+        .biome-btn:hover {
           background: rgba(229,244,251,0.09);
           border-color: rgba(229,244,251,0.2);
         }
-        .cosmic-btn:active {
+        .biome-btn:active {
           transform: scale(0.95);
         }
 
-        .cosmic-btn-auto {
+        .biome-btn-auto {
           flex-direction: column; gap: 3px;
           width: 56px; height: 56px; border-radius: 50%;
           font-family: 'Orbitron', monospace;
           color: #B4C9E0;
         }
-        .cosmic-btn-auto .cosmic-btn-icon {
+        .biome-btn-auto .biome-btn-icon {
           font-size: 16px; line-height: 1;
         }
-        .cosmic-btn-auto .cosmic-btn-label {
+        .biome-btn-auto .biome-btn-label {
           font-size: 8px; letter-spacing: 0.15em; font-weight: 500;
         }
-        .cosmic-btn-auto.active {
+        .biome-btn-auto.active {
           color: #22D3EE;
           background: rgba(34,211,238,0.12);
           border-color: rgba(34,211,238,0.4);
           box-shadow: 0 0 30px rgba(34,211,238,0.25), inset 0 0 15px rgba(34,211,238,0.08);
-          animation: cosmicPulse 2s ease-in-out infinite;
+          animation: biomePulse 2s ease-in-out infinite;
         }
 
-        .cosmic-btn-arrow {
+        .biome-btn-arrow {
           width: 38px; height: 38px; border-radius: 50%;
           font-family: 'Raleway', sans-serif;
           font-size: 18px; font-weight: 300;
@@ -630,15 +630,15 @@ export const COSMIC_STYLES = `
           .conductor-rail-playhead { transition: opacity 0.2s; }
         }
 
-        .cosmic-scale-group {
+        .biome-scale-group {
           position: fixed; top: 18px; right: 18px; z-index: 20;
           display: flex; align-items: center; gap: 10px;
         }
-        .cosmic-scale-meta {
+        .biome-scale-meta {
           display: flex; flex-direction: column; align-items: center; gap: 2px;
           min-width: 72px;
         }
-        .cosmic-scale-label {
+        .biome-scale-label {
           font-family: 'Orbitron', monospace;
           font-size: clamp(11px, 2vw, 14px);
           font-weight: 500;
@@ -647,7 +647,7 @@ export const COSMIC_STYLES = `
           text-align: center;
           text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
         }
-        .cosmic-scale-index {
+        .biome-scale-index {
           font-family: 'Raleway', sans-serif;
           font-size: 9px;
           font-weight: 400;
@@ -656,7 +656,7 @@ export const COSMIC_STYLES = `
           opacity: 0.85;
         }
 
-        .cosmic-flash {
+        .biome-flash {
           position: fixed; top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           z-index: 15;
@@ -668,11 +668,11 @@ export const COSMIC_STYLES = `
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           filter: drop-shadow(0 0 20px rgba(34,211,238,0.5));
           pointer-events: none;
-          animation: cosmicPulse 1.5s ease-out forwards;
+          animation: biomePulse 1.5s ease-out forwards;
         }
 
 
-        .cosmic-error {
+        .biome-error {
           position: fixed; top: 65px; left: 50%;
           transform: translateX(-50%);
           z-index: 15;
@@ -682,7 +682,7 @@ export const COSMIC_STYLES = `
           letter-spacing: 0.1em;
         }
 
-        .cosmic-axis-label {
+        .biome-axis-label {
           position: fixed; z-index: 20;
           font-family: 'Raleway', sans-serif;
           font-size: 11px;
@@ -694,23 +694,23 @@ export const COSMIC_STYLES = `
           text-transform: uppercase;
           opacity: 0.75;
         }
-        .cosmic-axis-top {
+        .biome-axis-top {
           top: 60px; left: 50%;
           transform: translateX(-50%);
         }
-        .cosmic-axis-left {
+        .biome-axis-left {
           top: 50%; left: 14px;
           writing-mode: vertical-rl;
           transform: translateY(-50%) rotate(180deg);
         }
-        .cosmic-axis-right {
+        .biome-axis-right {
           top: 50%; right: 14px;
           writing-mode: vertical-rl;
           transform: translateY(-50%);
         }
 
         /* ── Audio status badge — bottom-right on desktop, repositioned on mobile ── */
-        .cosmic-audio-status {
+        .biome-audio-status {
           position: fixed;
           bottom: 8px; right: 8px;
           z-index: 50;
@@ -727,21 +727,21 @@ export const COSMIC_STYLES = `
           transition: background 0.3s ease, transform 0.2s ease;
           box-shadow: 0 4px 14px rgba(0,0,0,0.4);
         }
-        .cosmic-audio-status.is-ok  {
+        .biome-audio-status.is-ok  {
           background: rgba(20, 140, 95, 0.6);
           opacity: 0.55;
         }
-        .cosmic-audio-status.is-ok:hover { opacity: 0.9; }
-        .cosmic-audio-status.is-err { background: rgba(220,60,60,0.9); animation: cosmicPulse 2s ease-in-out infinite; }
-        .cosmic-audio-status:active { transform: scale(0.96); }
-        .cosmic-audio-status-short { display: none; }
+        .biome-audio-status.is-ok:hover { opacity: 0.9; }
+        .biome-audio-status.is-err { background: rgba(220,60,60,0.9); animation: biomePulse 2s ease-in-out infinite; }
+        .biome-audio-status:active { transform: scale(0.96); }
+        .biome-audio-status-short { display: none; }
 
-        .cosmic-energy-bar {
+        .biome-energy-bar {
           position: fixed; top: 0; left: 0; right: 0; z-index: 9;
           height: 2px;
           pointer-events: none;
         }
-        .cosmic-energy-fill {
+        .biome-energy-fill {
           height: 100%;
           background: linear-gradient(90deg, #14B8A6, #22D3EE, #FCD34D);
           transition: width 0.3s ease-out;
@@ -817,33 +817,33 @@ export const COSMIC_STYLES = `
           .theme-chooser-dot { width: 6px; height: 6px; }
 
           /* Header → sits below the theme chooser, slimmed down so it doesn't collide */
-          .cosmic-header { top: 48px; }
+          .biome-header { top: 48px; }
 
           /* Conductor → clears the stacked header/theme chooser on narrow screens */
           .conductor-root { top: 94px; }
-          .cosmic-header-title { font-size: 10px; letter-spacing: 0.28em; }
-          .cosmic-header-sub   { font-size: 9px;  letter-spacing: 0.16em; }
+          .biome-header-title { font-size: 10px; letter-spacing: 0.28em; }
+          .biome-header-sub   { font-size: 9px;  letter-spacing: 0.16em; }
 
           /* Scale group → stays top-right but tighter so it clears the header */
-          .cosmic-scale-group {
+          .biome-scale-group {
             top: 10px;
             right: 10px;
             gap: 6px;
           }
-          .cosmic-scale-label { font-size: 10px; min-width: 48px; letter-spacing: 0.16em; }
-          .cosmic-btn-arrow   { width: 28px; height: 28px; font-size: 14px; }
+          .biome-scale-label { font-size: 10px; min-width: 48px; letter-spacing: 0.16em; }
+          .biome-btn-arrow   { width: 28px; height: 28px; font-size: 14px; }
 
           /* Axis labels → shrink, lift top guide above DJ panel + headers */
-          .cosmic-axis-top    { top: 92px; font-size: 9px; letter-spacing: 0.18em; }
-          .cosmic-axis-left   { left: 8px; font-size: 9px; letter-spacing: 0.18em; }
-          .cosmic-axis-right  { right: 8px; font-size: 9px; letter-spacing: 0.18em; }
+          .biome-axis-top    { top: 92px; font-size: 9px; letter-spacing: 0.18em; }
+          .biome-axis-left   { left: 8px; font-size: 9px; letter-spacing: 0.18em; }
+          .biome-axis-right  { right: 8px; font-size: 9px; letter-spacing: 0.18em; }
 
           /* Hint → lift above the drum flowers and DJ panel */
-          .cosmic-hint       { bottom: 170px; font-size: 10px; letter-spacing: 0.18em; }
-          .cosmic-hint-detail { font-size: 9px; letter-spacing: 0.12em; }
+          .biome-hint       { bottom: 170px; font-size: 10px; letter-spacing: 0.18em; }
+          .biome-hint-detail { font-size: 9px; letter-spacing: 0.12em; }
 
           /* Audio status badge → compact chip, pinned bottom-left above the DJ handle */
-          .cosmic-audio-status {
+          .biome-audio-status {
             bottom: 86px;
             left: 10px;
             right: auto;
@@ -851,46 +851,46 @@ export const COSMIC_STYLES = `
             font-size: 10px;
             border-radius: 999px;
           }
-          .cosmic-audio-status.is-ok .cosmic-audio-status-full,
-          .cosmic-audio-status.is-err .cosmic-audio-status-full { display: none; }
-          .cosmic-audio-status-short { display: inline; }
+          .biome-audio-status.is-ok .biome-audio-status-full,
+          .biome-audio-status.is-err .biome-audio-status-full { display: none; }
+          .biome-audio-status-short { display: inline; }
           /* When audio is healthy the badge is uninteresting chrome — fade it out */
-          .cosmic-audio-status.is-ok { opacity: 0.55; }
+          .biome-audio-status.is-ok { opacity: 0.55; }
         }
 
         /* ── Jungle theme overrides (applied when .theme-jungle on root wrapper) ── */
-        .theme-jungle .cosmic-splash {
+        .theme-jungle .biome-splash {
           background: radial-gradient(ellipse at center, rgba(20,61,40,0.85) 0%, rgba(10,31,20,0.95) 100%);
         }
-        .theme-jungle .cosmic-logo {
+        .theme-jungle .biome-logo {
           background: linear-gradient(135deg, #52b788 0%, #a3e635 40%, #ffe14d 70%, #f59e0b 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-size: 300% 100%;
           filter: drop-shadow(0 0 30px rgba(163,230,53,0.45));
         }
-        .theme-jungle .cosmic-warp {
+        .theme-jungle .biome-warp {
           background: radial-gradient(ellipse at center, rgba(20,61,40,0.9) 0%, rgba(10,31,20,0.98) 100%);
         }
-        .theme-jungle .cosmic-warp-text {
+        .theme-jungle .biome-warp-text {
           background: linear-gradient(90deg, #a3e635, #ffe14d, #f59e0b);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .theme-jungle .cosmic-warp-fill {
+        .theme-jungle .biome-warp-fill {
           background: linear-gradient(90deg, #a3e635, #ffe14d, #f59e0b);
           box-shadow: 0 0 12px rgba(163,230,53,0.6);
         }
-        .theme-jungle .cosmic-header-title {
+        .theme-jungle .biome-header-title {
           background: linear-gradient(90deg, #a3e635, #ffe14d, #f59e0b);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .theme-jungle .cosmic-energy-fill {
+        .theme-jungle .biome-energy-fill {
           background: linear-gradient(90deg, #52b788, #a3e635, #ffe14d, #f59e0b);
           box-shadow: 0 0 8px rgba(163,230,53,0.5), 0 0 16px rgba(255,225,77,0.25);
         }
-        .theme-jungle .cosmic-cta-ring {
+        .theme-jungle .biome-cta-ring {
           border-color: rgba(163,230,53,0.6);
         }
         .theme-jungle .theme-chooser-option.is-active {
@@ -899,28 +899,28 @@ export const COSMIC_STYLES = `
         }
 
         /* Scale label + arrow buttons — lime outline + amber glow */
-        .theme-jungle .cosmic-scale-label {
+        .theme-jungle .biome-scale-label {
           color: #ffe14d;
           text-shadow: 0 0 10px rgba(255,225,77,0.55), 0 0 24px rgba(163,230,53,0.35);
         }
-        .theme-jungle .cosmic-btn-arrow {
+        .theme-jungle .biome-btn-arrow {
           color: #a3e635;
           background: rgba(10,31,20,0.45);
           border: 1px solid rgba(163,230,53,0.45);
           box-shadow: 0 0 14px rgba(163,230,53,0.18), inset 0 0 8px rgba(255,225,77,0.08);
         }
-        .theme-jungle .cosmic-btn-arrow:hover {
+        .theme-jungle .biome-btn-arrow:hover {
           background: rgba(163,230,53,0.14);
           border-color: rgba(255,225,77,0.55);
           box-shadow: 0 0 22px rgba(255,225,77,0.35), inset 0 0 10px rgba(163,230,53,0.18);
         }
-        .theme-jungle .cosmic-btn-auto {
+        .theme-jungle .biome-btn-auto {
           color: #a3e635;
           background: rgba(10,31,20,0.5);
           border: 1px solid rgba(163,230,53,0.4);
           backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
-        .theme-jungle .cosmic-btn-auto.active {
+        .theme-jungle .biome-btn-auto.active {
           color: #ffe14d;
           background: rgba(163,230,53,0.18);
           border-color: rgba(255,225,77,0.65);
@@ -928,17 +928,17 @@ export const COSMIC_STYLES = `
         }
 
         /* Axis labels — moss with lime shadow */
-        .theme-jungle .cosmic-axis-label {
+        .theme-jungle .biome-axis-label {
           color: rgba(82,183,136,0.85);
           text-shadow: 0 0 8px rgba(163,230,53,0.45);
         }
 
         /* Hint — frosted leaf glass */
-        .theme-jungle .cosmic-hint {
+        .theme-jungle .biome-hint {
           color: #a3e635;
           text-shadow: 0 0 8px rgba(163,230,53,0.35);
         }
-        .theme-jungle .cosmic-hint-detail {
+        .theme-jungle .biome-hint-detail {
           color: rgba(82,183,136,0.85);
         }
 
@@ -1018,49 +1018,49 @@ export const COSMIC_STYLES = `
         }
 
         /* Flash — amber */
-        .theme-jungle .cosmic-flash {
+        .theme-jungle .biome-flash {
           color: #ffe14d;
           text-shadow: 0 0 14px rgba(255,225,77,0.6), 0 0 30px rgba(245,158,11,0.4);
         }
 
         /* Header sub — moss tint */
-        .theme-jungle .cosmic-header-sub {
+        .theme-jungle .biome-header-sub {
           color: rgba(82,183,136,0.75);
         }
 
         /* ── Sea theme overrides (applied when .theme-sea on root wrapper) ── */
-        .theme-sea .cosmic-splash {
+        .theme-sea .biome-splash {
           background: radial-gradient(ellipse at center, rgba(6,58,82,0.85) 0%, rgba(4,26,46,0.96) 100%);
         }
-        .theme-sea .cosmic-logo {
+        .theme-sea .biome-logo {
           background: linear-gradient(135deg, #6cd9ff 0%, #7ae582 40%, #a8e6cf 70%, #ff6b9d 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-size: 300% 100%;
           filter: drop-shadow(0 0 30px rgba(108,217,255,0.45));
         }
-        .theme-sea .cosmic-warp {
+        .theme-sea .biome-warp {
           background: radial-gradient(ellipse at center, rgba(6,58,82,0.9) 0%, rgba(4,26,46,0.98) 100%);
         }
-        .theme-sea .cosmic-warp-text {
+        .theme-sea .biome-warp-text {
           background: linear-gradient(90deg, #6cd9ff, #a8e6cf, #ff6b9d);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .theme-sea .cosmic-warp-fill {
+        .theme-sea .biome-warp-fill {
           background: linear-gradient(90deg, #6cd9ff, #a8e6cf, #ff6b9d);
           box-shadow: 0 0 12px rgba(108,217,255,0.6);
         }
-        .theme-sea .cosmic-header-title {
+        .theme-sea .biome-header-title {
           background: linear-gradient(90deg, #6cd9ff, #a8e6cf, #7ae582);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .theme-sea .cosmic-energy-fill {
+        .theme-sea .biome-energy-fill {
           background: linear-gradient(90deg, #0a3a5e, #6cd9ff, #a8e6cf, #7ae582);
           box-shadow: 0 0 8px rgba(108,217,255,0.5), 0 0 16px rgba(168,230,207,0.25);
         }
-        .theme-sea .cosmic-cta-ring {
+        .theme-sea .biome-cta-ring {
           border-color: rgba(108,217,255,0.6);
         }
         .theme-sea .theme-chooser-option.is-active {
@@ -1069,28 +1069,28 @@ export const COSMIC_STYLES = `
         }
 
         /* Scale label + arrow buttons — cyan outline + seafoam glow */
-        .theme-sea .cosmic-scale-label {
+        .theme-sea .biome-scale-label {
           color: #a8e6cf;
           text-shadow: 0 0 10px rgba(168,230,207,0.55), 0 0 24px rgba(108,217,255,0.35);
         }
-        .theme-sea .cosmic-btn-arrow {
+        .theme-sea .biome-btn-arrow {
           color: #6cd9ff;
           background: rgba(4,26,46,0.45);
           border: 1px solid rgba(108,217,255,0.45);
           box-shadow: 0 0 14px rgba(108,217,255,0.18), inset 0 0 8px rgba(168,230,207,0.08);
         }
-        .theme-sea .cosmic-btn-arrow:hover {
+        .theme-sea .biome-btn-arrow:hover {
           background: rgba(108,217,255,0.14);
           border-color: rgba(168,230,207,0.55);
           box-shadow: 0 0 22px rgba(168,230,207,0.35), inset 0 0 10px rgba(108,217,255,0.18);
         }
-        .theme-sea .cosmic-btn-auto {
+        .theme-sea .biome-btn-auto {
           color: #6cd9ff;
           background: rgba(4,26,46,0.5);
           border: 1px solid rgba(108,217,255,0.4);
           backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
-        .theme-sea .cosmic-btn-auto.active {
+        .theme-sea .biome-btn-auto.active {
           color: #ff6b9d;
           background: rgba(108,217,255,0.18);
           border-color: rgba(255,107,157,0.65);
@@ -1098,17 +1098,17 @@ export const COSMIC_STYLES = `
         }
 
         /* Axis labels — muted teal with cyan shadow */
-        .theme-sea .cosmic-axis-label {
+        .theme-sea .biome-axis-label {
           color: rgba(122,229,130,0.85);
           text-shadow: 0 0 8px rgba(108,217,255,0.45);
         }
 
         /* Hint */
-        .theme-sea .cosmic-hint {
+        .theme-sea .biome-hint {
           color: #6cd9ff;
           text-shadow: 0 0 8px rgba(108,217,255,0.35);
         }
-        .theme-sea .cosmic-hint-detail {
+        .theme-sea .biome-hint-detail {
           color: rgba(122,229,130,0.85);
         }
 
@@ -1160,25 +1160,25 @@ export const COSMIC_STYLES = `
         }
 
         /* Flash — seafoam */
-        .theme-sea .cosmic-flash {
+        .theme-sea .biome-flash {
           color: #a8e6cf;
           text-shadow: 0 0 14px rgba(168,230,207,0.6), 0 0 30px rgba(108,217,255,0.4);
         }
 
         /* Header sub — teal tint */
-        .theme-sea .cosmic-header-sub {
+        .theme-sea .biome-header-sub {
           color: rgba(122,229,130,0.75);
         }
 
         /* ── Splash onboarding — three mini cards that preview controls ── */
-        .cosmic-onboard {
+        .biome-onboard {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 10px;
           width: min(420px, calc(100vw - 48px));
           margin-top: 6px;
         }
-        .cosmic-onboard-card {
+        .biome-onboard-card {
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1191,14 +1191,14 @@ export const COSMIC_STYLES = `
           backdrop-filter: blur(8px);
           -webkit-backdrop-filter: blur(8px);
         }
-        .cosmic-onboard-icon {
+        .biome-onboard-icon {
           font-family: 'Orbitron', monospace;
           font-size: 18px;
           color: #22D3EE;
           text-shadow: 0 0 12px rgba(34,211,238,0.55);
           line-height: 1;
         }
-        .cosmic-onboard-label {
+        .biome-onboard-label {
           font-family: 'Orbitron', monospace;
           font-size: 10px;
           font-weight: 700;
@@ -1207,7 +1207,7 @@ export const COSMIC_STYLES = `
           text-transform: uppercase;
           text-align: center;
         }
-        .cosmic-onboard-hint {
+        .biome-onboard-hint {
           font-family: 'Raleway', sans-serif;
           font-size: 10px;
           font-weight: 300;
@@ -1215,23 +1215,23 @@ export const COSMIC_STYLES = `
           color: #7C95B5;
           text-align: center;
         }
-        .theme-jungle .cosmic-onboard-card {
+        .theme-jungle .biome-onboard-card {
           border-color: rgba(163,230,53,0.28);
         }
-        .theme-jungle .cosmic-onboard-icon {
+        .theme-jungle .biome-onboard-icon {
           color: #a3e635;
           text-shadow: 0 0 12px rgba(163,230,53,0.55);
         }
-        .theme-sea .cosmic-onboard-card {
+        .theme-sea .biome-onboard-card {
           border-color: rgba(108,217,255,0.28);
         }
-        .theme-sea .cosmic-onboard-icon {
+        .theme-sea .biome-onboard-icon {
           color: #6cd9ff;
           text-shadow: 0 0 12px rgba(108,217,255,0.55);
         }
 
         /* ── Persistent help trigger (? button, bottom-left on desktop) ── */
-        .cosmic-help-trigger {
+        .biome-help-trigger {
           all: unset;
           position: fixed;
           left: 12px; bottom: 12px;
@@ -1251,26 +1251,26 @@ export const COSMIC_STYLES = `
           box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(34,211,238,0.15);
           transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
         }
-        .cosmic-help-trigger:hover {
+        .biome-help-trigger:hover {
           background: rgba(34,211,238,0.18);
           box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 22px rgba(34,211,238,0.35);
         }
-        .cosmic-help-trigger:active { transform: scale(0.94); }
-        .cosmic-help-trigger:focus-visible {
+        .biome-help-trigger:active { transform: scale(0.94); }
+        .biome-help-trigger:focus-visible {
           outline: 2px solid rgba(34,211,238,0.9);
           outline-offset: 2px;
         }
-        .theme-jungle .cosmic-help-trigger {
+        .theme-jungle .biome-help-trigger {
           color: #a3e635; border-color: rgba(163,230,53,0.4);
           box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(163,230,53,0.18);
         }
-        .theme-sea .cosmic-help-trigger {
+        .theme-sea .biome-help-trigger {
           color: #6cd9ff; border-color: rgba(108,217,255,0.4);
           box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(108,217,255,0.18);
         }
 
         /* ── Help overlay (modal-style controls reference) ── */
-        .cosmic-help-backdrop {
+        .biome-help-backdrop {
           position: fixed; inset: 0;
           z-index: 110;
           display: flex; align-items: center; justify-content: center;
@@ -1281,7 +1281,7 @@ export const COSMIC_STYLES = `
           animation: cosmicFadeIn 0.25s ease-out;
           overscroll-behavior: contain;
         }
-        .cosmic-help-card {
+        .biome-help-card {
           position: relative;
           width: min(460px, 100%);
           max-height: calc(100vh - 48px);
@@ -1294,7 +1294,7 @@ export const COSMIC_STYLES = `
           color: #E5F4FB;
           -webkit-overflow-scrolling: touch;
         }
-        .cosmic-help-close {
+        .biome-help-close {
           all: unset;
           position: absolute;
           top: 10px; right: 12px;
@@ -1307,12 +1307,12 @@ export const COSMIC_STYLES = `
           touch-action: manipulation;
           transition: background 0.2s, color 0.2s;
         }
-        .cosmic-help-close:hover { background: rgba(229,244,251,0.08); color: #fff; }
-        .cosmic-help-close:focus-visible {
+        .biome-help-close:hover { background: rgba(229,244,251,0.08); color: #fff; }
+        .biome-help-close:focus-visible {
           outline: 2px solid rgba(34,211,238,0.9);
           outline-offset: 2px;
         }
-        .cosmic-help-title {
+        .biome-help-title {
           font-family: 'Orbitron', monospace;
           font-size: 18px;
           font-weight: 700;
@@ -1322,7 +1322,7 @@ export const COSMIC_STYLES = `
           background-clip: text;
           margin-bottom: 4px;
         }
-        .cosmic-help-subtitle {
+        .biome-help-subtitle {
           font-family: 'Raleway', sans-serif;
           font-size: 12px;
           font-weight: 300;
@@ -1330,11 +1330,11 @@ export const COSMIC_STYLES = `
           color: #7C95B5;
           margin-bottom: 16px;
         }
-        .cosmic-help-section {
+        .biome-help-section {
           margin-bottom: 14px;
         }
-        .cosmic-help-section:last-of-type { margin-bottom: 10px; }
-        .cosmic-help-section-title {
+        .biome-help-section:last-of-type { margin-bottom: 10px; }
+        .biome-help-section-title {
           font-family: 'Orbitron', monospace;
           font-size: 10px;
           font-weight: 700;
@@ -1345,7 +1345,7 @@ export const COSMIC_STYLES = `
           padding-bottom: 6px;
           border-bottom: 1px solid rgba(129,140,248,0.15);
         }
-        .cosmic-help-list {
+        .biome-help-list {
           list-style: none;
           padding: 0; margin: 0;
           display: flex; flex-direction: column; gap: 8px;
@@ -1355,17 +1355,17 @@ export const COSMIC_STYLES = `
           letter-spacing: 0.02em;
           color: #B4C9E0;
         }
-        .cosmic-help-list li {
+        .biome-help-list li {
           display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
           line-height: 1.35;
         }
-        .cosmic-help-list strong {
+        .biome-help-list strong {
           font-weight: 600;
           color: #E5F4FB;
           letter-spacing: 0.04em;
         }
-        .cosmic-help-key,
-        .cosmic-help-kbd {
+        .biome-help-key,
+        .biome-help-kbd {
           display: inline-flex; align-items: center; justify-content: center;
           padding: 2px 8px;
           min-width: 28px;
@@ -1381,14 +1381,14 @@ export const COSMIC_STYLES = `
           text-shadow: 0 0 6px rgba(34,211,238,0.3);
           white-space: nowrap;
         }
-        .cosmic-help-kbd {
+        .biome-help-kbd {
           background: rgba(229,244,251,0.06);
           border-color: rgba(229,244,251,0.2);
           color: #E5F4FB;
           text-shadow: none;
           box-shadow: inset 0 -1px 0 rgba(0,0,0,0.35);
         }
-        .cosmic-help-footer {
+        .biome-help-footer {
           margin-top: 14px;
           padding-top: 12px;
           border-top: 1px solid rgba(129,140,248,0.15);
@@ -1400,35 +1400,35 @@ export const COSMIC_STYLES = `
           text-align: center;
           text-transform: uppercase;
         }
-        .theme-jungle .cosmic-help-card {
+        .theme-jungle .biome-help-card {
           background: linear-gradient(135deg, rgba(20,61,40,0.95) 0%, rgba(10,31,20,0.98) 100%);
           border-color: rgba(163,230,53,0.3);
           box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(163,230,53,0.15);
         }
-        .theme-jungle .cosmic-help-title {
+        .theme-jungle .biome-help-title {
           background: linear-gradient(90deg, #a3e635, #ffe14d);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .theme-jungle .cosmic-help-section-title { color: #a3e635; border-bottom-color: rgba(163,230,53,0.2); }
-        .theme-jungle .cosmic-help-key {
+        .theme-jungle .biome-help-section-title { color: #a3e635; border-bottom-color: rgba(163,230,53,0.2); }
+        .theme-jungle .biome-help-key {
           background: rgba(163,230,53,0.14);
           border-color: rgba(163,230,53,0.45);
           color: #a3e635;
           text-shadow: 0 0 6px rgba(163,230,53,0.35);
         }
-        .theme-sea .cosmic-help-card {
+        .theme-sea .biome-help-card {
           background: linear-gradient(135deg, rgba(6,58,82,0.95) 0%, rgba(4,26,46,0.98) 100%);
           border-color: rgba(108,217,255,0.3);
           box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(108,217,255,0.15);
         }
-        .theme-sea .cosmic-help-title {
+        .theme-sea .biome-help-title {
           background: linear-gradient(90deg, #6cd9ff, #a8e6cf);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .theme-sea .cosmic-help-section-title { color: #6cd9ff; border-bottom-color: rgba(108,217,255,0.2); }
-        .theme-sea .cosmic-help-key {
+        .theme-sea .biome-help-section-title { color: #6cd9ff; border-bottom-color: rgba(108,217,255,0.2); }
+        .theme-sea .biome-help-key {
           background: rgba(108,217,255,0.14);
           border-color: rgba(108,217,255,0.45);
           color: #6cd9ff;
@@ -1436,36 +1436,36 @@ export const COSMIC_STYLES = `
         }
 
         /* ── Cyberpunk theme overrides (applied when .theme-cyberpunk on root wrapper) ── */
-        .theme-cyberpunk .cosmic-splash {
+        .theme-cyberpunk .biome-splash {
           background: radial-gradient(ellipse at center, rgba(22,4,40,0.9) 0%, rgba(7,2,26,0.97) 100%);
         }
-        .theme-cyberpunk .cosmic-logo {
+        .theme-cyberpunk .biome-logo {
           background: linear-gradient(135deg, #ff2bd6 0%, #9d00ff 40%, #21e7ff 80%, #ffffff 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
           filter: drop-shadow(0 0 30px rgba(255,43,214,0.55));
         }
-        .theme-cyberpunk .cosmic-warp {
+        .theme-cyberpunk .biome-warp {
           background: radial-gradient(ellipse at center, rgba(34,0,60,0.85) 0%, rgba(7,2,26,0.95) 100%);
         }
-        .theme-cyberpunk .cosmic-warp-text {
+        .theme-cyberpunk .biome-warp-text {
           color: #ff2bd6;
           text-shadow: 0 0 14px rgba(255,43,214,0.7), 0 0 30px rgba(33,231,255,0.4);
           letter-spacing: 0.3em;
         }
-        .theme-cyberpunk .cosmic-warp-fill {
+        .theme-cyberpunk .biome-warp-fill {
           background: linear-gradient(90deg, #9d00ff, #ff2bd6, #21e7ff);
           box-shadow: 0 0 14px rgba(255,43,214,0.75);
         }
-        .theme-cyberpunk .cosmic-header-title {
+        .theme-cyberpunk .biome-header-title {
           background: linear-gradient(90deg, #ff2bd6, #21e7ff);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .theme-cyberpunk .cosmic-energy-fill {
+        .theme-cyberpunk .biome-energy-fill {
           background: linear-gradient(90deg, #9d00ff, #ff2bd6, #21e7ff);
         }
-        .theme-cyberpunk .cosmic-cta-ring {
+        .theme-cyberpunk .biome-cta-ring {
           border-color: rgba(255,43,214,0.55);
           box-shadow: 0 0 22px rgba(255,43,214,0.5), inset 0 0 12px rgba(33,231,255,0.3);
         }
@@ -1474,37 +1474,37 @@ export const COSMIC_STYLES = `
           border-color: rgba(255,43,214,0.65);
           box-shadow: 0 0 12px rgba(255,43,214,0.4);
         }
-        .theme-cyberpunk .cosmic-scale-label {
+        .theme-cyberpunk .biome-scale-label {
           color: #ff2bd6;
           text-shadow: 0 0 10px rgba(255,43,214,0.6);
         }
-        .theme-cyberpunk .cosmic-btn-arrow {
+        .theme-cyberpunk .biome-btn-arrow {
           color: #21e7ff;
           border-color: rgba(33,231,255,0.45);
           background: rgba(10,4,26,0.55);
           text-shadow: 0 0 8px rgba(33,231,255,0.5);
         }
-        .theme-cyberpunk .cosmic-btn-arrow:hover {
+        .theme-cyberpunk .biome-btn-arrow:hover {
           background: rgba(33,231,255,0.12);
           border-color: rgba(33,231,255,0.75);
         }
-        .theme-cyberpunk .cosmic-btn-auto {
+        .theme-cyberpunk .biome-btn-auto {
           background: rgba(10,4,26,0.6);
           border-color: rgba(157,0,255,0.45);
           color: #9d00ff;
         }
-        .theme-cyberpunk .cosmic-btn-auto.active {
+        .theme-cyberpunk .biome-btn-auto.active {
           background: rgba(255,43,214,0.22);
           border-color: rgba(255,43,214,0.9);
           color: #ff2bd6;
           box-shadow: 0 0 20px rgba(255,43,214,0.55);
         }
-        .theme-cyberpunk .cosmic-axis-label {
+        .theme-cyberpunk .biome-axis-label {
           color: rgba(33,231,255,0.85);
           text-shadow: 0 0 6px rgba(33,231,255,0.5);
         }
-        .theme-cyberpunk .cosmic-hint { color: rgba(255,122,226,0.95); }
-        .theme-cyberpunk .cosmic-hint-detail { color: rgba(33,231,255,0.75); }
+        .theme-cyberpunk .biome-hint { color: rgba(255,122,226,0.95); }
+        .theme-cyberpunk .biome-hint-detail { color: rgba(33,231,255,0.75); }
         .theme-cyberpunk .conductor-transport,
         .theme-cyberpunk .conductor-drawer {
           background: rgba(10,4,26,0.72);
@@ -1554,36 +1554,36 @@ export const COSMIC_STYLES = `
           pointer-events: none;
         }
         .theme-cyberpunk .conductor-cell[data-active="1"] .conductor-cell-grid { opacity: 1; background-color: rgba(255,255,255,0.08); }
-        .theme-cyberpunk .cosmic-flash {
+        .theme-cyberpunk .biome-flash {
           color: #ff2bd6;
           text-shadow: 0 0 14px rgba(255,43,214,0.7);
         }
-        .theme-cyberpunk .cosmic-header-sub { color: rgba(33,231,255,0.8); }
-        .theme-cyberpunk .cosmic-onboard-card {
+        .theme-cyberpunk .biome-header-sub { color: rgba(33,231,255,0.8); }
+        .theme-cyberpunk .biome-onboard-card {
           background: rgba(16,6,38,0.6);
           border-color: rgba(255,43,214,0.35);
         }
-        .theme-cyberpunk .cosmic-onboard-icon {
+        .theme-cyberpunk .biome-onboard-icon {
           color: #ff2bd6;
           text-shadow: 0 0 8px rgba(255,43,214,0.55);
         }
-        .theme-cyberpunk .cosmic-help-trigger {
+        .theme-cyberpunk .biome-help-trigger {
           background: rgba(255,43,214,0.2);
           border-color: rgba(255,43,214,0.65);
           color: #ffffff;
           box-shadow: 0 0 12px rgba(255,43,214,0.45);
         }
-        .theme-cyberpunk .cosmic-help-card {
+        .theme-cyberpunk .biome-help-card {
           background: linear-gradient(135deg, rgba(20,6,46,0.96), rgba(7,2,26,0.96));
           border-color: rgba(255,43,214,0.35);
         }
-        .theme-cyberpunk .cosmic-help-title {
+        .theme-cyberpunk .biome-help-title {
           background: linear-gradient(90deg, #ff2bd6, #21e7ff);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .theme-cyberpunk .cosmic-help-section-title { color: #ff2bd6; border-bottom-color: rgba(255,43,214,0.25); }
-        .theme-cyberpunk .cosmic-help-key {
+        .theme-cyberpunk .biome-help-section-title { color: #ff2bd6; border-bottom-color: rgba(255,43,214,0.25); }
+        .theme-cyberpunk .biome-help-key {
           background: rgba(255,43,214,0.14);
           border-color: rgba(255,43,214,0.55);
           color: #ff2bd6;
@@ -1594,43 +1594,43 @@ export const COSMIC_STYLES = `
         .theme-chooser-option:focus-visible,
         .conductor-toggle:focus-visible,
         .conductor-expand:focus-visible,
-        .cosmic-btn-arrow:focus-visible,
-        .cosmic-audio-status:focus-visible {
+        .biome-btn-arrow:focus-visible,
+        .biome-audio-status:focus-visible {
           outline: 2px solid rgba(34,211,238,0.85);
           outline-offset: 2px;
         }
 
         /* Mobile tweaks for the new chrome */
         @media (max-width: 480px) {
-          .cosmic-onboard {
+          .biome-onboard {
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 6px;
             width: calc(100vw - 32px);
           }
-          .cosmic-onboard-card { padding: 8px 4px 7px; gap: 2px; border-radius: 10px; }
-          .cosmic-onboard-icon { font-size: 14px; }
-          .cosmic-onboard-label { font-size: 8px; letter-spacing: 0.14em; }
-          .cosmic-onboard-hint  { font-size: 8px; letter-spacing: 0.08em; }
+          .biome-onboard-card { padding: 8px 4px 7px; gap: 2px; border-radius: 10px; }
+          .biome-onboard-icon { font-size: 14px; }
+          .biome-onboard-label { font-size: 8px; letter-spacing: 0.14em; }
+          .biome-onboard-hint  { font-size: 8px; letter-spacing: 0.08em; }
 
           /* Help trigger → keep bottom-left but above audio badge */
-          .cosmic-help-trigger {
+          .biome-help-trigger {
             left: 10px; bottom: 130px;
             width: 32px; height: 32px;
             font-size: 14px;
           }
 
           /* Help card full-bleed feel on phones */
-          .cosmic-help-card { padding: 20px 18px 14px; border-radius: 14px; }
-          .cosmic-help-title { font-size: 16px; letter-spacing: 0.18em; }
-          .cosmic-help-list { font-size: 12px; }
-          .cosmic-help-key, .cosmic-help-kbd { font-size: 9px; padding: 2px 6px; }
+          .biome-help-card { padding: 20px 18px 14px; border-radius: 14px; }
+          .biome-help-title { font-size: 16px; letter-spacing: 0.18em; }
+          .biome-help-list { font-size: 12px; }
+          .biome-help-key, .biome-help-kbd { font-size: 9px; padding: 2px 6px; }
 
           /* Scale meta — keep index visible under the label */
-          .cosmic-scale-meta { min-width: 56px; }
-          .cosmic-scale-index { font-size: 8px; letter-spacing: 0.18em; }
+          .biome-scale-meta { min-width: 56px; }
+          .biome-scale-index { font-size: 8px; letter-spacing: 0.18em; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .cosmic-help-backdrop { animation: none; }
+          .biome-help-backdrop { animation: none; }
         }
 `;

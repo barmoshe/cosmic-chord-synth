@@ -1,33 +1,34 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as Tone from "tone";
 
-import { SCALES, SCALE_ORDER, isMobile, THEME_PRESETS } from "./cosmic-synth/constants";
-import { m2f, noteColor } from "./cosmic-synth/helpers";
-import { COSMIC_STYLES } from "./cosmic-synth/styles";
-import { useAudioEngine } from "./cosmic-synth/useAudioEngine";
-import { useSetupEffects } from "./cosmic-synth/useSetupEffects";
-import { useThreeScene } from "./cosmic-synth/useThreeScene";
-import { useJungleScene } from "./cosmic-synth/useJungleScene";
-import { useSeaScene } from "./cosmic-synth/useSeaScene";
-import { useCyberpunkScene } from "./cosmic-synth/useCyberpunkScene";
-import { useTouchInput } from "./cosmic-synth/useTouchInput";
-import { useGlowOverlays } from "./cosmic-synth/useGlowOverlays";
-import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./cosmic-synth/useDjAutoPlay";
-import { useKeyboardShortcuts } from "./cosmic-synth/useKeyboardShortcuts";
-import CosmicDjPanel from "./cosmic-synth/CosmicDjPanel";
-import HelpOverlay from "./cosmic-synth/HelpOverlay";
-import JumpingMonkeys from "./cosmic-synth/JumpingMonkeys";
-import JungleFlora from "./cosmic-synth/JungleFlora";
-import FloatingBananas from "./cosmic-synth/FloatingBananas";
-import SwimmingFish from "./cosmic-synth/SwimmingFish";
-import SeaCorals from "./cosmic-synth/SeaCorals";
-import FloatingBubbles from "./cosmic-synth/FloatingBubbles";
-import NeonSkyline from "./cosmic-synth/NeonSkyline";
-import HologramBillboards from "./cosmic-synth/HologramBillboards";
-import NeonRain from "./cosmic-synth/NeonRain";
-import ThemeChooser, { type CosmicTheme } from "./cosmic-synth/ThemeChooser";
+import { SCALES, SCALE_ORDER, isMobile, THEME_PRESETS } from "./biome-synth/constants";
+import { m2f, noteColor } from "./biome-synth/helpers";
+import { BIOME_STYLES } from "./biome-synth/styles";
+import { useAudioEngine } from "./biome-synth/useAudioEngine";
+import { useSetupEffects } from "./biome-synth/useSetupEffects";
+import { useThreeScene } from "./biome-synth/useThreeScene";
+import { useJungleScene } from "./biome-synth/useJungleScene";
+import { useSeaScene } from "./biome-synth/useSeaScene";
+import { useCyberpunkScene } from "./biome-synth/useCyberpunkScene";
+import { useTouchInput } from "./biome-synth/useTouchInput";
+import { useGlowOverlays } from "./biome-synth/useGlowOverlays";
+import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./biome-synth/useDjAutoPlay";
+import { useKeyboardShortcuts } from "./biome-synth/useKeyboardShortcuts";
+import DjPanel from "./biome-synth/DjPanel";
+import HelpOverlay from "./biome-synth/HelpOverlay";
+import JumpingMonkeys from "./biome-synth/JumpingMonkeys";
+import JungleFlora from "./biome-synth/JungleFlora";
+import FloatingBananas from "./biome-synth/FloatingBananas";
+import SwimmingFish from "./biome-synth/SwimmingFish";
+import SeaCorals from "./biome-synth/SeaCorals";
+import FloatingBubbles from "./biome-synth/FloatingBubbles";
+import NeonSkyline from "./biome-synth/NeonSkyline";
+import HologramBillboards from "./biome-synth/HologramBillboards";
+import NeonRain from "./biome-synth/NeonRain";
+import ThemeChooser, { type BiomeTheme } from "./biome-synth/ThemeChooser";
 
-const THEME_STORAGE_KEY = "cosmic-synth-theme";
+const THEME_STORAGE_KEY = "biome-synth-theme";
+const LEGACY_THEME_STORAGE_KEY = "cosmic-synth-theme";
 
 interface SceneMountProps {
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
@@ -63,15 +64,23 @@ function CyberpunkSceneMount(p: SceneMountProps) {
   return null;
 }
 
-function readStoredTheme(): CosmicTheme {
+function readStoredTheme(): BiomeTheme {
   try {
-    const v = localStorage.getItem(THEME_STORAGE_KEY);
+    let v = localStorage.getItem(THEME_STORAGE_KEY);
+    if (v == null) {
+      const legacy = localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+      if (legacy != null) {
+        localStorage.setItem(THEME_STORAGE_KEY, legacy);
+        localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+        v = legacy;
+      }
+    }
     if (v === "jungle" || v === "space" || v === "sea" || v === "cyberpunk") return v;
   } catch { /* storage unavailable */ }
   return "space";
 }
 
-export default function CosmicSynth() {
+export default function BiomeSynthApp() {
   /* ── State ── */
   const [phase, setPhase] = useState<"splash" | "warp" | "play">("splash");
   const [audioOk, setAudioOk] = useState(true);
@@ -83,7 +92,7 @@ export default function CosmicSynth() {
   const [warpProgress, setWarpProgress] = useState(0);
   const [ctxState, setCtxState] = useState<"suspended" | "running" | "closed" | "interrupted">("suspended");
   const [engineReady, setEngineReady] = useState(false);
-  const [theme, setTheme] = useState<CosmicTheme>(readStoredTheme);
+  const [theme, setTheme] = useState<BiomeTheme>(readStoredTheme);
   const [helpOpen, setHelpOpen] = useState(false);
 
   const isJungle = theme === "jungle";
@@ -104,12 +113,12 @@ export default function CosmicSynth() {
     ? "JACKING INTO THE GRID"
     : "ENTERING THE COSMOS";
 
-  const handleThemeChange = useCallback((t: CosmicTheme) => {
+  const handleThemeChange = useCallback((t: BiomeTheme) => {
     setTheme(t);
     try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch { /* storage unavailable */ }
   }, []);
 
-  // DJ UI adapter — CosmicDjPanel installs itself here via onReady
+  // DJ UI adapter — DjPanel installs itself here via onReady
   const djUiRef = useRef<DjUi>({
     setPhase: () => {}, setNextPhase: () => {}, setProgress: () => {}, setBeat: () => {},
     setStep: () => {}, onDrumHit: () => {}, setEnergy: () => {}, setBpm: () => {},
@@ -307,36 +316,36 @@ export default function CosmicSynth() {
         <div
           onTouchStart={() => handleStart()}
           onClick={() => handleStart()}
-          className="cosmic-splash"
+          className="biome-splash"
         >
-          <div className="cosmic-splash-inner">
-            <div className="cosmic-logo">{productName}</div>
-            <div className="cosmic-subtitle-group">
-              <div className="cosmic-line" />
-              <div className="cosmic-subtitle">INTERACTIVE MUSIC EXPERIENCE</div>
-              <div className="cosmic-line" />
+          <div className="biome-splash-inner">
+            <div className="biome-logo">{productName}</div>
+            <div className="biome-subtitle-group">
+              <div className="biome-line" />
+              <div className="biome-subtitle">INTERACTIVE MUSIC EXPERIENCE</div>
+              <div className="biome-line" />
             </div>
 
-            <div className="cosmic-onboard" aria-label="Quick controls">
-              <div className="cosmic-onboard-card">
-                <div className="cosmic-onboard-icon" aria-hidden="true">◉</div>
-                <div className="cosmic-onboard-label">Touch &amp; drag</div>
-                <div className="cosmic-onboard-hint">play notes</div>
+            <div className="biome-onboard" aria-label="Quick controls">
+              <div className="biome-onboard-card">
+                <div className="biome-onboard-icon" aria-hidden="true">◉</div>
+                <div className="biome-onboard-label">Touch &amp; drag</div>
+                <div className="biome-onboard-hint">play notes</div>
               </div>
-              <div className="cosmic-onboard-card">
-                <div className="cosmic-onboard-icon" aria-hidden="true">▶</div>
-                <div className="cosmic-onboard-label">AI DJ</div>
-                <div className="cosmic-onboard-hint">plays for you</div>
+              <div className="biome-onboard-card">
+                <div className="biome-onboard-icon" aria-hidden="true">▶</div>
+                <div className="biome-onboard-label">AI DJ</div>
+                <div className="biome-onboard-hint">plays for you</div>
               </div>
-              <div className="cosmic-onboard-card">
-                <div className="cosmic-onboard-icon" aria-hidden="true">◐</div>
-                <div className="cosmic-onboard-label">Themes</div>
-                <div className="cosmic-onboard-hint">space · jungle · sea · cyberpunk</div>
+              <div className="biome-onboard-card">
+                <div className="biome-onboard-icon" aria-hidden="true">◐</div>
+                <div className="biome-onboard-label">Themes</div>
+                <div className="biome-onboard-hint">space · jungle · sea · cyberpunk</div>
               </div>
             </div>
 
-            <div className="cosmic-cta">
-              <div className="cosmic-cta-ring" />
+            <div className="biome-cta">
+              <div className="biome-cta-ring" />
               <span>TAP TO ENTER</span>
             </div>
           </div>
@@ -345,10 +354,10 @@ export default function CosmicSynth() {
 
       {/* Warp Transition */}
       {phase === "warp" && (
-        <div className="cosmic-warp">
-          <div className="cosmic-warp-text">{warpText}</div>
-          <div className="cosmic-warp-bar">
-            <div className="cosmic-warp-fill" style={{ width: `${warpProgress * 100}%` }} />
+        <div className="biome-warp">
+          <div className="biome-warp-text">{warpText}</div>
+          <div className="biome-warp-bar">
+            <div className="biome-warp-fill" style={{ width: `${warpProgress * 100}%` }} />
           </div>
         </div>
       )}
@@ -383,19 +392,19 @@ export default function CosmicSynth() {
       {/* Play UI */}
       {phase === "play" && (
         <>
-          <div className="cosmic-header" style={{ opacity: showUI ? 1 : 0 }}>
-            <div className="cosmic-header-title">{productName}</div>
-            <div className="cosmic-header-sub">Touch to Play</div>
+          <div className="biome-header" style={{ opacity: showUI ? 1 : 0 }}>
+            <div className="biome-header-title">{productName}</div>
+            <div className="biome-header-sub">Touch to Play</div>
           </div>
 
           {!hintDismissed && (
-            <div className="cosmic-hint">
+            <div className="biome-hint">
               <div>Touch to play · Drag to explore</div>
-              <div className="cosmic-hint-detail">← pitch → · ↑ filter ↓</div>
+              <div className="biome-hint-detail">← pitch → · ↑ filter ↓</div>
             </div>
           )}
 
-          <CosmicDjPanel
+          <DjPanel
             autoPlay={autoPlay}
             onToggle={toggleDj}
             onReady={handleDjUiReady}
@@ -404,25 +413,25 @@ export default function CosmicSynth() {
             theme={theme}
           />
 
-          <div className="cosmic-scale-group" aria-label="Scale selector">
+          <div className="biome-scale-group" aria-label="Scale selector">
             <button
               onTouchStart={(e) => { e.preventDefault(); prevScale(); }}
               onClick={() => prevScale()}
-              className="cosmic-btn cosmic-btn-arrow"
+              className="biome-btn biome-btn-arrow"
               aria-label="Previous scale"
             >
               ‹
             </button>
-            <div className="cosmic-scale-meta">
-              <div className="cosmic-scale-label">{SCALES[scale].label}</div>
-              <div className="cosmic-scale-index" aria-hidden="true">
+            <div className="biome-scale-meta">
+              <div className="biome-scale-label">{SCALES[scale].label}</div>
+              <div className="biome-scale-index" aria-hidden="true">
                 {scaleIndex + 1} / {SCALE_ORDER.length}
               </div>
             </div>
             <button
               onTouchStart={(e) => { e.preventDefault(); nextScale(); }}
               onClick={() => nextScale()}
-              className="cosmic-btn cosmic-btn-arrow"
+              className="biome-btn biome-btn-arrow"
               aria-label="Next scale"
             >
               ›
@@ -430,21 +439,21 @@ export default function CosmicSynth() {
           </div>
 
           {/* Axis guides — left/right = pitch, top = filter */}
-          <div className="cosmic-axis-label cosmic-axis-top">↑ Filter Open</div>
-          <div className="cosmic-axis-label cosmic-axis-left" aria-hidden="true">♪ Low</div>
-          <div className="cosmic-axis-label cosmic-axis-right" aria-hidden="true">High ♫</div>
+          <div className="biome-axis-label biome-axis-top">↑ Filter Open</div>
+          <div className="biome-axis-label biome-axis-left" aria-hidden="true">♪ Low</div>
+          <div className="biome-axis-label biome-axis-right" aria-hidden="true">High ♫</div>
 
           {/* Energy bar (shows DJ energy when auto-playing) */}
           {autoPlay && (
-            <div className="cosmic-energy-bar">
-              <div className="cosmic-energy-fill" style={{ width: `${Math.min(100, (djState.current.ce || 0) * 100)}%` }} />
+            <div className="biome-energy-bar">
+              <div className="biome-energy-fill" style={{ width: `${Math.min(100, (djState.current.ce || 0) * 100)}%` }} />
             </div>
           )}
 
-          {flash && <div className="cosmic-flash">{flash}</div>}
+          {flash && <div className="biome-flash">{flash}</div>}
 
           {!audioOk && (
-            <div className="cosmic-error">Audio unavailable — visual only</div>
+            <div className="biome-error">Audio unavailable — visual only</div>
           )}
 
           {/* Audio status badge — click to retry unlock & play a test chime. */}
@@ -460,14 +469,14 @@ export default function CosmicSynth() {
               rawCtx.resume().catch(() => undefined);
               Tone.start().then(() => engine.current?.start());
             }}
-            className={`cosmic-audio-status ${engineReady && ctxState === "running" ? "is-ok" : "is-err"}`}
+            className={`biome-audio-status ${engineReady && ctxState === "running" ? "is-ok" : "is-err"}`}
             role="status"
             aria-live="polite"
           >
-            <span className="cosmic-audio-status-full">
+            <span className="biome-audio-status-full">
               {ctxState === "running" && engineReady ? "AUDIO OK" : `AUDIO ${ctxState.toUpperCase()} — TAP TO RETRY`}
             </span>
-            <span className="cosmic-audio-status-short" aria-hidden="true">
+            <span className="biome-audio-status-short" aria-hidden="true">
               {ctxState === "running" && engineReady ? "AUDIO OK" : "AUDIO ⚠ TAP"}
             </span>
           </div>
@@ -475,7 +484,7 @@ export default function CosmicSynth() {
           {/* Persistent help trigger — always accessible while playing */}
           <button
             type="button"
-            className="cosmic-help-trigger"
+            className="biome-help-trigger"
             onTouchStart={(e) => { e.preventDefault(); toggleHelp(); }}
             onClick={toggleHelp}
             aria-label="Open controls help"
@@ -489,7 +498,7 @@ export default function CosmicSynth() {
       )}
 
 
-      <style>{COSMIC_STYLES}</style>
+      <style>{BIOME_STYLES}</style>
     </div>
   );
 }

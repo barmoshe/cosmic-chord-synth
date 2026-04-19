@@ -1,6 +1,6 @@
-# Cosmic Chord Synth
+# Biome Synth
 
-A 3D galaxy you can play like an instrument. Interactive browser-based synthesizer using gesture/touch input with AI DJ mode for generative composition.
+A playable world. Interactive browser-based synthesizer with four 3D biomes (space, jungle, sea, cyberpunk), gesture/touch input, and AI DJ mode for generative composition.
 
 ## Tech Stack
 
@@ -26,9 +26,9 @@ npm run lint       # ESLint
 ```
 src/
 ├── components/
-│   ├── CosmicSynth.tsx              # Main synth orchestrator
+│   ├── BiomeSynthApp.tsx            # Main synth orchestrator
 │   ├── CosmicSequencer.tsx          # 8-track step sequencer
-│   ├── cosmic-synth/               # Core audio/visual modules
+│   ├── biome-synth/                # Core audio/visual modules
 │   │   ├── useAudioEngine.ts       # Tone.js synth + effects init
 │   │   ├── useThreeScene.ts        # Three.js 3D scene + animation
 │   │   ├── useTouchInput.ts        # Gesture → note triggering

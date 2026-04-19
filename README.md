@@ -1,6 +1,6 @@
-# Cosmic Chord Synth
+# Biome Synth
 
-A 3D galaxy you can play like an instrument. Touch to create music, or let the AI DJ compose. Every sound shapes the cosmos.
+A playable world. Touch to make music across four 3D biomes — space, jungle, sea, and cyberpunk — or let the AI DJ compose. Every sound shapes the scene.
 
 ## Quick Start
 

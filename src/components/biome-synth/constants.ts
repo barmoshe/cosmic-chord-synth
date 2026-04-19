@@ -27,7 +27,7 @@ export const SMOOTH = 0.14;
 export const PAL: number[][] = [[0.08, 0.72, 0.65], [0.13, 0.83, 0.93], [0.51, 0.55, 0.97], [0.37, 0.92, 0.83], [0.65, 0.55, 0.98], [0.99, 0.83, 0.30]];
 export const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
-/* DJ "Cosmic Pulse" — 5-phase loop. DRIFT plays once on AUTO start,
+/* DJ "Biome Pulse" — 5-phase loop. DRIFT plays once on AUTO start,
    then PULSE → BLOOM → SURGE → DISSOLVE cycles forever.
    Per-phase `col` drives section-transition flash + panel accents.
    Colors sampled from Glacial Aurora 2026 palette (teal/cyan/periwinkle/mint/lavender/warm-gold spark). */
