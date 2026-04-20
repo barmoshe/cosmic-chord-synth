@@ -1,6 +1,6 @@
 # Biome Synth
 
-A playable world. Interactive browser-based synthesizer with four 3D biomes (space, jungle, sea, cyberpunk), gesture/touch input, and AI DJ mode for generative composition.
+A playable world. Interactive browser-based synthesizer with five biomes (space, jungle, sea, cyberpunk, tundra), gesture/touch input, and AI DJ mode for generative composition.
 
 ## Tech Stack
 
@@ -46,7 +46,8 @@ src/
 │   │   │   ├── useThreeScene.ts         # Space biome (WebGL / Three.js)
 │   │   │   ├── useJungleScene.ts        # Jungle biome (Canvas2D)
 │   │   │   ├── useSeaScene.ts           # Sea biome (Canvas2D + wave sim)
-│   │   │   └── useCyberpunkScene.ts     # Cyberpunk biome (Canvas2D)
+│   │   │   ├── useCyberpunkScene.ts     # Cyberpunk biome (Canvas2D)
+│   │   │   └── useTundraScene.ts        # Tundra biome (Canvas2D + aurora)
 │   │   ├── shared/                      # Reusable primitives
 │   │   │   ├── constants.ts             # Scales, presets, DJ sections, isMobile
 │   │   │   ├── helpers.ts               # m2f, noteColor, clamp, haptic
@@ -56,7 +57,8 @@ src/
 │   │   ├── space/                       # Space-biome rendering modules (Three.js)
 │   │   ├── jungle/                      # Jungle-biome rendering modules (Canvas2D)
 │   │   ├── sea/                         # Sea-biome rendering modules (Canvas2D)
-│   │   └── cyberpunk/                   # Cyberpunk-biome rendering modules (Canvas2D)
+│   │   ├── cyberpunk/                   # Cyberpunk-biome rendering modules (Canvas2D)
+│   │   └── tundra/                      # Tundra-biome rendering modules (Canvas2D)
 │   ├── home/                            # Landing-page pieces (HomeBackdrop, HomeHero)
 │   └── ui/                              # shadcn/ui components
 ├── pages/                               # Home.tsx, Play.tsx, NotFound.tsx
@@ -65,7 +67,7 @@ src/
 └── test/                                # Test setup + shared specs
 ```
 
-A walkthrough of the audio signal chain, scene pipeline, and DJ phases lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+A walkthrough of the audio signal chain, scene pipeline, and DJ phases lives in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Quick-reference files for Claude: [`docs/CHEATSHEET.md`](docs/CHEATSHEET.md) (which-file-do-I-touch by task) and [`docs/GLOSSARY.md`](docs/GLOSSARY.md) (overloaded terms like phase/section/biome/voice).
 
 ## Audio Architecture
 
@@ -90,4 +92,6 @@ Always dispose Tone.js nodes on cleanup to prevent memory leaks.
 @.claude/rules/react-components.md
 @.claude/rules/audio-engine.md
 @.claude/rules/three-scene.md
+@.claude/rules/scenes.md
+@.claude/rules/dj-mode.md
 @.claude/rules/testing.md
