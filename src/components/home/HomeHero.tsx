@@ -99,48 +99,51 @@ export default function HomeHero() {
       tabIndex={stage === "idle" ? 0 : -1}
       aria-label={stage === "idle" ? "Tap anywhere to play the teaser" : "Biome Synth landing"}
       className={cn(
-        "relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center",
+        "relative z-10 flex min-h-[100dvh] w-full flex-col items-center justify-center",
+        "px-4 pb-20 pt-14 text-center sm:px-6 sm:pb-16 sm:pt-20",
         stage === "idle" ? "cursor-pointer" : "cursor-default",
         "focus-visible:outline-none",
       )}
     >
-      <div className="font-['Raleway'] mb-5 text-[11px] font-light uppercase tracking-[0.55em] text-white/45">
+      <div className="font-['Raleway'] mb-3 text-[10px] font-light uppercase tracking-[0.4em] text-white/45 sm:mb-5 sm:text-[11px] sm:tracking-[0.55em]">
         Interactive music experience
       </div>
 
       <h1
         className={cn(
           "font-['Orbitron'] font-semibold text-white",
-          "text-[clamp(3rem,10vw,7.25rem)] leading-none tracking-[0.22em]",
+          "text-[clamp(2.5rem,13vw,7.25rem)] leading-[0.95] tracking-[0.12em] sm:tracking-[0.22em]",
           "bg-gradient-to-b from-white via-white/95 to-white/40 bg-clip-text text-transparent",
           "drop-shadow-[0_0_42px_rgba(108,229,255,0.28)]",
         )}
       >
-        BIOME&nbsp;SYNTH
+        <span className="block sm:inline">BIOME</span>
+        <span aria-hidden="true" className="hidden sm:inline">&nbsp;</span>
+        <span className="block sm:inline">SYNTH</span>
       </h1>
 
-      <p className="font-['Raleway'] mt-7 max-w-xl text-base font-light text-white/70 sm:text-lg">
+      <p className="font-['Raleway'] mt-5 max-w-md text-sm font-light leading-relaxed text-white/70 sm:mt-7 sm:max-w-xl sm:text-lg">
         A playable world. Touch it to make music across four living biomes —
         or let the AI DJ compose for you.
       </p>
 
-      <div className="mt-10 flex h-9 items-center justify-center" aria-live="polite">
+      <div className="mt-7 flex min-h-9 items-center justify-center sm:mt-10" aria-live="polite">
         {stage === "idle" && (
-          <div className="flex items-center gap-3 rounded-full border border-white/20 bg-white/[0.04] px-5 py-2 backdrop-blur-md">
+          <div className="flex items-center gap-2.5 rounded-full border border-white/20 bg-white/[0.04] px-4 py-2 backdrop-blur-md sm:gap-3 sm:px-5">
             <span aria-hidden="true" className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-300/70" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-200" />
             </span>
-            <span className="font-['Orbitron'] text-[11px] uppercase tracking-[0.4em] text-white/85">
+            <span className="font-['Orbitron'] text-[10px] uppercase tracking-[0.3em] text-white/85 sm:text-[11px] sm:tracking-[0.4em]">
               Tap anywhere to listen
             </span>
           </div>
         )}
 
         {stage === "listening" && (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1 sm:gap-1.5"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={HOME_TEASER_BEATS}
@@ -151,7 +154,7 @@ export default function HomeHero() {
                 <span
                   key={i}
                   className={cn(
-                    "h-[3px] w-6 rounded-full transition-all duration-500",
+                    "h-[3px] w-4 rounded-full transition-all duration-500 sm:w-6",
                     i < beat
                       ? "bg-cyan-300/95 shadow-[0_0_10px_rgba(108,229,255,0.7)]"
                       : "bg-white/15",
@@ -163,7 +166,7 @@ export default function HomeHero() {
               type="button"
               onPointerDown={handleStopPointer}
               onClick={handleSkipClick}
-              className="font-['Orbitron'] text-[10px] uppercase tracking-[0.4em] text-white/55 transition hover:text-white"
+              className="font-['Orbitron'] text-[10px] uppercase tracking-[0.3em] text-white/55 transition hover:text-white sm:tracking-[0.4em]"
             >
               Skip
             </button>
@@ -171,15 +174,17 @@ export default function HomeHero() {
         )}
 
         {stage === "ready" && (
-          <div className="font-['Orbitron'] text-[11px] uppercase tracking-[0.5em] text-white/55">
-            Hover a biome · then enter
+          <div className="font-['Orbitron'] text-[10px] uppercase tracking-[0.35em] text-white/55 sm:text-[11px] sm:tracking-[0.5em]">
+            <span className="sm:hidden">Tap a biome · then enter</span>
+            <span className="hidden sm:inline">Hover a biome · then enter</span>
           </div>
         )}
       </div>
 
       <div
         className={cn(
-          "mt-10 flex flex-wrap items-stretch justify-center gap-3 transition-opacity duration-700",
+          "mt-7 grid w-full max-w-sm grid-cols-2 gap-2.5 transition-opacity duration-700",
+          "sm:mt-10 sm:flex sm:max-w-none sm:flex-wrap sm:items-stretch sm:justify-center sm:gap-3",
           tilesVisible ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       >
@@ -203,8 +208,9 @@ export default function HomeHero() {
         onPointerDown={handleStopPointer}
         onClick={handleCtaClick}
         className={cn(
-          "group mt-12 inline-flex items-center gap-3 rounded-full border px-10 py-4",
-          "font-['Orbitron'] text-sm uppercase tracking-[0.4em] text-white",
+          "group mt-8 inline-flex items-center gap-2.5 rounded-full border",
+          "px-7 py-3 sm:mt-12 sm:gap-3 sm:px-10 sm:py-4",
+          "font-['Orbitron'] text-[11px] uppercase tracking-[0.3em] text-white sm:text-sm sm:tracking-[0.4em]",
           "backdrop-blur-md transition duration-500",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
           ctaProminent
@@ -218,7 +224,7 @@ export default function HomeHero() {
         </span>
       </Link>
 
-      <div className="font-['Raleway'] pointer-events-none absolute bottom-6 left-0 right-0 text-center text-[10px] font-light uppercase tracking-[0.35em] text-white/35">
+      <div className="font-['Raleway'] pointer-events-none absolute bottom-4 left-0 right-0 px-4 text-center text-[9px] font-light uppercase tracking-[0.25em] text-white/35 sm:bottom-6 sm:text-[10px] sm:tracking-[0.35em]">
         Built with Tone.js · Three.js
       </div>
     </section>

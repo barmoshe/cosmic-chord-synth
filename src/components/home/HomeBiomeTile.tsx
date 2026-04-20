@@ -51,13 +51,14 @@ export default function HomeBiomeTile({
         transitionDelay: visible ? `${delayMs}ms` : "0ms",
       }}
       className={cn(
-        "group relative isolate flex h-[88px] w-[152px] cursor-pointer flex-col justify-between",
-        "overflow-hidden rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-left",
+        "group relative isolate flex h-[82px] w-full cursor-pointer flex-col justify-between sm:h-[88px] sm:w-[152px]",
+        "overflow-hidden rounded-2xl border border-white/15 bg-white/[0.04] px-3.5 py-2.5 text-left sm:px-4 sm:py-3",
         "backdrop-blur-md transition duration-700 ease-out",
-        "hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/[0.08]",
+        "hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/[0.08] active:-translate-y-0.5 active:border-white/30 active:bg-white/[0.08]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
         "[box-shadow:inset_0_1px_0_rgba(255,255,255,0.06)]",
         "hover:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.12),0_0_28px_-6px_var(--biome-color)]",
+        "active:[box-shadow:inset_0_1px_0_rgba(255,255,255,0.12),0_0_28px_-6px_var(--biome-color)]",
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0",
       )}
     >
@@ -71,14 +72,14 @@ export default function HomeBiomeTile({
       <div className="flex items-center gap-2">
         <span
           aria-hidden="true"
-          className="h-2 w-2 rounded-full"
+          className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: color, boxShadow: `0 0 12px ${color}` }}
         />
-        <span className="font-['Orbitron'] text-[11px] font-semibold uppercase tracking-[0.32em] text-white">
+        <span className="font-['Orbitron'] truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-white sm:text-[11px] sm:tracking-[0.32em]">
           {label}
         </span>
       </div>
-      <div className="font-['Raleway'] text-[10px] font-light uppercase tracking-[0.22em] text-white/50">
+      <div className="font-['Raleway'] truncate text-[9px] font-light uppercase tracking-[0.18em] text-white/50 sm:text-[10px] sm:tracking-[0.22em]">
         {meta}
       </div>
       <span
