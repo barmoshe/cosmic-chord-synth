@@ -57,7 +57,41 @@ vi.mock("tone", async () => {
     };
     return node;
   });
+  // Gain exposes a `.gain` AudioParam-like with setValueAtTime + ramp APIs.
+  const GainCtor = v.fn().mockImplementation(() => {
+    const node = makeNode("Gain");
+    node.gain = {
+      value: 1,
+      rampTo: v.fn(),
+      cancelScheduledValues: v.fn(),
+      setValueAtTime: v.fn(),
+      linearRampToValueAtTime: v.fn(),
+    };
+    return node;
+  });
+  const EQ3Ctor = v.fn().mockImplementation(() => {
+    const node = makeNode("EQ3");
+    node.low = { value: 0, rampTo: v.fn() };
+    node.mid = { value: 0, rampTo: v.fn() };
+    node.high = { value: 0, rampTo: v.fn() };
+    return node;
+  });
+  const RecorderCtor = v.fn().mockImplementation(() => {
+    const node = makeNode("Recorder");
+    node.state = "stopped";
+    node.start = v.fn(() => Promise.resolve());
+    node.stop = v.fn(() => Promise.resolve(new Blob()));
+    return node;
+  });
   const destination = makeNode("Destination");
+  const transport = {
+    bpm: { value: 120, rampTo: v.fn() },
+    start: v.fn(),
+    stop: v.fn(),
+    schedule: v.fn(),
+    scheduleRepeat: v.fn(),
+    cancel: v.fn(),
+  };
   return {
     PolySynth: Ctor("PolySynth"),
     Synth: v.fn(),
@@ -74,7 +108,11 @@ vi.mock("tone", async () => {
     LFO: Ctor("LFO"),
     Player: PlayerCtor,
     Volume: VolumeCtor,
+    Gain: GainCtor,
+    EQ3: EQ3Ctor,
+    Recorder: RecorderCtor,
     getDestination: () => destination,
+    getTransport: () => transport,
     now: () => 0,
   };
 });

@@ -1822,4 +1822,284 @@ export const BIOME_STYLES = `
           color: #8cf3e4;
           text-shadow: 0 0 6px rgba(140,243,228,0.4);
         }
+
+        /* ── Master Bar (producer deck) ──
+           Bottom-left hardware-style strip with BPM, volume, record, EQ,
+           preset menu, and MIDI indicator. Inline pop-ups open upward. */
+        .biome-master-bar {
+          position: fixed; left: 12px; bottom: 12px; z-index: 14;
+          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+          padding: 8px 12px;
+          background: rgba(8,16,32,0.72);
+          border: 1px solid rgba(129,140,248,0.22);
+          border-radius: 14px;
+          backdrop-filter: blur(14px);
+          font-family: 'Space Grotesk', 'Orbitron', sans-serif;
+          font-size: 11px; letter-spacing: 0.12em; color: #c9d6f2;
+          box-shadow: 0 6px 28px rgba(0,0,0,0.45);
+          max-width: calc(100vw - 24px);
+        }
+        .biome-master-bar .biome-mb-group {
+          display: flex; align-items: center; gap: 6px;
+          padding: 4px 6px;
+          border-right: 1px solid rgba(129,140,248,0.12);
+        }
+        .biome-master-bar .biome-mb-group:last-of-type { border-right: none; }
+        .biome-mb-label {
+          color: rgba(129,140,248,0.8);
+          font-weight: 600; font-size: 10px;
+        }
+        .biome-mb-value { min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+        .biome-mb-slider {
+          -webkit-appearance: none; appearance: none;
+          width: 90px; height: 4px;
+          background: rgba(34,211,238,0.18);
+          border-radius: 999px;
+          outline: none;
+        }
+        .biome-mb-slider::-webkit-slider-thumb {
+          -webkit-appearance: none; appearance: none;
+          width: 14px; height: 14px; border-radius: 50%;
+          background: linear-gradient(135deg, #22D3EE, #818CF8);
+          border: 1px solid rgba(229,244,251,0.5);
+          cursor: pointer;
+          box-shadow: 0 0 8px rgba(34,211,238,0.5);
+        }
+        .biome-mb-slider::-moz-range-thumb {
+          width: 14px; height: 14px; border-radius: 50%;
+          background: linear-gradient(135deg, #22D3EE, #818CF8);
+          border: 1px solid rgba(229,244,251,0.5);
+          cursor: pointer;
+        }
+        .biome-mb-btn {
+          padding: 6px 10px;
+          background: rgba(129,140,248,0.08);
+          border: 1px solid rgba(129,140,248,0.25);
+          border-radius: 8px;
+          color: #c9d6f2;
+          cursor: pointer;
+          font-family: inherit; font-size: 10px;
+          letter-spacing: 0.16em;
+          transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+        }
+        .biome-mb-btn:hover { background: rgba(129,140,248,0.18); border-color: rgba(34,211,238,0.4); color: #e5f4fb; }
+        .biome-mb-btn.is-open { background: rgba(34,211,238,0.18); border-color: rgba(34,211,238,0.55); color: #e5f4fb; }
+        .biome-mb-record {
+          display: inline-flex; align-items: center; gap: 6px;
+          border-color: rgba(253,164,164,0.3);
+          color: #fca5a5;
+        }
+        .biome-mb-record:hover { border-color: rgba(253,164,164,0.6); }
+        .biome-mb-rec-dot {
+          width: 9px; height: 9px; border-radius: 50%;
+          background: #f87171;
+          box-shadow: 0 0 6px rgba(248,113,113,0.6);
+        }
+        .biome-mb-record.is-rec {
+          background: rgba(248,113,113,0.18);
+          border-color: rgba(248,113,113,0.7);
+          color: #fff5f5;
+        }
+        .biome-mb-record.is-rec .biome-mb-rec-dot {
+          animation: biomePulse 1s ease-in-out infinite;
+        }
+        .biome-mb-midi {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 4px 8px;
+          font-size: 10px; letter-spacing: 0.16em;
+          color: #a7f3d0;
+        }
+        .biome-mb-midi-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #34d399;
+          box-shadow: 0 0 6px rgba(52,211,153,0.6);
+        }
+        .biome-mb-eq-pop, .biome-mb-preset-pop {
+          position: absolute; bottom: calc(100% + 8px); left: 0;
+          padding: 12px;
+          background: rgba(8,16,32,0.92);
+          border: 1px solid rgba(129,140,248,0.3);
+          border-radius: 12px;
+          backdrop-filter: blur(14px);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+          min-width: 200px;
+        }
+        .biome-mb-eq-pop { display: flex; gap: 14px; }
+        .biome-mb-eq-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .biome-mb-eq-label { font-size: 10px; letter-spacing: 0.18em; color: rgba(129,140,248,0.8); }
+        .biome-mb-eq-fader {
+          -webkit-appearance: slider-vertical; appearance: slider-vertical;
+          writing-mode: vertical-lr;
+          width: 24px; height: 100px;
+          background: transparent;
+        }
+        .biome-mb-eq-val { font-size: 10px; font-variant-numeric: tabular-nums; color: #c9d6f2; }
+        .biome-mb-preset-pop { min-width: 240px; }
+        .biome-mb-preset-head {
+          display: flex; justify-content: space-between; align-items: center;
+          padding-bottom: 8px; margin-bottom: 8px;
+          border-bottom: 1px solid rgba(129,140,248,0.15);
+          font-size: 11px; color: #e5f4fb;
+        }
+        .biome-mb-preset-save {
+          padding: 4px 10px;
+          background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(129,140,248,0.2));
+          border: 1px solid rgba(34,211,238,0.4);
+          border-radius: 6px;
+          color: #e5f4fb;
+          font-family: inherit; font-size: 10px; letter-spacing: 0.16em;
+          cursor: pointer;
+        }
+        .biome-mb-preset-save:hover { background: rgba(34,211,238,0.32); }
+        .biome-mb-preset-empty { color: rgba(201,214,242,0.6); font-size: 11px; padding: 4px; }
+        .biome-mb-preset-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto; }
+        .biome-mb-preset-item { display: flex; gap: 6px; }
+        .biome-mb-preset-load {
+          flex: 1; text-align: left;
+          padding: 6px 10px;
+          background: rgba(34,211,238,0.06);
+          border: 1px solid rgba(34,211,238,0.16);
+          border-radius: 6px;
+          color: #c9d6f2;
+          font-family: inherit; font-size: 11px;
+          cursor: pointer;
+        }
+        .biome-mb-preset-load:hover { background: rgba(34,211,238,0.18); color: #e5f4fb; }
+        .biome-mb-preset-del {
+          width: 26px; background: transparent;
+          border: 1px solid rgba(253,164,164,0.2);
+          border-radius: 6px; color: #fca5a5;
+          cursor: pointer; font-size: 14px; line-height: 1;
+        }
+        .biome-mb-preset-del:hover { background: rgba(248,113,113,0.18); border-color: rgba(248,113,113,0.5); }
+
+        /* ── Spectrum visualiser (64-bar FFT) ── */
+        .biome-spectrum {
+          position: fixed; left: 12px; right: 12px; bottom: 72px; z-index: 13;
+          pointer-events: none; opacity: 0.7;
+          border-radius: 8px;
+          overflow: hidden;
+          max-width: 820px; margin: 0 auto;
+        }
+        .biome-spectrum-canvas { width: 100%; height: 100%; display: block; }
+        @media (max-width: 720px) {
+          .biome-spectrum { display: none; }
+        }
+
+        /* ── Piano overlay (computer keyboard → piano) ── */
+        .biome-piano {
+          position: fixed; left: 0; right: 0; bottom: 0; z-index: 18;
+          padding: 12px 18px 20px;
+          background: linear-gradient(180deg, rgba(8,16,32,0) 0%, rgba(8,16,32,0.94) 40%, rgba(8,16,32,0.98) 100%);
+          border-top: 1px solid rgba(129,140,248,0.3);
+          backdrop-filter: blur(12px);
+          animation: cosmicFadeIn 260ms ease-out;
+        }
+        .biome-piano-close {
+          position: absolute; top: 6px; right: 10px;
+          width: 26px; height: 26px;
+          background: transparent; color: #c9d6f2;
+          border: 1px solid rgba(129,140,248,0.3);
+          border-radius: 50%; cursor: pointer;
+          font-size: 16px; line-height: 1;
+        }
+        .biome-piano-close:hover { background: rgba(248,113,113,0.2); border-color: rgba(248,113,113,0.5); color: #fff5f5; }
+        .biome-piano-title {
+          text-align: center; color: rgba(201,214,242,0.65);
+          font-family: 'Space Grotesk', sans-serif; font-size: 10px;
+          letter-spacing: 0.24em; margin-bottom: 10px;
+        }
+        .biome-piano-keys {
+          display: flex; justify-content: center; gap: 2px;
+          max-width: 1000px; margin: 0 auto;
+        }
+        .biome-piano-key {
+          flex: 0 1 42px; min-width: 28px; height: 80px;
+          display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+          gap: 4px; padding-bottom: 6px;
+          background: linear-gradient(180deg, #e5f4fb 0%, #c9d6f2 100%);
+          border: 1px solid rgba(129,140,248,0.3);
+          border-radius: 0 0 6px 6px;
+          color: rgba(8,16,32,0.7);
+          font-family: 'Space Grotesk', monospace;
+          transition: background 80ms ease, transform 80ms ease;
+        }
+        .biome-piano-key.is-sharp {
+          background: linear-gradient(180deg, #1a2440 0%, #0a1028 100%);
+          color: #c9d6f2;
+          margin: 0 -10px; z-index: 1; height: 54px;
+          flex-basis: 26px; min-width: 20px;
+          border-color: rgba(34,211,238,0.3);
+        }
+        .biome-piano-key.is-active {
+          background: linear-gradient(180deg, #22D3EE 0%, #818CF8 100%) !important;
+          color: #0a1028 !important;
+          transform: translateY(2px);
+          box-shadow: 0 0 18px rgba(34,211,238,0.7);
+        }
+        .biome-piano-key-char { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; }
+        .biome-piano-key-note { font-size: 9px; opacity: 0.6; letter-spacing: 0.08em; }
+
+        /* ── Onboarding tour ── */
+        .biome-tour {
+          position: fixed; inset: 0; z-index: 95;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(5,10,26,0.62);
+          backdrop-filter: blur(10px);
+          animation: cosmicFadeIn 260ms ease-out;
+        }
+        .biome-tour-card {
+          max-width: 420px; width: calc(100% - 40px);
+          padding: 28px 28px 22px;
+          background: linear-gradient(135deg, rgba(22,37,64,0.92), rgba(11,18,36,0.94));
+          border: 1px solid rgba(129,140,248,0.35);
+          border-radius: 18px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+          text-align: center;
+        }
+        .biome-tour-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
+        .biome-tour-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: rgba(129,140,248,0.3);
+          transition: background 180ms ease, transform 180ms ease;
+        }
+        .biome-tour-dot.is-active {
+          background: linear-gradient(135deg, #22D3EE, #818CF8);
+          transform: scale(1.4);
+        }
+        .biome-tour-title {
+          font-family: 'Orbitron', sans-serif;
+          font-size: 22px; font-weight: 800;
+          letter-spacing: 0.12em;
+          background: linear-gradient(135deg, #22D3EE, #818CF8, #FCD34D);
+          background-size: 200% 100%;
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: biomeGradient 6s ease infinite;
+          margin-bottom: 10px;
+        }
+        .biome-tour-body {
+          font-family: 'Raleway', sans-serif;
+          color: #c9d6f2; font-size: 14px; line-height: 1.55;
+          margin-bottom: 22px;
+        }
+        .biome-tour-actions { display: flex; justify-content: space-between; gap: 12px; }
+        .biome-tour-skip, .biome-tour-next {
+          flex: 1; padding: 10px 14px;
+          border-radius: 8px; cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; font-size: 11px;
+          letter-spacing: 0.2em;
+        }
+        .biome-tour-skip {
+          background: transparent;
+          border: 1px solid rgba(129,140,248,0.25);
+          color: rgba(201,214,242,0.6);
+        }
+        .biome-tour-skip:hover { color: #c9d6f2; border-color: rgba(129,140,248,0.5); }
+        .biome-tour-next {
+          background: linear-gradient(135deg, rgba(34,211,238,0.32), rgba(129,140,248,0.32));
+          border: 1px solid rgba(34,211,238,0.5);
+          color: #e5f4fb;
+        }
+        .biome-tour-next:hover { background: linear-gradient(135deg, rgba(34,211,238,0.48), rgba(129,140,248,0.48)); }
 `;

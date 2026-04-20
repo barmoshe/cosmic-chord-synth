@@ -72,6 +72,19 @@ export interface AudioEngine {
   playAmbient(url: string, volumeDb: number, fadeSec?: number): void;
   stopAmbient(fadeSec?: number): void;
   setAmbientVolume(db: number, rampSec?: number): void;
+
+  // Master mix controls
+  setMasterVolume(db: number, rampTime?: number): void;
+  setMasterEQ(lowDb: number, midDb: number, highDb: number): void;
+
+  // Recording — returns a WAV Blob when stopped.
+  startRecording(): Promise<boolean>;
+  stopRecording(): Promise<Blob | null>;
+  isRecording(): boolean;
+
+  // External/MIDI note triggers — reuse the lead voice path.
+  midiNoteOn(midi: number, velocity: number): void;
+  midiNoteOff(midi: number): void;
 }
 
 export interface DjState {

@@ -2,8 +2,28 @@ import { useEffect } from "react";
 import * as Tone from "tone";
 import { Draw } from "tone";
 import { SCALES, PROGS, DJ_SECTIONS, DRUM_PATTERNS, ARP_MODES, BASE_MIDI, MIDI_RANGE, NOTE_NAMES, THEME_PRESETS } from "../shared/constants";
-import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, wPick, getArpNote, noteColor } from "../shared/helpers";
+import { m2f, lerp, pick, genMotif, devMotif, buildMatrix, getArpNote, noteColor } from "../shared/helpers";
+import { createMarkovTable, trainOnSequence, generatePhrase, step as markovStep, type MarkovTable } from "../shared/markov";
+import { mergeEuclidRow } from "../shared/euclidean";
+import { nextVoicing } from "../shared/voiceLeading";
 import type { AudioEngine, ThemeId } from "../shared/types";
+
+/* Per-section Euclidean sprinkles — layered on top of the authored
+   DRUM_PATTERNS so the base feel stays recognisable but each bar grows
+   subtly unique polyrhythmic textures. */
+interface EuclidLayer {
+  kick?: { hits: number; steps: number; rotation?: number; ghost?: number };
+  clap?: { hits: number; steps: number; rotation?: number; ghost?: number };
+  hat?:  { hits: number; steps: number; rotation?: number; ghost?: number };
+  snare?:{ hits: number; steps: number; rotation?: number; ghost?: number };
+}
+const EUCLID_LAYERS: Record<string, EuclidLayer> = {
+  nebula:   { hat:   { hits: 5,  steps: 16, rotation: 2, ghost: 0.18 } },
+  pulse:    { hat:   { hits: 7,  steps: 16, rotation: 1, ghost: 0.28 }, clap: { hits: 3, steps: 16, rotation: 4, ghost: 0.22 } },
+  bloom:    { hat:   { hits: 9,  steps: 16, rotation: 0, ghost: 0.4  }, snare:{ hits: 3, steps: 16, rotation: 5, ghost: 0.22 } },
+  surge:    { hat:   { hits: 11, steps: 16, rotation: 0, ghost: 0.55 }, clap: { hits: 5, steps: 16, rotation: 2, ghost: 0.35 }, kick: { hits: 5, steps: 16, rotation: 3, ghost: 0.4 } },
+  dissolve: { hat:   { hits: 4,  steps: 16, rotation: 3, ghost: 0.22 } },
+};
 
 export type DrumLane = "kick" | "clap" | "hat" | "snare";
 export type DrumPattern = { kick: number[]; clap: number[]; hat: number[]; snare: number[] };
@@ -21,9 +41,11 @@ export interface DjUi {
 
 // Per-bar pattern variation — jitters velocities, sprinkles occasional ghost hits on empty steps.
 // Intensity 0..1 controls how much drift is applied (higher = more lively).
+// When a Euclidean layer is provided, polyrhythmic ghost hits get sprinkled in too.
 function variatePattern(
   base: DrumPattern,
   intensity: number,
+  euclid?: EuclidLayer,
 ): DrumPattern {
   const jitter = (v: number) => v === 0 ? 0 : Math.max(0, Math.min(1, v * (1 + (Math.random() - 0.5) * 0.35 * intensity)));
   const lanes: DrumLane[] = ["kick", "clap", "hat", "snare"];
@@ -32,7 +54,7 @@ function variatePattern(
   const ghostVel   = { kick: 0.35, clap: 0.25, hat: 0.2, snare: 0.18 } as Record<DrumLane, number>;
   for (const lane of lanes) {
     const src = base[lane];
-    const row = new Array(16);
+    let row = new Array(16);
     for (let i = 0; i < 16; i++) {
       if (src[i] > 0) {
         row[i] = jitter(src[i]);
@@ -41,6 +63,10 @@ function variatePattern(
       } else {
         row[i] = 0;
       }
+    }
+    const spec = euclid?.[lane];
+    if (spec) {
+      row = mergeEuclidRow(row, { hits: spec.hits, steps: spec.steps, rotation: spec.rotation }, (spec.ghost ?? 0.3) * (0.4 + intensity));
     }
     out[lane] = row;
   }
@@ -129,10 +155,24 @@ export function useDjAutoPlay(
     let cachedScale = scaleRef.current;
     let lastFilterVal = -1;
 
+    // Markov table — built from interval prior, trained on the seed motif
+    // and on every degree the DJ plays so the chain learns the evolving "voice".
+    let markov: MarkovTable = createMarkovTable(sn().notes.length, cachedMatrix);
+    trainOnSequence(markov, dj.motif, 2);
+
+    // Previous pad voicing — used by voice-leading to pick the next chord's
+    // inversion such that inner voices move by tone/semitone.
+    let prevPadVoicing: number[] = [];
+
+    // Odd/even bar counter for call-and-response. Lead "calls" on even bars,
+    // arp "answers" on odd bars with an inverted/transposed motif echo.
+    let barCounter = 0;
+
     // Fresh variation recomputed at each bar boundary (step === 0); changes every 16 steps.
     let currentPattern = variatePattern(
       DRUM_PATTERNS[sec().drums] || DRUM_PATTERNS.nebula,
       0.25 + secEnergy(),
+      EUCLID_LAYERS[sec().drums],
     );
     mergeUserLayer(currentPattern, userLayerRef?.current);
 
@@ -176,7 +216,11 @@ export function useDjAutoPlay(
       // User edits don't carry across section boundaries — the generative nature of
       // the DJ takes back over on each transition.
       resetUserLayer(userLayerRef?.current);
-      currentPattern = variatePattern(DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula, 0.25 + e);
+      currentPattern = variatePattern(
+        DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula,
+        0.25 + e,
+        EUCLID_LAYERS[s.drums],
+      );
       ui.setStep(-1, currentPattern);
 
       dj.tf = s.ft; dj.te = e;
@@ -189,13 +233,19 @@ export function useDjAutoPlay(
       if (scaleRef.current !== cachedScale) {
         cachedMatrix = buildMatrix(sn().notes);
         cachedScale = scaleRef.current;
+        markov = createMarkovTable(sn().notes.length, cachedMatrix);
+        trainOnSequence(markov, dj.motif, 2);
       }
       const scNotes = sn().notes;
       switch (s.algo) {
         case "motif":    dj.phrase = [...dj.motif]; break;
         case "develop":  dj.phrase = devMotif(dj.motif, pick(["transpose", "invert", "ornament"]), scNotes.length); break;
         case "fragment": dj.phrase = devMotif(dj.motif, "fragment", scNotes.length); break;
-        case "climax":   dj.phrase = [...devMotif(dj.motif, "ornament", scNotes.length), ...devMotif(dj.motif, "transpose", scNotes.length)]; break;
+        // BLOOM/SURGE: generate a Markov phrase that respects the motif's shape
+        // but introduces new intervallic relationships. 8 notes per phrase so
+        // there's headroom before the fallback `markovStep` kicks in.
+        case "climax":   dj.phrase = [...devMotif(dj.motif, "ornament", scNotes.length), ...generatePhrase(markov, dj.motif.slice(-2), 6)]; break;
+        case "markov":   dj.phrase = generatePhrase(markov, dj.motif.slice(-2), 8); break;
         default:         dj.phrase = [];
       }
       dj.pp = 0;
@@ -222,8 +272,12 @@ export function useDjAutoPlay(
       const s = sec();
       const scNotes = sn().notes;
       const chords = sn().chords;
-      if (scaleRef.current !== cachedScale) { cachedMatrix = buildMatrix(scNotes); cachedScale = scaleRef.current; }
-      const matrix = cachedMatrix;
+      if (scaleRef.current !== cachedScale) {
+        cachedMatrix = buildMatrix(scNotes);
+        cachedScale = scaleRef.current;
+        markov = createMarkovTable(scNotes.length, cachedMatrix);
+        trainOnSequence(markov, dj.motif, 2);
+      }
 
       // Energy/filter smoothing
       dj.ce += (dj.te - dj.ce) * 0.06;
@@ -247,8 +301,10 @@ export function useDjAutoPlay(
         currentPattern = variatePattern(
           DRUM_PATTERNS[s.drums] || DRUM_PATTERNS.nebula,
           0.25 + E,
+          EUCLID_LAYERS[s.drums],
         );
         mergeUserLayer(currentPattern, userLayerRef?.current);
+        barCounter++;
       }
 
       // ── DRUMS — routed through the unified triggerDrum on the drum-stars.
@@ -303,9 +359,12 @@ export function useDjAutoPlay(
       if (step === 0) {
         dj.ct = 0; dj.ci = (dj.ci + 1) % prog.length;
         dj.ac = chords[prog[dj.ci] % chords.length] || [];
-        if (s.l.pd > 0) {
-          const padMidis = dj.ac.map((n: number) => 48 + n);
-          audio.triggerPadChord(padMidis, time + 0.02, 0.08 + E * 0.12 * s.l.pd);
+        if (s.l.pd > 0 && dj.ac.length > 0) {
+          // Voice-leading: choose the inversion + octave that moves the
+          // previous voicing the least. Inner voices glide instead of jump.
+          const voiced = nextVoicing(prevPadVoicing, dj.ac, 48);
+          prevPadVoicing = voiced;
+          audio.triggerPadChord(voiced, time + 0.02, 0.08 + E * 0.12 * s.l.pd);
           audio.setPadFilter(400 + E * 2500, 0.8);
         }
       }
@@ -329,12 +388,26 @@ export function useDjAutoPlay(
       }
 
       // ── Melody — on off-beats (3rd 16th of each beat) with rest probability ──
-      if (s.l.ml > 0 && dj.phrase.length > 0 && (step % 4 === 2 || (E > 0.7 && step % 2 === 0))) {
+      // Call-and-response: lead plays on odd bars; even bars give space for arp.
+      // This is gated only on BLOOM+ sections; DRIFT/PULSE stay lead-only so the
+      // phase transition is legible.
+      const callBar = s.l.ar > 0 && (barCounter & 1) === 0 && E > 0.5;
+      if (s.l.ml > 0 && dj.phrase.length > 0 && !callBar && (step % 4 === 2 || (E > 0.7 && step % 2 === 0))) {
         const restProb = E < 0.2 ? 0.55 : E < 0.5 ? 0.25 : 0.08;
         if (Math.random() > restProb) {
           let di: number;
           if (dj.pp < dj.phrase.length) { di = dj.phrase[dj.pp]; dj.pp++; }
-          else { di = wPick(matrix[dj.deg]); dj.deg = di; }
+          else {
+            // Prefer Markov continuation when we have a 2-note history.
+            const prev2 = dj.prev2 ?? dj.deg;
+            di = markovStep(markov, prev2, dj.deg);
+          }
+          // Train the chain on what we actually played — the DJ learns over time.
+          if (dj.prev2 !== undefined && dj.deg !== undefined) {
+            trainOnSequence(markov, [dj.prev2, dj.deg, di], 0.25);
+          }
+          dj.prev2 = dj.deg;
+          dj.deg = di;
           dj.oct = E > 0.75 ? 5 : 4;
           const midi = dj.oct * 12 + scNotes[di % scNotes.length];
           const vel = Math.min((0.1 + E * 0.55) * s.l.ml, 0.8);
@@ -353,11 +426,17 @@ export function useDjAutoPlay(
         }
       }
 
-      // ── Arp — only when active, every 3rd 16th ──
-      if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % 3 === 0) {
+      // ── Arp — only when active, every 3rd 16th.
+      // On "response" bars (when lead rests) the arp gets louder and denser
+      // to act as an answering voice. It keeps the composition legible as
+      // dialogue rather than two voices talking over each other.
+      const responseBar = s.l.ar > 0 && (barCounter & 1) === 0 && E > 0.5;
+      const arpStride = responseBar ? 2 : 3;
+      const arpBoost = responseBar ? 1.4 : 1;
+      if (s.l.ar > 0 && dj.ac.length > 0 && dj.tt % arpStride === 0) {
         const an = getArpNote(dj.ac, dj.as, dj.am); dj.as++;
         const arpMidi = 60 + an;
-        audio.triggerArp(arpMidi, time + 0.02, Math.min((0.12 + E * 0.3) * s.l.ar, 0.7), "16n");
+        audio.triggerArp(arpMidi, time + 0.02, Math.min((0.12 + E * 0.3) * s.l.ar * arpBoost, 0.85), "16n");
         const ax = ((arpMidi - BASE_MIDI) / MIDI_RANGE) * window.innerWidth;
         const ay = window.innerHeight * 0.3;
         pulseGlow("dj-ar", arpMidi, ax, ay, 160);
