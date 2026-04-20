@@ -22,20 +22,13 @@ interface InternalGraph {
   droneFilter: Tone.Filter;
   snareFilter: Tone.Filter;
   clapFilter: Tone.Filter;
-  // Sidechain duck bus — sits between pad/arp reverb paths and the reverb
-  // itself so a kick hit can briefly pull the gain down, making space for
-  // the low end without a full external compressor.
-  duckBus: Tone.Gain;
   reverb: Tone.Freeverb;
   delay: Tone.FeedbackDelay;
   chorus: Tone.Chorus;
-  masterEQ: Tone.EQ3;
-  masterVolume: Tone.Volume;
   masterComp: Tone.Compressor;
   masterLimiter: Tone.Limiter;
   fft: Tone.FFT;
   lfo: Tone.LFO;
-  recorder: Tone.Recorder;
   activeLead: Map<number, number>;
   droneOn: boolean;
   kickPitch: string;
@@ -49,16 +42,9 @@ interface InternalGraph {
 
 function buildGraph(): InternalGraph {
   const masterLimiter = new Tone.Limiter(-1).toDestination();
-  // Recorder taps master output so we capture the full mixed signal that
-  // hits the speakers. It runs after limiter so peaks stay normalised.
-  const recorder = new Tone.Recorder();
-  masterLimiter.connect(recorder);
-
-  const masterVolume = new Tone.Volume(0).connect(masterLimiter);
-  const masterEQ = new Tone.EQ3(0, 0, 0).connect(masterVolume);
   const masterComp = new Tone.Compressor({
     threshold: -18, ratio: 3, attack: 0.003, release: 0.1, knee: 6,
-  }).connect(masterEQ);
+  }).connect(masterLimiter);
 
   // Freeverb — synchronous comb/allpass reverb. No async IR generation to
   // stall on iOS Safari; audio is usable the moment the graph is wired up.
@@ -68,10 +54,6 @@ function buildGraph(): InternalGraph {
     wet: isMobile ? 0.22 : 0.3,
   });
   reverb.connect(masterComp);
-
-  // Sidechain duck bus — pad + arp + drone feed through here before reverb.
-  // Kick hits ramp the gain down briefly so the low end pokes through.
-  const duckBus = new Tone.Gain(1).connect(reverb);
 
   const delay = new Tone.FeedbackDelay({
     delayTime: "8n.",
@@ -109,7 +91,7 @@ function buildGraph(): InternalGraph {
   sub.connect(leadFilter);
 
   const padFilter = new Tone.Filter({ type: "lowpass", frequency: 1200, rolloff: -12 });
-  padFilter.connect(duckBus);
+  padFilter.connect(reverb);
   const pad = new Tone.PolySynth(Tone.Synth, {
     maxPolyphony: isMobile ? 3 : 6,
     oscillator: { type: "sine" },
@@ -139,7 +121,7 @@ function buildGraph(): InternalGraph {
   arp.connect(arpFilter);
 
   const droneFilter = new Tone.Filter({ type: "lowpass", frequency: 600, rolloff: -12 });
-  droneFilter.connect(duckBus);
+  droneFilter.connect(reverb);
   const drone = new Tone.PolySynth(Tone.Synth, {
     maxPolyphony: 3,
     oscillator: { type: "sine" },
@@ -196,11 +178,9 @@ function buildGraph(): InternalGraph {
     lead, sub, pad, bass, arp, drone,
     kick, snare, hihat, clap,
     leadFilter, padFilter, bassFilter, arpFilter, droneFilter, snareFilter, clapFilter,
-    duckBus,
     reverb, delay, chorus,
-    masterEQ, masterVolume, masterComp, masterLimiter,
+    masterComp, masterLimiter,
     fft, lfo,
-    recorder,
     activeLead: new Map<number, number>(),
     droneOn: false,
     kickPitch: "C1",
@@ -215,11 +195,9 @@ function disposeGraph(g: InternalGraph) {
     g.lead, g.sub, g.pad, g.bass, g.arp, g.drone,
     g.kick, g.snare, g.hihat, g.clap,
     g.leadFilter, g.padFilter, g.bassFilter, g.arpFilter, g.droneFilter, g.snareFilter, g.clapFilter,
-    g.duckBus,
     g.reverb, g.delay, g.chorus,
-    g.masterEQ, g.masterVolume, g.masterComp, g.masterLimiter,
+    g.masterComp, g.masterLimiter,
     g.fft, g.lfo,
-    g.recorder,
     g.ambientPlayer, g.ambientVolume,
   ];
   for (const n of nodes) {
@@ -335,17 +313,7 @@ export function useAudioEngine() {
     triggerDrum(name, velocity, time) {
       const g = graphRef.current; if (!g) return;
       try {
-        if (name === "kick") {
-          g.kick.triggerAttackRelease(g.kickPitch, "8n", time, velocity);
-          // Sidechain duck — pull the pad/arp/drone bus down briefly so the
-          // kick pokes through. 0.35 → 1 over ~200 ms is the classic
-          // house-music pump without needing an explicit compressor.
-          const t = time ?? Tone.now();
-          const duckAmount = Math.max(0.3, 1 - velocity * 0.65);
-          g.duckBus.gain.cancelScheduledValues(t);
-          g.duckBus.gain.setValueAtTime(duckAmount, t);
-          g.duckBus.gain.linearRampToValueAtTime(1, t + 0.18);
-        }
+        if (name === "kick") g.kick.triggerAttackRelease(g.kickPitch, "8n", time, velocity);
         else if (name === "snare") g.snare.triggerAttackRelease("16n", time, velocity);
         else if (name === "hat") g.hihat.triggerAttackRelease("C2", "32n", time, velocity * 0.6);
         else if (name === "clap") g.clap.triggerAttackRelease("16n", time, velocity);
@@ -531,72 +499,6 @@ export function useAudioEngine() {
     setAmbientVolume(db: number, rampSec: number = 0.3) {
       const g = graphRef.current; if (!g) return;
       try { g.ambientVolume.volume.rampTo(db, Math.max(0, rampSec)); } catch { /* noop */ }
-    },
-
-    setMasterVolume(db: number, rampTime: number = 0.1) {
-      const g = graphRef.current; if (!g) return;
-      try { g.masterVolume.volume.rampTo(db, rampTime); } catch { /* noop */ }
-    },
-
-    setMasterEQ(lowDb: number, midDb: number, highDb: number) {
-      const g = graphRef.current; if (!g) return;
-      try {
-        g.masterEQ.low.rampTo(lowDb, 0.1);
-        g.masterEQ.mid.rampTo(midDb, 0.1);
-        g.masterEQ.high.rampTo(highDb, 0.1);
-      } catch { /* noop */ }
-    },
-
-    async startRecording() {
-      const g = graphRef.current; if (!g) return false;
-      try {
-        if (g.recorder.state === "started") return true;
-        await g.recorder.start();
-        return true;
-      } catch (e) {
-        console.warn("startRecording failed:", e);
-        return false;
-      }
-    },
-
-    async stopRecording() {
-      const g = graphRef.current; if (!g) return null;
-      try {
-        if (g.recorder.state !== "started") return null;
-        const blob = await g.recorder.stop();
-        return blob;
-      } catch (e) {
-        console.warn("stopRecording failed:", e);
-        return null;
-      }
-    },
-
-    isRecording() {
-      const g = graphRef.current;
-      return !!g && g.recorder.state === "started";
-    },
-
-    midiNoteOn(midi: number, velocity: number) {
-      const g = graphRef.current; if (!g) return;
-      const freq = m2f(midi);
-      const now = Tone.now();
-      try {
-        g.lead.triggerAttack(freq, now, velocity);
-        g.sub.triggerAttack(m2f(midi - 12), now, velocity * 0.5);
-      } catch { /* noop */ }
-      g.activeLead.set(midi, freq);
-    },
-
-    midiNoteOff(midi: number) {
-      const g = graphRef.current; if (!g) return;
-      const freq = g.activeLead.get(midi);
-      if (freq === undefined) return;
-      const now = Tone.now();
-      try {
-        g.lead.triggerRelease(freq, now);
-        g.sub.triggerRelease(m2f(midi - 12), now);
-      } catch { /* noop */ }
-      g.activeLead.delete(midi);
     },
   }), [dispose]);
 

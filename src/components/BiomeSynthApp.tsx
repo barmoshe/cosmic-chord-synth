@@ -4,7 +4,6 @@ import * as Tone from "tone";
 import { SCALES, SCALE_ORDER, isMobile, THEME_PRESETS } from "./biome-synth/shared/constants";
 import { m2f, noteColor } from "./biome-synth/shared/helpers";
 import { BIOME_STYLES } from "./biome-synth/shared/styles";
-import { decodePresetFromHash, type Preset } from "./biome-synth/shared/presets";
 import { useAudioEngine } from "./biome-synth/hooks/useAudioEngine";
 import { useSetupEffects } from "./biome-synth/hooks/useSetupEffects";
 import { useThreeScene } from "./biome-synth/hooks/useThreeScene";
@@ -16,14 +15,8 @@ import { useTouchInput } from "./biome-synth/hooks/useTouchInput";
 import { useGlowOverlays } from "./biome-synth/hooks/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./biome-synth/hooks/useDjAutoPlay";
 import { useKeyboardShortcuts } from "./biome-synth/hooks/useKeyboardShortcuts";
-import { useRecorder } from "./biome-synth/hooks/useRecorder";
-import { useWebMidi } from "./biome-synth/hooks/useWebMidi";
 import DjPanel from "./biome-synth/components/DjPanel";
 import HelpOverlay from "./biome-synth/components/HelpOverlay";
-import MasterBar from "./biome-synth/components/MasterBar";
-import SpectrumViz from "./biome-synth/components/SpectrumViz";
-import PianoOverlay from "./biome-synth/components/PianoOverlay";
-import OnboardingTour from "./biome-synth/components/OnboardingTour";
 import JumpingMonkeys from "./biome-synth/components/JumpingMonkeys";
 import JungleFlora from "./biome-synth/components/JungleFlora";
 import FloatingBananas from "./biome-synth/components/FloatingBananas";
@@ -111,12 +104,6 @@ export default function BiomeSynthApp() {
   const [engineReady, setEngineReady] = useState(false);
   const [theme, setTheme] = useState<BiomeTheme>(readStoredTheme);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [pianoOpen, setPianoOpen] = useState(false);
-  const [bpm, setBpm] = useState<number>(() => THEME_PRESETS[readStoredTheme()]?.bpm ?? 96);
-  const [tourOpen, setTourOpen] = useState<boolean>(() => {
-    try { return localStorage.getItem("biome-synth-tour-dismissed") !== "1"; }
-    catch { return false; }
-  });
 
   const isJungle = theme === "jungle";
   const isSea = theme === "sea";
@@ -196,8 +183,6 @@ export default function BiomeSynthApp() {
   useTouchInput(canvasRef, engine, engineRef, touchesRef, scaleRef, phase, resetUIHide, theme);
   useGlowOverlays(touchesRef, glowsRef, glowContainerRef);
   useDjAutoPlay(autoPlay, engine, engineRef, scaleRef, djState, djUiProxy, touchesRef, userLayerRef, theme, engineReady);
-  const recorder = useRecorder(engine);
-  const { status: midiStatus } = useWebMidi(engine, phase === "play" && engineReady);
 
   /* ── Per-theme audio: retune synths/drums/FX + auto-pick fitting scale on theme change ── */
   useEffect(() => {
@@ -299,77 +284,6 @@ export default function BiomeSynthApp() {
   const toggleDj = useCallback(() => setAutoPlay(p => !p), []);
   const toggleHelp = useCallback(() => setHelpOpen(v => !v), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
-  const togglePiano = useCallback(() => setPianoOpen(v => !v), []);
-  const closePiano = useCallback(() => setPianoOpen(false), []);
-  const handleBpmChange = useCallback((v: number) => setBpm(v), []);
-  const handleDismissTour = useCallback(() => {
-    setTourOpen(false);
-    try { localStorage.setItem("biome-synth-tour-dismissed", "1"); } catch { /* noop */ }
-  }, []);
-
-  const handleSnapshotApply = useCallback((p: Partial<Preset>) => {
-    if (p.scale && SCALES[p.scale]) {
-      setScale(p.scale);
-      scaleRef.current = p.scale;
-    }
-    if (p.theme && (p.theme === "space" || p.theme === "jungle" || p.theme === "sea" || p.theme === "cyberpunk" || p.theme === "tundra")) {
-      setTheme(p.theme as BiomeTheme);
-    }
-    if (typeof p.bpm === "number") setBpm(p.bpm);
-    const eng = engine.current;
-    if (eng?.isReady()) {
-      if (typeof p.reverbWet === "number") eng.setReverbWet(p.reverbWet, 0.1);
-      if (typeof p.delayWet === "number") eng.setDelayWet(p.delayWet, 0.1);
-      if (typeof p.masterVolumeDb === "number") eng.setMasterVolume(p.masterVolumeDb, 0.1);
-      if (p.eq) eng.setMasterEQ(p.eq.low, p.eq.mid, p.eq.high);
-    }
-  }, [engine]);
-
-  /* ── Restore shared URL-hash preset once the engine is ready ── */
-  const hashAppliedRef = useRef(false);
-  useEffect(() => {
-    if (hashAppliedRef.current || !engineReady) return;
-    const hash = window.location.hash;
-    if (!hash) return;
-    const preset = decodePresetFromHash(hash);
-    if (!preset) return;
-    hashAppliedRef.current = true;
-    handleSnapshotApply(preset);
-  }, [engineReady, handleSnapshotApply]);
-
-  /* ── Keep transport BPM in sync with state ── */
-  useEffect(() => {
-    try { Tone.getTransport().bpm.rampTo(bpm, 0.15); } catch { /* context not yet ready */ }
-  }, [bpm]);
-
-  /* ── When theme changes, adopt its preferred BPM ── */
-  useEffect(() => {
-    const preset = THEME_PRESETS[theme];
-    if (preset?.bpm) setBpm(preset.bpm);
-  }, [theme]);
-
-  /* ── Z toggles piano, F toggles fullscreen ── */
-  useEffect(() => {
-    if (phase !== "play") return;
-    const handleKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
-      if (e.key === "z" || e.key === "Z") {
-        e.preventDefault();
-        togglePiano();
-      } else if (e.key === "f" || e.key === "F") {
-        e.preventDefault();
-        const el = document.documentElement;
-        if (!document.fullscreenElement) {
-          el.requestFullscreen?.().catch(() => { /* blocked */ });
-        } else {
-          document.exitFullscreen?.().catch(() => { /* noop */ });
-        }
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [phase, togglePiano]);
 
   useKeyboardShortcuts({
     enabled: phase === "play",
@@ -615,23 +529,6 @@ export default function BiomeSynthApp() {
           </button>
 
           <HelpOverlay open={helpOpen} onClose={closeHelp} />
-
-          <SpectrumViz fftBuffer={fftBuffer} />
-
-          <MasterBar
-            audioEngine={engine}
-            recorder={recorder}
-            bpm={bpm}
-            onBpmChange={handleBpmChange}
-            scale={scale}
-            theme={theme}
-            midiStatus={midiStatus}
-            onSnapshotApply={handleSnapshotApply}
-          />
-
-          <PianoOverlay open={pianoOpen} onClose={closePiano} audioEngine={engine} />
-
-          {tourOpen && <OnboardingTour onDismiss={handleDismissTour} />}
         </>
       )}
 
