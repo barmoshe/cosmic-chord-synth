@@ -10,6 +10,7 @@ import { useThreeScene } from "./biome-synth/hooks/useThreeScene";
 import { useJungleScene } from "./biome-synth/hooks/useJungleScene";
 import { useSeaScene } from "./biome-synth/hooks/useSeaScene";
 import { useCyberpunkScene } from "./biome-synth/hooks/useCyberpunkScene";
+import { useTundraScene } from "./biome-synth/hooks/useTundraScene";
 import { useTouchInput } from "./biome-synth/hooks/useTouchInput";
 import { useGlowOverlays } from "./biome-synth/hooks/useGlowOverlays";
 import { useDjAutoPlay, makeEmptyUserLayer, type DjUi, type DrumPattern } from "./biome-synth/hooks/useDjAutoPlay";
@@ -25,6 +26,9 @@ import FloatingBubbles from "./biome-synth/components/FloatingBubbles";
 import NeonSkyline from "./biome-synth/components/NeonSkyline";
 import HologramBillboards from "./biome-synth/components/HologramBillboards";
 import NeonRain from "./biome-synth/components/NeonRain";
+import AuroraGlow from "./biome-synth/components/AuroraGlow";
+import FallingSnow from "./biome-synth/components/FallingSnow";
+import IceCrystals from "./biome-synth/components/IceCrystals";
 import ThemeChooser, { type BiomeTheme } from "./biome-synth/components/ThemeChooser";
 
 const THEME_STORAGE_KEY = "biome-synth-theme";
@@ -65,6 +69,11 @@ function CyberpunkSceneMount(p: SceneMountProps) {
   return null;
 }
 
+function TundraSceneMount(p: SceneMountProps) {
+  useTundraScene(p.canvasRef, p.engine, p.analysisRef, p.fftBuffer, p.scaleRef, p.engineRef, p.flashIntensity, p.warpState, p.frameCount, p.rafRef, p.analyze);
+  return null;
+}
+
 function readStoredTheme(): BiomeTheme {
   try {
     let v = localStorage.getItem(THEME_STORAGE_KEY);
@@ -76,7 +85,7 @@ function readStoredTheme(): BiomeTheme {
         v = legacy;
       }
     }
-    if (v === "jungle" || v === "space" || v === "sea" || v === "cyberpunk") return v;
+    if (v === "jungle" || v === "space" || v === "sea" || v === "cyberpunk" || v === "tundra") return v;
   } catch { /* storage unavailable */ }
   return "space";
 }
@@ -99,12 +108,15 @@ export default function BiomeSynthApp() {
   const isJungle = theme === "jungle";
   const isSea = theme === "sea";
   const isCyberpunk = theme === "cyberpunk";
+  const isTundra = theme === "tundra";
   const productName = isJungle
     ? "JUNGLE SYNTH"
     : isSea
     ? "SEA SYNTH"
     : isCyberpunk
     ? "NEON SYNTH"
+    : isTundra
+    ? "AURORA SYNTH"
     : "COSMIC SYNTH";
   const warpText = isJungle
     ? "ENTERING THE JUNGLE"
@@ -112,6 +124,8 @@ export default function BiomeSynthApp() {
     ? "DIVING INTO THE REEF"
     : isCyberpunk
     ? "JACKING INTO THE GRID"
+    : isTundra
+    ? "CROSSING THE TUNDRA"
     : "ENTERING THE COSMOS";
 
   const handleThemeChange = useCallback((t: BiomeTheme) => {
@@ -290,12 +304,12 @@ export default function BiomeSynthApp() {
   /* ── JSX ── */
   return (
     <div
-      className={isJungle ? "theme-jungle" : isSea ? "theme-sea" : isCyberpunk ? "theme-cyberpunk" : "theme-space"}
+      className={isJungle ? "theme-jungle" : isSea ? "theme-sea" : isCyberpunk ? "theme-cyberpunk" : isTundra ? "theme-tundra" : "theme-space"}
       style={{
         position: "fixed",
         inset: 0,
         overflow: "hidden",
-        background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : isCyberpunk ? "#07021a" : "#162540",
+        background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : isCyberpunk ? "#07021a" : isTundra ? "#050a1a" : "#162540",
         touchAction: "none",
       }}
     >
@@ -316,6 +330,8 @@ export default function BiomeSynthApp() {
         ? <SeaSceneMount key="scene-sea" {...sceneProps} />
         : isCyberpunk
         ? <CyberpunkSceneMount key="scene-cyberpunk" {...sceneProps} />
+        : isTundra
+        ? <TundraSceneMount key="scene-tundra" {...sceneProps} />
         : <SpaceSceneMount key="scene-space" {...sceneProps} />}
 
       {/* Theme chooser — always accessible */}
@@ -350,7 +366,7 @@ export default function BiomeSynthApp() {
               <div className="biome-onboard-card">
                 <div className="biome-onboard-icon" aria-hidden="true">◐</div>
                 <div className="biome-onboard-label">Themes</div>
-                <div className="biome-onboard-hint">space · jungle · sea · cyberpunk</div>
+                <div className="biome-onboard-hint">space · jungle · sea · cyberpunk · tundra</div>
               </div>
             </div>
 
@@ -396,6 +412,15 @@ export default function BiomeSynthApp() {
           <NeonSkyline visible={phase === "play"} />
           <HologramBillboards visible={phase === "play"} />
           <NeonRain visible={phase === "play"} />
+        </>
+      )}
+
+      {/* Tundra overlays — aurora glow behind, ice crystals mid, snow in front */}
+      {isTundra && (
+        <>
+          <AuroraGlow visible={phase === "play"} />
+          <IceCrystals visible={phase === "play"} />
+          <FallingSnow visible={phase === "play"} />
         </>
       )}
 

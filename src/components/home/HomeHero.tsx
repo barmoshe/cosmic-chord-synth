@@ -21,6 +21,7 @@ const BIOME_DETAILS: BiomeDetail[] = [
   { id: "jungle",    label: "JUNGLE",    color: "#3CC38A", hint: "Canopy + monkeys" },
   { id: "sea",       label: "SEA",       color: "#2FA6FF", hint: "Reef + waves" },
   { id: "cyberpunk", label: "CYBERPUNK", color: "#FF2CA8", hint: "Neon city + rain" },
+  { id: "tundra",    label: "TUNDRA",    color: "#8CF3E4", hint: "Aurora + snow" },
 ];
 
 function biomeMeta(id: ThemeId): string {
@@ -123,7 +124,7 @@ export default function HomeHero() {
       </h1>
 
       <p className="font-['Raleway'] mt-5 max-w-md text-sm font-light leading-relaxed text-white/70 sm:mt-7 sm:max-w-xl sm:text-lg">
-        A playable world. Touch it to make music across four living biomes —
+        A playable world. Touch it to make music across five living biomes —
         or let the AI DJ compose for you.
       </p>
 

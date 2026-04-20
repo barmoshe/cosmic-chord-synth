@@ -32,6 +32,13 @@ cyberpunk-ambient.ogg
            (CREDITS.md does not itemize this specific clip's origin).
   Character: Dark synth drone — industrial / otherworldly dystopian bed.
 
+tundra-ambient.ogg
+  Status: TODO — not yet sourced. The TUNDRA theme references this file
+  via `ambientUrl` in THEME_PRESETS.tundra; the audio engine tolerates a
+  missing file at runtime (onerror warns, synth layer continues). Drop a
+  CC0 arctic wind / ice-cave drone here with this exact filename to light
+  it up.
+
 --
 
 License references:

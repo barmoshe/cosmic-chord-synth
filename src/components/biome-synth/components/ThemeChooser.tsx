@@ -1,4 +1,4 @@
-export type BiomeTheme = "space" | "jungle" | "sea" | "cyberpunk";
+export type BiomeTheme = "space" | "jungle" | "sea" | "cyberpunk" | "tundra";
 
 interface ThemeChooserProps {
   theme: BiomeTheme;
@@ -10,6 +10,7 @@ const OPTIONS: { value: BiomeTheme; label: string; hint: string }[] = [
   { value: "jungle",    label: "JUNGLE",    hint: "Canopy + monkeys" },
   { value: "sea",       label: "SEA",       hint: "Reef + fish + waves" },
   { value: "cyberpunk", label: "CYBERPUNK", hint: "Neon city + rain" },
+  { value: "tundra",    label: "TUNDRA",    hint: "Aurora + snow + glaciers" },
 ];
 
 export default function ThemeChooser({ theme, onChange }: ThemeChooserProps) {

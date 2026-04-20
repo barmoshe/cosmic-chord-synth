@@ -47,6 +47,7 @@ const BIOME_TONIC: Record<ThemeId, number> = {
   jungle: 62,
   sea: 67,
   cyberpunk: 65,
+  tundra: 64, // E — natural-minor aeolian centre, sits between sea and cyberpunk
 };
 
 export function useHomeAudio(): HomeAudio {

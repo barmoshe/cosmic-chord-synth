@@ -100,7 +100,7 @@ export type DrumName = typeof DRUM_STARS[number]["name"];
    default scale, reverb/delay character, and DJ section pacing.
    The audio engine reads this on theme change to retune the graph in place
    (no rebuild — synths/filters/effects update via .set()/rampTo). */
-export type ThemeId = "space" | "jungle" | "sea" | "cyberpunk";
+export type ThemeId = "space" | "jungle" | "sea" | "cyberpunk" | "tundra";
 
 export interface SynthVoice {
   type: "sine" | "sawtooth" | "square" | "triangle" | "fatsawtooth" | "fmsine" | "amsine" | "pulse";
@@ -283,6 +283,39 @@ export const THEME_PRESETS: Record<ThemeId, ThemePreset> = {
     drumKit: "default",
     ambientUrl: "/audio/cyberpunk-ambient.ogg",
     ambientVolumeDb: -22,     // same floor as space — sits under the synth
+    ambientFadeSec: 2.0,
+  },
+  tundra: {
+    scale: "minor",           // aeolian — cold, melancholy, breathing
+    bpm: 68,                  // glacial, very slow pulse
+    lead: { type: "sine" },              // pure crystal-bell lead
+    sub: { type: "sine" },
+    pad: { type: "amsine" },             // shimmering, slightly detuned pad
+    bass: { type: "sine" },              // deep sub — shifting-ice groan
+    arp: { type: "triangle" },           // soft icicle arp
+    drone: { type: "sine" },
+    padEnv: { attack: 1.6, decay: 1.8, sustain: 0.75, release: 3.0 }, // long breathing pad
+    leadEnv: { attack: 0.04, decay: 1.4, sustain: 0.2, release: 2.2 }, // bell-like
+    leadCutoff: 5200,
+    padCutoff: 1400,
+    reverbRoom: 0.88,         // vast cathedral-of-ice tail
+    reverbDamp: 3200,
+    reverbWet: 0.42,
+    delayWet: 0.26,
+    delayTime: "4n.",         // slow dotted-quarter echoes
+    chorusWet: 0.18,          // subtle shimmer
+    kickPitch: "A0",          // deep glacial groan
+    kickDecay: 0.55,
+    snareFilterHz: 1100,      // muted ice-crack snare
+    snareDecay: 0.18,
+    hatHarm: 9.2,             // high shimmer — like wind through crystals
+    hatRes: 6400,
+    clapFilterHz: 1300,       // soft droplet
+    djBarMult: 1.4,           // long, breathing sections
+    djEnergyBias: -0.1,       // gentler overall
+    drumKit: "aquatic",       // nearest timbre to bell/soft hits
+    ambientUrl: "/audio/tundra-ambient.ogg",
+    ambientVolumeDb: -20,
     ambientFadeSec: 2.0,
   },
 };
