@@ -1651,176 +1651,222 @@ export const BIOME_STYLES = `
           .biome-help-backdrop { animation: none; }
         }
 
-        /* ── Tundra theme overrides (applied when .theme-tundra on root wrapper) ── */
+        /* ── Tundra theme overrides — icy / white polar daylight ──
+           All text sits on a bright pale sky, so we invert the pattern used by
+           the other biomes: dark ink for readability, soft frosted surfaces
+           instead of deep navy glass. */
         .theme-tundra .biome-splash {
-          background: radial-gradient(ellipse at center, rgba(15,35,80,0.85) 0%, rgba(5,10,26,0.96) 100%);
+          background: radial-gradient(ellipse at center, rgba(226,252,255,0.92) 0%, rgba(180,219,246,0.96) 100%);
         }
         .theme-tundra .biome-logo {
-          background: linear-gradient(135deg, #8cf3e4 0%, #6bd9ff 40%, #b58cff 70%, #fff4b0 100%);
+          background: linear-gradient(135deg, #0c2a4b 0%, #1c6fb2 35%, #62b3e8 65%, #0c2a4b 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-size: 300% 100%;
-          filter: drop-shadow(0 0 30px rgba(140,243,228,0.5));
+          filter: drop-shadow(0 0 22px rgba(255,255,255,0.85)) drop-shadow(0 2px 8px rgba(20,60,100,0.25));
+        }
+        .theme-tundra .biome-splash .biome-subtitle {
+          color: #1c3d5e;
+        }
+        .theme-tundra .biome-splash .biome-line {
+          background: linear-gradient(90deg, transparent, rgba(40,80,120,0.55), transparent);
         }
         .theme-tundra .biome-warp {
-          background: radial-gradient(ellipse at center, rgba(15,35,80,0.9) 0%, rgba(5,10,26,0.98) 100%);
+          background: radial-gradient(ellipse at center, rgba(226,252,255,0.95) 0%, rgba(180,219,246,0.98) 100%);
         }
         .theme-tundra .biome-warp-text {
-          background: linear-gradient(90deg, #8cf3e4, #6bd9ff, #b58cff);
+          background: linear-gradient(90deg, #0c2a4b, #1c6fb2, #0c2a4b);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
         .theme-tundra .biome-warp-fill {
-          background: linear-gradient(90deg, #8cf3e4, #6bd9ff, #b58cff);
-          box-shadow: 0 0 12px rgba(140,243,228,0.6);
+          background: linear-gradient(90deg, #aedbf0, #1c6fb2, #0c2a4b);
+          box-shadow: 0 0 12px rgba(28,111,178,0.45);
         }
         .theme-tundra .biome-header-title {
-          background: linear-gradient(90deg, #8cf3e4, #a5f5d0, #b58cff);
+          background: linear-gradient(90deg, #0c2a4b, #1c6fb2, #0c2a4b);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
         .theme-tundra .biome-energy-fill {
-          background: linear-gradient(90deg, #0f2350, #8cf3e4, #b58cff, #fff4b0);
-          box-shadow: 0 0 8px rgba(140,243,228,0.55), 0 0 16px rgba(181,140,255,0.3);
+          background: linear-gradient(90deg, #aedbf0, #62b3e8, #1c6fb2, #ff9a33);
+          box-shadow: 0 0 8px rgba(28,111,178,0.45), 0 0 16px rgba(255,154,51,0.2);
         }
         .theme-tundra .biome-cta-ring {
-          border-color: rgba(140,243,228,0.6);
+          border-color: rgba(28,111,178,0.65);
+        }
+        .theme-tundra .biome-cta {
+          color: #0c2a4b;
+        }
+        .theme-tundra .theme-chooser-option {
+          color: #1c3d5e;
+          background: rgba(255,255,255,0.6);
+          border-color: rgba(100,150,190,0.35);
         }
         .theme-tundra .theme-chooser-option.is-active {
-          background: linear-gradient(135deg, rgba(140,243,228,0.28), rgba(181,140,255,0.26));
-          box-shadow: inset 0 0 0 1px rgba(140,243,228,0.5);
+          background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(174,219,240,0.9));
+          box-shadow: inset 0 0 0 1px rgba(28,111,178,0.55), 0 2px 10px rgba(28,111,178,0.2);
+          color: #0c2a4b;
         }
 
-        /* Scale label + arrow buttons — icy teal with violet hover */
+        /* Scale label + arrow buttons — dark ink on frosted white */
         .theme-tundra .biome-scale-label {
-          color: #a5f5d0;
-          text-shadow: 0 0 10px rgba(140,243,228,0.55), 0 0 24px rgba(181,140,255,0.35);
+          color: #0c2a4b;
+          text-shadow: 0 0 8px rgba(255,255,255,0.9);
+        }
+        .theme-tundra .biome-scale-index {
+          color: rgba(28,61,94,0.7);
         }
         .theme-tundra .biome-btn-arrow {
-          color: #8cf3e4;
-          background: rgba(5,10,26,0.5);
-          border: 1px solid rgba(140,243,228,0.45);
-          box-shadow: 0 0 14px rgba(140,243,228,0.18), inset 0 0 8px rgba(181,140,255,0.08);
+          color: #0c2a4b;
+          background: rgba(255,255,255,0.7);
+          border: 1px solid rgba(28,111,178,0.45);
+          box-shadow: 0 2px 10px rgba(28,111,178,0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
         }
         .theme-tundra .biome-btn-arrow:hover {
-          background: rgba(140,243,228,0.14);
-          border-color: rgba(181,140,255,0.55);
-          box-shadow: 0 0 22px rgba(181,140,255,0.4), inset 0 0 10px rgba(140,243,228,0.18);
+          background: rgba(255,255,255,0.9);
+          border-color: rgba(255,154,51,0.65);
+          box-shadow: 0 2px 16px rgba(255,154,51,0.3), inset 0 1px 0 rgba(255,255,255,0.9);
         }
         .theme-tundra .biome-btn-auto {
-          color: #8cf3e4;
-          background: rgba(5,10,26,0.55);
-          border: 1px solid rgba(140,243,228,0.4);
+          color: #0c2a4b;
+          background: rgba(255,255,255,0.72);
+          border: 1px solid rgba(28,111,178,0.4);
           backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
         .theme-tundra .biome-btn-auto.active {
-          color: #fff4b0;
-          background: rgba(140,243,228,0.2);
-          border-color: rgba(255,244,176,0.7);
-          box-shadow: 0 0 30px rgba(255,244,176,0.35), inset 0 0 15px rgba(140,243,228,0.18);
+          color: #ffffff;
+          background: linear-gradient(135deg, #ff9a33, #ffb366);
+          border-color: rgba(255,154,51,0.9);
+          box-shadow: 0 0 30px rgba(255,154,51,0.45), inset 0 0 15px rgba(255,255,255,0.25);
         }
 
         .theme-tundra .biome-axis-label {
-          color: rgba(165,245,208,0.85);
-          text-shadow: 0 0 8px rgba(140,243,228,0.45);
+          color: rgba(28,61,94,0.85);
+          text-shadow: 0 0 6px rgba(255,255,255,0.9);
         }
 
         .theme-tundra .biome-hint {
-          color: #8cf3e4;
-          text-shadow: 0 0 8px rgba(140,243,228,0.35);
+          color: #0c2a4b;
+          background: rgba(255,255,255,0.75);
+          border-color: rgba(28,111,178,0.3);
+          text-shadow: 0 0 4px rgba(255,255,255,0.9);
         }
         .theme-tundra .biome-hint-detail {
-          color: rgba(181,140,255,0.85);
+          color: rgba(28,61,94,0.75);
         }
 
-        /* DJ panel — frosted glacier glass */
+        /* DJ panel — frosted white-ice glass */
         .theme-tundra .conductor-transport,
         .theme-tundra .conductor-drawer {
-          background: rgba(5,10,26,0.88);
-          border: 1px solid rgba(140,243,228,0.32);
-          box-shadow: 0 12px 36px rgba(0,0,0,0.6), inset 0 1px 0 rgba(140,243,228,0.1), 0 0 28px rgba(181,140,255,0.15);
-          backdrop-filter: blur(14px) saturate(140%);
-          -webkit-backdrop-filter: blur(14px) saturate(140%);
+          background: rgba(255,255,255,0.78);
+          border: 1px solid rgba(100,150,190,0.4);
+          box-shadow: 0 12px 36px rgba(30,80,130,0.2), inset 0 1px 0 rgba(255,255,255,0.9), 0 0 24px rgba(226,252,255,0.5);
+          backdrop-filter: blur(16px) saturate(140%);
+          -webkit-backdrop-filter: blur(16px) saturate(140%);
+          color: #0c2a4b;
         }
         .theme-tundra .conductor-toggle {
-          color: #d8f6ee;
-          border-color: rgba(140,243,228,0.45);
-          background: radial-gradient(circle at 30% 25%, rgba(140,243,228,0.12), rgba(5,10,26,0.4) 70%);
+          color: #0c2a4b;
+          border-color: rgba(28,111,178,0.55);
+          background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95), rgba(226,252,255,0.75) 70%);
         }
         .theme-tundra .conductor-toggle.is-active {
-          color: #05122a;
-          background: radial-gradient(circle at 30% 25%, #fff4b0 0%, #8cf3e4 55%, #b58cff 100%);
-          border: 1.5px solid rgba(255,244,176,0.95);
+          color: #ffffff;
+          background: radial-gradient(circle at 30% 25%, #ffb366 0%, #ff9a33 60%, #c66b14 100%);
+          border: 1.5px solid rgba(255,154,51,0.95);
           box-shadow:
-            0 0 26px rgba(255,244,176,0.55),
-            0 0 10px rgba(140,243,228,0.45),
-            inset 0 1px 2px rgba(255,255,255,0.35),
-            inset 0 -2px 6px rgba(140,243,228,0.35);
+            0 0 26px rgba(255,154,51,0.5),
+            0 0 10px rgba(255,200,120,0.45),
+            inset 0 1px 2px rgba(255,255,255,0.5),
+            inset 0 -2px 6px rgba(200,100,20,0.2);
         }
         .theme-tundra .conductor-toggle.is-active::before {
-          border-color: rgba(255,244,176,0.45);
-          box-shadow: 0 0 14px rgba(255,244,176,0.4);
+          border-color: rgba(255,154,51,0.55);
+          box-shadow: 0 0 14px rgba(255,154,51,0.45);
         }
         .theme-tundra .conductor-bpm {
-          background: linear-gradient(90deg, #8cf3e4, #a5f5d0);
+          background: linear-gradient(90deg, #0c2a4b, #1c6fb2);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .theme-tundra .conductor-phase { color: #fff4b0; text-shadow: 0 0 10px rgba(255,244,176,0.45); }
+        .theme-tundra .conductor-phase { color: #c66b14; text-shadow: 0 0 8px rgba(255,154,51,0.35); }
 
-        .theme-tundra .conductor-cell { background: rgba(15,35,80,0.55) !important; border-color: rgba(140,243,228,0.22) !important; }
+        .theme-tundra .conductor-cell { background: rgba(226,252,255,0.6) !important; border-color: rgba(100,150,190,0.35) !important; }
         .theme-tundra .conductor-cell[data-hit="1"] {
-          background: linear-gradient(180deg, rgba(255,244,176,0.85), rgba(140,243,228,0.5)) !important;
-          border-color: rgba(255,244,176,0.75) !important;
-          box-shadow: 0 0 6px rgba(255,244,176,0.55);
+          background: linear-gradient(180deg, #ffb366, #ff9a33) !important;
+          border-color: rgba(198,107,20,0.75) !important;
+          box-shadow: 0 0 6px rgba(255,154,51,0.45);
         }
-        .theme-tundra .conductor-cell.is-downbeat { border-left: 2px solid rgba(255,244,176,0.6) !important; }
+        .theme-tundra .conductor-cell.is-downbeat { border-left: 2px solid rgba(198,107,20,0.8) !important; }
         .theme-tundra .conductor-cell[data-active="1"] {
-          outline: 1.5px solid rgba(255,244,176,0.95);
-          box-shadow: 0 0 14px rgba(255,244,176,0.7);
+          outline: 1.5px solid rgba(12,42,75,0.9);
+          box-shadow: 0 0 14px rgba(28,111,178,0.5);
         }
         .theme-tundra .conductor-cell[data-user="on"] {
-          border-color: rgba(255,244,176,0.85) !important;
-          box-shadow: inset 0 0 0 1px rgba(255,244,176,0.55), 0 0 10px rgba(255,244,176,0.35);
+          border-color: rgba(198,107,20,0.85) !important;
+          box-shadow: inset 0 0 0 1px rgba(255,154,51,0.6), 0 0 10px rgba(255,154,51,0.35);
         }
 
-        /* Flash — icy white */
+        /* Flash — pure white pop */
         .theme-tundra .biome-flash {
-          color: #dff3ff;
-          text-shadow: 0 0 14px rgba(140,243,228,0.6), 0 0 30px rgba(181,140,255,0.4);
+          color: #0c2a4b;
+          text-shadow: 0 0 14px rgba(255,255,255,0.9), 0 0 30px rgba(226,252,255,0.7);
         }
 
         .theme-tundra .biome-header-sub {
-          color: rgba(165,245,208,0.75);
+          color: rgba(28,61,94,0.75);
         }
         .theme-tundra .biome-onboard-card {
-          background: rgba(15,35,80,0.22);
-          border-color: rgba(140,243,228,0.22);
+          background: rgba(255,255,255,0.58);
+          border-color: rgba(100,150,190,0.35);
+          color: #0c2a4b;
         }
         .theme-tundra .biome-onboard-icon {
-          color: #8cf3e4;
-          text-shadow: 0 0 12px rgba(140,243,228,0.55);
+          color: #1c6fb2;
+          text-shadow: 0 0 10px rgba(255,255,255,0.8);
         }
+        .theme-tundra .biome-onboard-label { color: #0c2a4b; }
+        .theme-tundra .biome-onboard-hint  { color: rgba(28,61,94,0.75); }
         .theme-tundra .biome-help-trigger {
-          color: #8cf3e4;
-          border-color: rgba(140,243,228,0.45);
-          background: rgba(5,10,26,0.55);
+          color: #0c2a4b;
+          border-color: rgba(28,111,178,0.45);
+          background: rgba(255,255,255,0.72);
         }
         .theme-tundra .biome-help-card {
-          background: rgba(5,10,26,0.92);
-          border-color: rgba(140,243,228,0.3);
+          background: rgba(255,255,255,0.95);
+          border-color: rgba(100,150,190,0.4);
+          color: #0c2a4b;
         }
         .theme-tundra .biome-help-title {
-          background: linear-gradient(90deg, #8cf3e4, #b58cff);
+          background: linear-gradient(90deg, #0c2a4b, #1c6fb2);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .theme-tundra .biome-help-section-title { color: #8cf3e4; border-bottom-color: rgba(140,243,228,0.22); }
+        .theme-tundra .biome-help-section-title { color: #1c6fb2; border-bottom-color: rgba(100,150,190,0.35); }
         .theme-tundra .biome-help-key {
-          background: rgba(140,243,228,0.14);
-          border-color: rgba(140,243,228,0.5);
-          color: #8cf3e4;
-          text-shadow: 0 0 6px rgba(140,243,228,0.4);
+          background: rgba(226,252,255,0.85);
+          border-color: rgba(28,111,178,0.5);
+          color: #0c2a4b;
+          text-shadow: 0 0 4px rgba(255,255,255,0.9);
+        }
+
+        /* Audio status badge — keep it legible on the bright sky */
+        .theme-tundra .biome-audio-status {
+          background: rgba(255,255,255,0.8);
+          color: #0c2a4b;
+          border-color: rgba(28,111,178,0.45);
+        }
+        .theme-tundra .biome-audio-status.is-ok {
+          background: rgba(226,252,255,0.9);
+          border-color: rgba(28,111,178,0.55);
+        }
+        .theme-tundra .biome-error {
+          background: rgba(255,255,255,0.85);
+          color: #992b1a;
+          border-color: rgba(255,154,51,0.55);
         }
 
         /* ── Master Bar (producer deck) ──

@@ -35,7 +35,7 @@ import HologramBillboards from "./biome-synth/components/HologramBillboards";
 import NeonRain from "./biome-synth/components/NeonRain";
 import AuroraGlow from "./biome-synth/components/AuroraGlow";
 import FallingSnow from "./biome-synth/components/FallingSnow";
-import IceCrystals from "./biome-synth/components/IceCrystals";
+import PenguinColony from "./biome-synth/components/PenguinColony";
 import ThemeChooser, { type BiomeTheme } from "./biome-synth/components/ThemeChooser";
 
 const THEME_STORAGE_KEY = "biome-synth-theme";
@@ -395,7 +395,7 @@ export default function BiomeSynthApp() {
         position: "fixed",
         inset: 0,
         overflow: "hidden",
-        background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : isCyberpunk ? "#07021a" : isTundra ? "#050a1a" : "#162540",
+        background: isJungle ? "#0a1f14" : isSea ? "#041a2e" : isCyberpunk ? "#07021a" : isTundra ? "#d8efff" : "#162540",
         touchAction: "none",
       }}
     >
@@ -501,11 +501,11 @@ export default function BiomeSynthApp() {
         </>
       )}
 
-      {/* Tundra overlays — aurora glow behind, ice crystals mid, snow in front */}
+      {/* Tundra overlays — soft daylight aurora behind, penguin colony mid, snow in front */}
       {isTundra && (
         <>
           <AuroraGlow visible={phase === "play"} />
-          <IceCrystals visible={phase === "play"} />
+          <PenguinColony visible={phase === "play"} />
           <FallingSnow visible={phase === "play"} />
         </>
       )}

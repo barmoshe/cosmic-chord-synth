@@ -76,11 +76,17 @@ export function drawDrums(
     ctx.closePath();
 
     const grd = ctx.createRadialGradient(0, 0, 1, 0, 0, r);
-    grd.addColorStop(0,   `rgba(${hiR},${hiG},${hiB},0.95)`);
-    grd.addColorStop(0.55, `rgba(${cR},${cG},${cB},0.85)`);
-    grd.addColorStop(1,   "rgba(8,20,51,0.75)");
+    grd.addColorStop(0,   `rgba(255,255,255,0.98)`);
+    grd.addColorStop(0.45, `rgba(${hiR},${hiG},${hiB},0.9)`);
+    grd.addColorStop(0.8,  `rgba(${cR},${cG},${cB},0.85)`);
+    grd.addColorStop(1,    `rgba(90,130,170,0.6)`);
     ctx.fillStyle = grd;
     ctx.fill();
+
+    // Outer rim stroke — darker edge for readability on the bright sky.
+    ctx.strokeStyle = "rgba(60,100,150,0.7)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
 
     // Facet highlight — pale icy vertical streak.
     ctx.shadowBlur = 0;
@@ -110,8 +116,8 @@ export function drawDrums(
       ctx.beginPath(); ctx.arc( 0,         r * 0.15, r * 0.07, 0, Math.PI * 2); ctx.fill();
     }
 
-    // Label (K/H/C/S).
-    ctx.fillStyle = "#05122a";
+    // Label (K/H/C/S) — dark on the bright core.
+    ctx.fillStyle = "#0b1a33";
     ctx.font = `bold ${Math.floor(r * 0.42)}px system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";

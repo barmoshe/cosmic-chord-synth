@@ -7,13 +7,15 @@ import {
   drawSky, drawIceFloor,
   createStars, drawStars,
   buildGlaciers,
-  createAuroraBands, drawAuroraBands,
 } from "../tundra/background";
 import { makeSnow, drawSnow } from "../tundra/snow";
 import { createParticlePool, spawnParticles, drawParticles } from "../tundra/particles";
 import { createRipplePool, spawnRipple, drawRipples } from "../tundra/ripples";
 import { createDrums, layoutDrums, pickDrumStar, drawDrums } from "../tundra/drums";
 import { drawWarp, drawFlash, drawVignette } from "../tundra/overlays";
+import {
+  makePenguins, layoutPenguins, updatePenguins, drawPenguins, triggerPenguinReact,
+} from "../tundra/penguins";
 
 export function useTundraScene(
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>,
@@ -56,10 +58,14 @@ export function useTundraScene(
     rebuildOffscreens();
     window.addEventListener("resize", rebuildOffscreens);
 
-    const aurora = createAuroraBands();
     let stars = createStars(W, H);
     let snow = makeSnow(W, H);
-    const resetScatter = () => { stars = createStars(W, H); snow = makeSnow(W, H); };
+    const penguins = makePenguins(W, H);
+    const resetScatter = () => {
+      stars = createStars(W, H);
+      snow = makeSnow(W, H);
+      layoutPenguins(penguins, W, H);
+    };
     window.addEventListener("resize", resetScatter);
 
     const particles = createParticlePool();
@@ -87,6 +93,7 @@ export function useTundraScene(
         if (name === "kick") {
           const f = (auto ? 0.06 : 0.18) * v;
           if (f > flashIntensity.current) flashIntensity.current = f;
+          triggerPenguinReact(penguins, v);
         }
       };
       if (audioTime !== undefined) Tone.Draw.schedule(run, audioTime);
@@ -96,6 +103,7 @@ export function useTundraScene(
     function sectionTransition(col: RGB) {
       if (0.7 > flashIntensity.current) flashIntensity.current = 0.7;
       addRipple(W / 2, H / 2, 0, col, 2.4);
+      triggerPenguinReact(penguins, 1);
     }
     function flash(v: number) { if (v > flashIntensity.current) flashIntensity.current = v; }
 
@@ -121,18 +129,21 @@ export function useTundraScene(
       if (fc % 6 === 0) analyze();
       const a = analysisRef.current || {};
       const bass = a.bass ?? 0;
-      const mid = a.mid ?? 0;
+      const _mid = a.mid ?? 0;
       const high = a.high ?? 0;
 
+      // Back → front pipeline: sky, shimmer dots, distant glaciers, ice floor,
+      // penguins on ice, snow in front, particles/ripples over everything,
+      // drum stars on top, warp/flash/vignette frame.
       drawSky(ctx, W, H);
       drawStars(ctx, stars, tS);
-      drawAuroraBands(ctx, aurora, W, H, dt, mid);
+      ctx.drawImage(glCanvas, 0, H * 0.35, W, H * 0.55);
+      drawIceFloor(ctx, W, H, tS);
 
-      // Glacier silhouettes — painted on top of the sky/aurora but behind snow.
-      ctx.drawImage(glCanvas, 0, H * 0.42, W, H * 0.5);
+      updatePenguins(penguins, W, dt);
+      drawPenguins(ctx, penguins, tS);
 
       drawSnow(ctx, snow, W, H, tS, high);
-      drawIceFloor(ctx, W, H);
 
       drawRipples(ctx, ripples.pool);
       drawParticles(ctx, particles.pool, high);

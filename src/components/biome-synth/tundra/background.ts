@@ -1,37 +1,50 @@
 import { isMobile } from "../shared/constants";
-import { rand, rgba } from "./utils";
-import type { AuroraRibbon, StarDot } from "./types";
+import { rand } from "./utils";
+import type { StarDot } from "./types";
 
-/* ── Sky ── */
+/* ── Sky ──
+   A bright overcast arctic daylight. Top: pale mint `#E2FCFF`, middle: ice
+   blue `#D4EFF2`, horizon: periwinkle `#B4DBF6`. No dark navy — a very
+   different feeling from the Space biome. */
 export function drawSky(ctx: CanvasRenderingContext2D, W: number, H: number) {
   const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, "#02050f");         // near-black zenith
-  grad.addColorStop(0.45, "#081433");      // deep indigo
-  grad.addColorStop(0.85, "#0f2350");      // lifted horizon
-  grad.addColorStop(1, "#182a4a");         // pale reflective base
+  grad.addColorStop(0,    "#eaf8ff");
+  grad.addColorStop(0.35, "#d8efff");
+  grad.addColorStop(0.65, "#c3e4f7");
+  grad.addColorStop(1,    "#aad4ef");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
-  // Cold horizon haze — soft teal spill where the aurora dies into the ice.
-  const horizon = ctx.createRadialGradient(W * 0.5, H * 0.82, 20, W * 0.5, H * 0.82, H * 0.55);
-  horizon.addColorStop(0, "rgba(140,243,228,0.14)");
-  horizon.addColorStop(0.6, "rgba(107,217,255,0.06)");
-  horizon.addColorStop(1, "rgba(140,243,228,0)");
-  ctx.fillStyle = horizon;
+  // A diffuse low polar sun — soft warm spill sitting on the horizon.
+  const sun = ctx.createRadialGradient(W * 0.78, H * 0.38, 10, W * 0.78, H * 0.38, Math.max(W, H) * 0.55);
+  sun.addColorStop(0,    "rgba(255,248,224,0.45)");
+  sun.addColorStop(0.35, "rgba(255,232,200,0.18)");
+  sun.addColorStop(1,    "rgba(255,232,200,0)");
+  ctx.fillStyle = sun;
+  ctx.fillRect(0, 0, W, H);
+
+  // Cool bloom over the centre — lifts the whole scene toward cyan/white.
+  const bloom = ctx.createRadialGradient(W * 0.5, H * 0.58, 20, W * 0.5, H * 0.58, Math.max(W, H) * 0.7);
+  bloom.addColorStop(0,    "rgba(240,250,255,0.35)");
+  bloom.addColorStop(1,    "rgba(240,250,255,0)");
+  ctx.fillStyle = bloom;
   ctx.fillRect(0, 0, W, H);
 }
 
-/* ── Starfield ── */
+/* ── "Stars" ──
+   In daylight there are no stars; we repurpose this as a shimmer field of
+   tiny ice-crystals suspended high in the air (sparkle glints). Kept using
+   the StarDot type for zero-friction interop with the scene hook. */
 export function createStars(W: number, H: number): StarDot[] {
-  const count = isMobile ? 90 : 180;
+  const count = isMobile ? 60 : 120;
   const out: StarDot[] = [];
   for (let i = 0; i < count; i++) {
     out.push({
       x: Math.random() * W,
-      y: Math.random() * (H * 0.62),
-      base: rand(0.25, 0.9),
+      y: Math.random() * (H * 0.55),
+      base: rand(0.25, 0.7),
       phase: Math.random() * Math.PI * 2,
-      speed: rand(0.6, 1.8),
+      speed: rand(0.8, 2.2),
     });
   }
   return out;
@@ -39,119 +52,148 @@ export function createStars(W: number, H: number): StarDot[] {
 
 export function drawStars(ctx: CanvasRenderingContext2D, stars: StarDot[], tS: number) {
   ctx.save();
+  ctx.globalCompositeOperation = "lighter";
   for (const s of stars) {
     const t = 0.5 + 0.5 * Math.sin(tS * s.speed + s.phase);
-    const a = s.base * (0.5 + t * 0.5);
-    ctx.globalAlpha = a;
-    ctx.fillStyle = "#e8f1ff";
+    ctx.globalAlpha = s.base * (0.35 + t * 0.65);
+    ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(s.x, s.y, 0.9 + t * 0.5, 0, Math.PI * 2);
+    ctx.arc(s.x, s.y, 0.7 + t * 0.7, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 }
 
-/* ── Glacier silhouettes ── */
+/* ── Glacier silhouettes ──
+   Crisp, sunlit glaciers: a bright white face, a cool-blue shadow side, a
+   pale-cyan rim light. Two depth layers so the horizon feels layered. */
 export function buildGlaciers(canvas: HTMLCanvasElement, W: number, H: number, PR: number) {
   canvas.width = Math.max(1, Math.floor(W * PR));
-  canvas.height = Math.max(1, Math.floor(H * 0.5 * PR));
+  canvas.height = Math.max(1, Math.floor(H * 0.55 * PR));
   const g = canvas.getContext("2d")!;
   g.setTransform(PR, 0, 0, PR, 0, 0);
-  g.clearRect(0, 0, W, H * 0.5);
-  // Far range — dusky cyan glaciers
-  g.fillStyle = "#102545";
-  g.beginPath();
-  g.moveTo(0, H * 0.5);
-  const peaks = 9;
-  for (let i = 0; i <= peaks; i++) {
-    const x = (i / peaks) * W;
-    const noise = Math.sin(i * 1.9) * 0.5 + Math.cos(i * 1.1) * 0.3;
-    const y = H * 0.5 - (H * 0.20 + noise * H * 0.06);
-    g.lineTo(x, y);
-  }
-  g.lineTo(W, H * 0.5);
-  g.closePath();
-  g.fill();
-  // Close range — icy teal
-  g.fillStyle = "#17365a";
-  g.beginPath();
-  g.moveTo(0, H * 0.5);
-  for (let i = 0; i <= peaks + 3; i++) {
-    const x = (i / (peaks + 3)) * W;
-    const noise = Math.sin(i * 2.5 + 0.7) * 0.45;
-    const y = H * 0.5 - (H * 0.11 + noise * H * 0.045);
-    g.lineTo(x, y);
-  }
-  g.lineTo(W, H * 0.5);
-  g.closePath();
-  g.fill();
-  // Rim light — a pale cyan highlight on the leading edges
-  g.strokeStyle = "rgba(168,230,207,0.35)";
-  g.lineWidth = 1.2;
-  g.beginPath();
-  for (let i = 0; i <= peaks + 3; i++) {
-    const x = (i / (peaks + 3)) * W;
-    const noise = Math.sin(i * 2.5 + 0.7) * 0.45;
-    const y = H * 0.5 - (H * 0.11 + noise * H * 0.045);
-    if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-  }
-  g.stroke();
+  g.clearRect(0, 0, W, H * 0.55);
+
+  const lh = H * 0.55; // local height
+
+  // Helper — build a jagged silhouette
+  const peakPath = (count: number, baseYFrac: number, amp: number, seed: number) => {
+    const pts: [number, number][] = [];
+    pts.push([0, lh]);
+    for (let i = 0; i <= count; i++) {
+      const x = (i / count) * W;
+      const n1 = Math.sin(i * 1.7 + seed) * 0.55;
+      const n2 = Math.cos(i * 0.9 + seed * 1.3) * 0.35;
+      const n3 = Math.sin(i * 3.1 + seed * 0.7) * 0.18;
+      const y = lh - (baseYFrac * lh + (n1 + n2 + n3) * amp * lh);
+      pts.push([x, y]);
+    }
+    pts.push([W, lh]);
+    return pts;
+  };
+
+  const drawLayer = (
+    pts: [number, number][],
+    faceFill: string,
+    shadowFill: string,
+    rim: string,
+  ) => {
+    // face (lit)
+    g.fillStyle = faceFill;
+    g.beginPath();
+    g.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]);
+    g.closePath();
+    g.fill();
+
+    // shadow faces — for each peak, paint a leftward triangle in cool shadow
+    g.fillStyle = shadowFill;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i];
+      const [npx, npy] = pts[i + 1] ?? pts[i];
+      const [ppx, ppy] = pts[i - 1] ?? pts[i];
+      // only the "downward" slopes (peak → valley going right) get shadow
+      if (py < npy) {
+        g.beginPath();
+        g.moveTo(px, py);
+        g.lineTo(npx, npy);
+        g.lineTo((px + npx) / 2, Math.max(py, ppy) + (npy - py) * 0.2);
+        g.closePath();
+        g.fill();
+      }
+    }
+
+    // rim light — bright pale-cyan edge along the lit side
+    g.strokeStyle = rim;
+    g.lineWidth = 1.4;
+    g.lineJoin = "round";
+    g.beginPath();
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i];
+      if (i === 1) g.moveTo(px, py);
+      else g.lineTo(px, py);
+    }
+    g.stroke();
+  };
+
+  // Far range — pastel, hazy
+  drawLayer(
+    peakPath(11, 0.38, 0.16, 0.3),
+    "#e7f3fb",
+    "rgba(150,188,216,0.55)",
+    "rgba(255,255,255,0.85)",
+  );
+
+  // Close range — crisper, brighter
+  drawLayer(
+    peakPath(13, 0.24, 0.13, 1.7),
+    "#fafeff",
+    "rgba(120,168,204,0.6)",
+    "rgba(255,255,255,0.95)",
+  );
 }
 
-export function drawIceFloor(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  const iceY = H * 0.92;
-  const g = ctx.createLinearGradient(0, iceY, 0, H);
-  g.addColorStop(0, "#1e3a66");
-  g.addColorStop(1, "#05101e");
-  ctx.fillStyle = g;
+/* ── Ice floor ──
+   Snow-white foreground with a subtle blue shadow under the horizon line
+   and small snowdrift ridges. Used as the "ground" penguins stand on. */
+export function drawIceFloor(ctx: CanvasRenderingContext2D, W: number, H: number, tS: number) {
+  const iceY = H * 0.82;
+  const grad = ctx.createLinearGradient(0, iceY, 0, H);
+  grad.addColorStop(0, "#d5eaf4");
+  grad.addColorStop(0.3, "#eef7fb");
+  grad.addColorStop(1, "#ffffff");
+  ctx.fillStyle = grad;
   ctx.fillRect(0, iceY, W, H - iceY);
-  // pale fracture line
-  ctx.strokeStyle = "rgba(168,230,207,0.2)";
+
+  // Soft horizon shadow
+  const hs = ctx.createLinearGradient(0, iceY, 0, iceY + 24);
+  hs.addColorStop(0, "rgba(120,168,204,0.35)");
+  hs.addColorStop(1, "rgba(120,168,204,0)");
+  ctx.fillStyle = hs;
+  ctx.fillRect(0, iceY, W, 24);
+
+  // Snowdrifts — soft bumps gently shifting with a tiny tS sway so the
+  // foreground doesn't feel frozen.
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "rgba(170,210,235,0.5)";
+  ctx.lineWidth = 1;
+  const driftCount = isMobile ? 4 : 7;
+  for (let i = 0; i < driftCount; i++) {
+    const cx = ((i + 0.5) / driftCount) * W + Math.sin(tS * 0.15 + i) * 6;
+    const cy = iceY + 14 + (i % 2 === 0 ? 4 : 10);
+    const rx = 70 + (i * 13) % 60;
+    const ry = 12 + (i % 3) * 3;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Crisp horizon line
+  ctx.strokeStyle = "rgba(170,210,235,0.7)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, iceY);
   ctx.lineTo(W, iceY);
   ctx.stroke();
-}
-
-/* ── Aurora ribbons ── */
-export function createAuroraBands(): AuroraRibbon[] {
-  return [
-    { y: 0.18, amp: 0.055, freq: 1.3, phase: 0,   speed: 0.15, hue: [0.37, 0.92, 0.83], alpha: 0.35, thickness: 110 },
-    { y: 0.28, amp: 0.045, freq: 1.7, phase: 1.2, speed: 0.22, hue: [0.13, 0.83, 0.93], alpha: 0.28, thickness: 90 },
-    { y: 0.38, amp: 0.065, freq: 1.1, phase: 0.4, speed: 0.11, hue: [0.71, 0.55, 0.98], alpha: 0.30, thickness: 130 },
-    { y: 0.46, amp: 0.035, freq: 2.2, phase: 2.3, speed: 0.28, hue: [0.55, 0.90, 0.80], alpha: 0.22, thickness: 70 },
-  ];
-}
-
-// Three-layer aurora: a soft wide base, a brighter thin core, and an additive
-// shimmer pass tied to mid-band audio energy.
-export function drawAuroraBands(
-  ctx: CanvasRenderingContext2D,
-  bands: AuroraRibbon[],
-  W: number, H: number,
-  dt: number, mid: number,
-) {
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  const pulse = 1 + mid * 0.9;
-  for (const b of bands) {
-    b.phase += b.speed * dt * (0.6 + mid * 0.8);
-    const midY = H * b.y;
-    const half = b.thickness * 0.5;
-    const step = 6;
-    // Paint the ribbon as a series of vertical gradients following a sine path.
-    for (let x = 0; x <= W; x += step) {
-      const u = x / W;
-      const wave = Math.sin(u * Math.PI * 2 * b.freq + b.phase) * b.amp * H;
-      const y = midY + wave;
-      const grad = ctx.createLinearGradient(0, y - half, 0, y + half);
-      grad.addColorStop(0,   rgba(b.hue, 0));
-      grad.addColorStop(0.5, rgba(b.hue, b.alpha * pulse));
-      grad.addColorStop(1,   rgba(b.hue, 0));
-      ctx.fillStyle = grad;
-      ctx.fillRect(x, y - half, step + 1, b.thickness);
-    }
-  }
-  ctx.restore();
 }

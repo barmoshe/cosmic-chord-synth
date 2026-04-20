@@ -28,31 +28,31 @@ export function spawnParticles(
     const p = pp.pool[pp.cursor];
     pp.cursor = (pp.cursor + 1) % pp.pool.length;
     const a = (i / count) * Math.PI * 2 + Math.random() * 0.4;
-    const s = rand(1.4, 2.8) * vel;
+    const s = rand(1.6, 3.2) * vel;
     p.x = x; p.y = y;
     p.vx = Math.cos(a) * s;
-    p.vy = Math.sin(a) * s * 0.7 - rand(0.3, 1.2);
-    p.maxLife = rand(80, 140);
+    p.vy = Math.sin(a) * s * 0.7 - rand(0.4, 1.4);
+    p.maxLife = rand(70, 130);
     p.life = p.maxLife;
     p.col = col;
     p.rot = a;
-    p.vr = (i % 2 === 0 ? 1 : -1) * rand(0.05, 0.16);
-    p.kind = Math.random() < 0.5 ? 1 : 0; // 1 = shard, 0 = glint
+    p.vr = (i % 2 === 0 ? 1 : -1) * rand(0.05, 0.18);
+    p.kind = Math.random() < 0.55 ? 1 : 0; // 1 = flake, 0 = spark
     p.alive = true;
   }
 }
 
-// Ice shards + bright glints — additive blend for a cold, crystalline shower.
+// White sparkles + mini flakes. Lighter composite to pop against the bright
+// sky; shadow gets the lane tint so touches keep their color identity.
 export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], high: number) {
   const hiBoost = 1 + high * 0.5;
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
   for (const p of pool) {
     if (!p.alive) continue;
     p.x += p.vx * hiBoost;
     p.y += p.vy * hiBoost;
-    p.vy += 0.05; // gentler gravity — snow-fall feel
-    p.vx *= 0.985;
+    p.vy += 0.05;
+    p.vx *= 0.988;
     p.rot += p.vr;
     p.life -= 1;
     if (p.life <= 0) { p.alive = false; continue; }
@@ -65,20 +65,24 @@ export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], h
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
     ctx.globalAlpha = alpha;
+
     if (p.kind === 1) {
-      // thin ice shard — vertical spike
-      ctx.fillStyle = `rgba(${cR},${cG},${cB},${alpha})`;
+      // Mini snowflake — three crossed strokes
+      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.lineWidth = 1.2;
+      ctx.lineCap = "round";
       ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
-      ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.moveTo(0, -6);
-      ctx.lineTo(1.5, 0);
-      ctx.lineTo(0, 6);
-      ctx.lineTo(-1.5, 0);
-      ctx.closePath();
-      ctx.fill();
+      ctx.shadowBlur = 6;
+      const r = 4;
+      for (let k = 0; k < 3; k++) {
+        const a = (k / 3) * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(-Math.cos(a) * r, -Math.sin(a) * r);
+        ctx.lineTo( Math.cos(a) * r,  Math.sin(a) * r);
+        ctx.stroke();
+      }
     } else {
-      // bright round glint
+      // Bright white spark
       ctx.fillStyle = `rgba(255,255,255,${alpha})`;
       ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
       ctx.shadowBlur = 10;
