@@ -1,6 +1,8 @@
 # Biome Synth
 
-A playable world. Touch to make music across four 3D biomes — space, jungle, sea, and cyberpunk — or let the AI DJ compose. Every sound shapes the scene.
+A playable world. Touch to make music across five biomes — space, jungle, sea, cyberpunk, and tundra — or let the AI DJ compose. Every sound shapes the scene.
+
+**Live demo:** https://biome-synth.lovable.app/
 
 ## Quick Start
 
@@ -13,14 +15,14 @@ npm run dev      # Opens on http://localhost:8080
 
 - **React 18** + TypeScript + Vite
 - **Tone.js** — Audio synthesis, effects, sequencing
-- **Three.js** — 3D galaxy visualization with custom GLSL shaders
+- **Three.js** — WebGL + GLSL shaders for the space biome (the other biomes use Canvas2D)
 - **Tailwind CSS** + shadcn/ui — Styling and UI components
 
 ## Features
 
-- Four interactive 3D biomes (space, jungle, sea, cyberpunk) that respond to touch/mouse input
+- Five interactive biomes (space, jungle, sea, cyberpunk, tundra) that respond to touch/mouse input
 - Real-time audio synthesis with a customizable Tone.js effects chain
-- AI DJ mode with generative composition across 8 musical sections
+- AI DJ mode with generative composition across 5 musical sections (DRIFT → PULSE → BLOOM → SURGE → DISSOLVE)
 - Audio-reactive particle visualization
 - Mobile-optimized with adaptive performance
 
