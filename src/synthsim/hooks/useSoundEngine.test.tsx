@@ -29,6 +29,7 @@ const makeStubEngine = () => ({
   setDrumGainDb: vi.fn(),
   setLeadOctaveOffset: vi.fn(),
   setLeadScale: vi.fn(),
+  setDrumPattern: vi.fn(),
 });
 
 describe("useSoundEngine", () => {

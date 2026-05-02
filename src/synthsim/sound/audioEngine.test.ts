@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { made, transport } = vi.hoisted(() => ({
+const { made, transport, scheduled } = vi.hoisted(() => ({
   made: {} as Record<string, any[]>,
+  scheduled: [] as Array<{ cb: (time: number) => void; interval: string; offset?: string }>,
   transport: {
     bpm: { value: 0, rampTo: vi.fn() },
     scheduleRepeat: vi.fn(() => 0),
@@ -77,13 +78,25 @@ const last = (kind: string) => {
 
 beforeEach(() => {
   Object.keys(made).forEach((k) => (made[k].length = 0));
+  scheduled.length = 0;
   transport.bpm.value = 0;
   transport.bpm.rampTo = vi.fn();
-  transport.scheduleRepeat = vi.fn((..._args: unknown[]) => Math.random());
+  transport.scheduleRepeat = vi.fn(
+    (cb: (time: number) => void, interval: string, offset?: string) => {
+      scheduled.push({ cb, interval, offset });
+      return scheduled.length;
+    },
+  );
   transport.start = vi.fn();
   transport.stop = vi.fn();
   transport.clear = vi.fn();
 });
+
+const findScheduled = (interval: string) => {
+  const found = scheduled.find((s) => s.interval === interval);
+  if (!found) throw new Error(`no Transport.scheduleRepeat at interval ${interval}`);
+  return found;
+};
 
 describe("createSoundEngine — lazy init", () => {
   it("does not build any Tone nodes until start() is called", () => {
@@ -119,10 +132,11 @@ describe("createSoundEngine — start()", () => {
     expect(eng.isReady()).toBe(true);
   });
 
-  it("schedules three Transport repeats (kick, hat, lead arp) and starts Transport", async () => {
+  it("schedules two Transport repeats (16n drum scheduler + 8n lead arp) and starts Transport", async () => {
     const eng = createSoundEngine();
     await eng.start();
-    expect(transport.scheduleRepeat).toHaveBeenCalledTimes(3);
+    expect(transport.scheduleRepeat).toHaveBeenCalledTimes(2);
+    expect(scheduled.map((s) => s.interval).sort()).toEqual(["16n", "8n"]);
     expect(transport.start).toHaveBeenCalled();
   });
 
@@ -241,12 +255,83 @@ describe("createSoundEngine — dispose()", () => {
     const eng = createSoundEngine();
     await eng.start();
     eng.dispose();
-    expect(transport.clear).toHaveBeenCalledTimes(3);
+    expect(transport.clear).toHaveBeenCalledTimes(2);
   });
 
   it("dispose() before start is a no-op", () => {
     const eng = createSoundEngine();
     expect(() => eng.dispose()).not.toThrow();
     expect(eng.isReady()).toBe(false);
+  });
+});
+
+describe("createSoundEngine — drum pattern scheduler", () => {
+  it("default pattern is silence: 16 ticks fire no drum hits", async () => {
+    const { default: silence } = await import("../flightplan/drumPatterns").then((m) => ({
+      default: m.DRUM_PATTERNS.silence,
+    }));
+    const eng = createSoundEngine();
+    await eng.start();
+    eng.setDrumPattern(silence);
+
+    const drumScheduler = findScheduled("16n");
+    for (let i = 0; i < 16; i++) drumScheduler.cb(i * 0.125);
+
+    expect((last("MembraneSynth").triggerAttackRelease as any).mock.calls).toHaveLength(0);
+    expect((last("MetalSynth").triggerAttackRelease as any).mock.calls).toHaveLength(0);
+  });
+
+  it("setDrumPattern(fourFloor) → kicks fire on steps 0,4,8,12", async () => {
+    const { DRUM_PATTERNS } = await import("../flightplan/drumPatterns");
+    const eng = createSoundEngine();
+    await eng.start();
+    eng.setDrumPattern(DRUM_PATTERNS.fourFloor);
+
+    const drumScheduler = findScheduled("16n");
+    for (let i = 0; i < 16; i++) drumScheduler.cb(i * 0.125);
+
+    const kickCalls = (last("MembraneSynth").triggerAttackRelease as any).mock.calls;
+    expect(kickCalls).toHaveLength(4);
+  });
+
+  it("setDrumPattern(impact) → exactly one kick per 16-step bar", async () => {
+    const { DRUM_PATTERNS } = await import("../flightplan/drumPatterns");
+    const eng = createSoundEngine();
+    await eng.start();
+    eng.setDrumPattern(DRUM_PATTERNS.impact);
+
+    const drumScheduler = findScheduled("16n");
+    for (let i = 0; i < 16; i++) drumScheduler.cb(i * 0.125);
+
+    const kickCalls = (last("MembraneSynth").triggerAttackRelease as any).mock.calls;
+    expect(kickCalls).toHaveLength(1);
+  });
+
+  it("step counter wraps mod 16 across multiple bars", async () => {
+    const { DRUM_PATTERNS } = await import("../flightplan/drumPatterns");
+    const eng = createSoundEngine();
+    await eng.start();
+    eng.setDrumPattern(DRUM_PATTERNS.impact);
+
+    const drumScheduler = findScheduled("16n");
+    for (let i = 0; i < 32; i++) drumScheduler.cb(i * 0.125);
+
+    const kickCalls = (last("MembraneSynth").triggerAttackRelease as any).mock.calls;
+    expect(kickCalls).toHaveLength(2);
+  });
+
+  it("setDrumPattern is a no-op if same key", async () => {
+    const { DRUM_PATTERNS } = await import("../flightplan/drumPatterns");
+    const eng = createSoundEngine();
+    await eng.start();
+    eng.setDrumPattern(DRUM_PATTERNS.fourFloor);
+
+    const drumScheduler = findScheduled("16n");
+    for (let i = 0; i < 4; i++) drumScheduler.cb(i * 0.125);
+    eng.setDrumPattern(DRUM_PATTERNS.fourFloor);
+    drumScheduler.cb(4 * 0.125);
+
+    const kickCalls = (last("MembraneSynth").triggerAttackRelease as any).mock.calls;
+    expect(kickCalls).toHaveLength(2);
   });
 });

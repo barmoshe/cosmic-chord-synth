@@ -5,8 +5,10 @@ import Cockpit from "./cockpit/Cockpit";
 import DebugTelemetryHUD from "./cockpit/DebugTelemetryHUD";
 import { useBootSequence } from "./hooks/useBootSequence";
 import { useFlightLoop } from "./hooks/useFlightLoop";
+import { usePhase } from "./hooks/usePhase";
 import { useSoundEngine } from "./hooks/useSoundEngine";
 import { useTelemetrySound } from "./hooks/useTelemetrySound";
+import { DEFAULT_PROFILE } from "./sound/profiles";
 import { SYNTHSIM_PALETTE } from "./styles";
 
 type Phase = "booting" | "preflight" | "flying";
@@ -36,7 +38,14 @@ const SynthSimApp = () => {
   const flying = phase === "flying";
   const flight = useFlightLoop(flying);
   const { engine: sound } = useSoundEngine();
-  useTelemetrySound(flight, sound, flying);
+  const flightPhase = usePhase(flight, flying);
+  useTelemetrySound(flight, sound, flying, DEFAULT_PROFILE, flightPhase.patch);
+
+  useEffect(() => {
+    if (!flying) return;
+    if (!sound.isReady()) return;
+    sound.setDrumPattern(flightPhase.pattern);
+  }, [flightPhase.pattern, flying, sound]);
 
   const handlePreflight = useCallback(async () => {
     if (starting) return;
@@ -62,7 +71,7 @@ const SynthSimApp = () => {
         />
       )}
 
-      {flying && <Cockpit flight={flight} phase="FLYING" />}
+      {flying && <Cockpit flight={flight} phase={flightPhase.phase} />}
       {flying && devMode && <DebugTelemetryHUD telemetryRef={flight.telemetryRef} />}
 
       {!loaderGone && <LoadingScreen progress={progress} fadingOut={ready} />}

@@ -39,8 +39,11 @@ src/synthsim/
 │   ├── useFlightLoop.test.tsx
 │   ├── useSoundEngine.ts                  factory + dispose-on-unmount
 │   ├── useSoundEngine.test.tsx
-│   ├── useTelemetrySound.ts               flight.subscribe → applyTelemetry per tick
-│   └── useTelemetrySound.test.tsx
+│   ├── useTelemetrySound.ts               flight.subscribe → applyTelemetry per
+│   │                                      tick; M4 also runs applyPhasePatch
+│   ├── useTelemetrySound.test.tsx
+│   ├── usePhase.ts                        (M4) phase FSM with anti-flicker dwell
+│   └── usePhase.test.tsx
 ├── engine/                                physics — pure TS, deterministic
 │   ├── airframe.ts                        C-152-class constants
 │   ├── controls.ts                        ControlInputs make/clamp
@@ -70,18 +73,27 @@ src/synthsim/
 │   ├── Hud.tsx                            top bar: phase | sim-clock | fuel
 │   ├── StallBanner.tsx                    pulsing STALL/OVERSPEED over the AI
 │   └── *.test.tsx
-└── sound/                                 (M3) telemetry-driven audio
-    ├── audioEngine.ts                     factory: lazy buildGraph + Transport heartbeat
-    ├── audioEngine.test.ts                Tone.js mocked via vi.hoisted registry
-    ├── mapping.ts                         pure linMap + applyTelemetry (no Tone refs)
-    ├── mapping.test.ts                    every row of DESIGN.md §4 asserted
-    ├── profiles.ts                        LinearCurve / BoolCurve + DEFAULT_PROFILE
-    ├── profiles.test.ts
-    ├── scales.ts                          8 modes + headingToScale + scaleStepToMidi
-    └── scales.test.ts
+├── sound/                                 (M3) telemetry-driven audio
+│   ├── audioEngine.ts                     factory: lazy buildGraph + 16-step drum
+│   │                                      scheduler reading state.pattern (M4)
+│   ├── audioEngine.test.ts                Tone.js mocked via vi.hoisted registry;
+│   │                                      Transport.scheduleRepeat callbacks captured
+│   ├── mapping.ts                         pure linMap + applyTelemetry (no Tone refs)
+│   ├── mapping.test.ts                    every row of DESIGN.md §4 asserted
+│   ├── profiles.ts                        LinearCurve / BoolCurve + DEFAULT_PROFILE
+│   ├── profiles.test.ts
+│   ├── scales.ts                          8 modes + headingToScale + scaleStepToMidi
+│   └── scales.test.ts
+└── flightplan/                            (M4) phase machine
+    ├── drumPatterns.ts                    8 patterns × 16-step kick/hat grid
+    ├── drumPatterns.test.ts
+    ├── phaseProfiles.ts                   per-phase patch + applyPhasePatch helper
+    ├── phaseProfiles.test.ts
+    ├── phases.ts                          9-phase records + TRANSITIONS predicate table
+    └── phases.test.ts
 ```
 
-Tests are co-located. Total: 168.
+Tests are co-located. Total: 220.
 
 ## Milestone status
 
@@ -92,7 +104,7 @@ Tests are co-located. Total: 168.
 | M2 | primary cockpit (portrait) | ✅ | five SVG instruments + HUD + StallBanner + ?dev=1 gate |
 | M3 | telemetry-driven sound (v1) | ✅ | continuous textures + fixed heartbeat, async pre-flight gesture |
 | M3.1 | mobile-feel pass | ✅ | full-screen WorldBackground, gentler Yoke spring-back, larger touch targets, tuned airframe so throttle-only takes off |
-| M4 | phase machine + flight plan | next | DJ_SECTIONS-style FSM keyed by flight events. **Plan written**, see IMPLEMENTATION.md §7 |
+| M4 | phase machine + flight plan | ✅ | 9-phase FSM with 16-step drum patterns + per-phase profile patches; auto-advance on flight events; Hud label is now phase-driven |
 | M5 | autopilot = DJ mode | — | tap-AP generates a 4-min composition |
 | M6 | world view (Three.js) | — | optional polish; the plane is currently invisible |
 
@@ -156,10 +168,12 @@ See `.claude/rules/`:
 - `audio-engine.md` — `Tone.Transport` for scheduling, shared reverb, drums dry, dispose every node, AudioContext on user gesture, polyphony ≤ 8.
 - `testing.md` — Vitest + jsdom; mock Tone.js because jsdom can't open AudioContext; tests co-located with source.
 
-## Open follow-ups (post-M3)
+## Open follow-ups (post-M4)
 
-- **M4 plan is written** (IMPLEMENTATION.md §7). Replaces the M3 fixed heartbeat with phase-driven drum patterns + section transitions, keyed by flight events. Files specified, drum patterns specified, ~30 new tests planned. Ready to execute.
-- M4: Kollsman-correct altimeter (currently absolute; flight plan/weather will carry the setting).
-- M5: tap-to-engage autopilot that flies + composes for 4 minutes.
+- M5: autopilot = DJ mode. Tap-to-engage AP that flies the plane through a full preflight → shutdown sequence (~4 min) and lets the phase machine compose.
+- M5: live profile editor UI ("re-patch live" — DESIGN.md §4 promise). DEFAULT_PROFILE is hard-coded today.
+- Cockpit-as-modular-synth (DESIGN.md §5): instrument controls double as synth knobs. Defer to M5+.
+- Kollsman-correct altimeter (currently absolute; flight plan/weather will carry the setting).
 - M6 (optional): real Three.js world view — clouds, terrain, runway. The current `WorldBackground.tsx` is a CSS-only stop-gap so the cockpit isn't a black void.
 - Phugoid damping: with elevator held, the plane can pitch-overshoot into a stall. Game-feel is fine for short pulls; future work is auto-trim or stronger speed-stability damping.
+- ATC / radio FX, granular turbulence layer, TCAS dissonance — listed as v2 in DESIGN.md §4.

@@ -1207,18 +1207,17 @@ Tone.js + Transport remain mocked via the same `vi.hoisted` registry from M3 (`a
 - Weather / wind / turbulence layer ("flight plan" knobs in DESIGN.md). M4 is just the phase machine — flight plan sketch is M5+.
 - Autopilot + DJ-mode generative composition. That's M5.
 
-### 7.12 Rollout (single batch)
+### 7.12 Rollout (executed in one commit)
 
-1. `flightplan/drumPatterns.ts` + test
-2. `flightplan/phaseProfiles.ts` + test
-3. `flightplan/phases.ts` + test (depends on patterns + patches)
-4. `audioEngine.ts` patch — replace 4n+8n heartbeat with 16n step scheduler reading a pattern ref; add `setDrumPattern` to facade; extend test
-5. `hooks/usePhase.ts` + test
-6. `hooks/useTelemetrySound.ts` extend signature + test extension
-7. `SynthSimApp.tsx` wire `usePhase`, drive drum pattern + patch, pass `phase.phase` to `<Cockpit>`
-8. `npm test` (~198) + `npm run build` clean
-9. Mobile smoke (full preflight → shutdown sequence on a real phone or emulation)
-10. Commit on feature branch, rebase on origin/main if it moved, fast-forward main, push both
+1. `flightplan/drumPatterns.ts` + test (9 tests)
+2. `flightplan/phaseProfiles.ts` + test (11 tests, with `applyPhasePatch` helper)
+3. `flightplan/phases.ts` + test (16 tests across PHASES + TRANSITIONS + predicates)
+4. `audioEngine.ts` — replaced 4n+8n heartbeat with single 16n step scheduler reading `state.pattern`; added `setDrumPattern(pattern)` to facade; test mock now captures Transport.scheduleRepeat callbacks so step-by-step bar simulation is possible
+5. `hooks/usePhase.ts` + test (9 tests)
+6. `hooks/useTelemetrySound.ts` — added 5th `patch?` arg; pulls profile output values into a context, then runs `applyPhasePatch` after `applyTelemetry`. Test extended (+1 test)
+7. `SynthSimApp.tsx` — `useSoundEngine` + `useFlightLoop` + `usePhase` + `useTelemetrySound`. Drum pattern flows to engine via a `useEffect`. `phaseHandle.phase` passed to `<Cockpit>` so the Hud label is dynamic
+8. `npm test` (220 passing, +52 over M3) + `npm run build` clean
+9. Commit on feature branch, fast-forward main, push both
 
 ---
 

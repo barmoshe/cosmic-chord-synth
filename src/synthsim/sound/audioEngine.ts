@@ -1,4 +1,5 @@
 import * as Tone from "tone";
+import { DRUM_PATTERNS, type DrumPattern, PATTERN_STEPS } from "../flightplan/drumPatterns";
 import {
   SCALES,
   type ScaleName,
@@ -34,6 +35,8 @@ interface PlaybackState {
   scale: ScaleName;
   octaveOffset: number;
   arpStep: number;
+  pattern: DrumPattern;
+  drumStep: number;
 }
 
 export interface SoundEngine {
@@ -54,6 +57,7 @@ export interface SoundEngine {
   setDrumGainDb(db: number, rampS?: number): void;
   setLeadOctaveOffset(n: number): void;
   setLeadScale(name: ScaleName): void;
+  setDrumPattern(pattern: DrumPattern): void;
 }
 
 const rampParam = (
@@ -77,6 +81,8 @@ export function createSoundEngine(): SoundEngine {
     scale: "minorPentatonic",
     octaveOffset: 0,
     arpStep: 0,
+    pattern: DRUM_PATTERNS.silence,
+    drumStep: 0,
   };
 
   const buildGraph = (): AudioNodes => {
@@ -159,13 +165,13 @@ export function createSoundEngine(): SoundEngine {
 
       eventIds.push(
         Tone.Transport.scheduleRepeat((time) => {
-          built.kick.triggerAttackRelease("C2", "16n", time);
-        }, "4n"),
-      );
-      eventIds.push(
-        Tone.Transport.scheduleRepeat((time) => {
-          built.hat.triggerAttackRelease("32n", time, 0.6);
-        }, "8n", "8n"),
+          if (!nodes) return;
+          const k = state.pattern.kick[state.drumStep];
+          const h = state.pattern.hat[state.drumStep];
+          if (k > 0) nodes.kick.triggerAttackRelease("C2", "16n", time, k);
+          if (h > 0) nodes.hat.triggerAttackRelease("32n", time, h);
+          state.drumStep = (state.drumStep + 1) % PATTERN_STEPS;
+        }, "16n"),
       );
       eventIds.push(
         Tone.Transport.scheduleRepeat((time) => {
@@ -267,6 +273,12 @@ export function createSoundEngine(): SoundEngine {
       if (state.scale !== name) {
         state.scale = name;
         state.arpStep = 0;
+      }
+    },
+    setDrumPattern: (pattern) => {
+      if (state.pattern.key !== pattern.key) {
+        state.pattern = pattern;
+        state.drumStep = 0;
       }
     },
   };

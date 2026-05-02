@@ -40,6 +40,7 @@ const makeStubEngine = (): SoundEngine => ({
   setLeadScale: vi.fn(),
   setDrumGainDb: vi.fn(),
   setDroneFilterCutoff: vi.fn(),
+  setDrumPattern: vi.fn(),
 });
 
 describe("clamp", () => {

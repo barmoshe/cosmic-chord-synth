@@ -55,6 +55,7 @@ const makeStubEngine = (ready = true): SoundEngine => ({
   setDrumGainDb: vi.fn(),
   setLeadOctaveOffset: vi.fn(),
   setLeadScale: vi.fn(),
+  setDrumPattern: vi.fn(),
 });
 
 describe("useTelemetrySound", () => {
@@ -103,5 +104,25 @@ describe("useTelemetrySound", () => {
     expect(subs.size).toBe(1);
     rerender({ active: false });
     expect(subs.size).toBe(0);
+  });
+
+  it("when a phase patch is supplied, applies the patch override after the mapping", async () => {
+    const { DEFAULT_PROFILE } = await import("../sound/profiles");
+    const { flight, emit } = makeFlight();
+    const engine = makeStubEngine();
+    renderHook(() =>
+      useTelemetrySound(
+        flight,
+        engine,
+        true,
+        DEFAULT_PROFILE,
+        { masterGainCeilingDb: -36 },
+      ),
+    );
+
+    emit({ ...baseTelemetry, throttle: 1 });
+    const calls = (engine.setMasterGainDb as any).mock.calls as [number, number][];
+    const lastValue = calls.at(-1)?.[0];
+    expect(lastValue).toBe(-36);
   });
 });
