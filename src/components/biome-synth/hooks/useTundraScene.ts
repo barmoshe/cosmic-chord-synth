@@ -4,7 +4,7 @@ import { isMobile, type DrumName } from "../shared/constants";
 import { clamp, haptic } from "../shared/helpers";
 import type { RGB } from "../tundra/types";
 import {
-  drawSky, drawIceFloor,
+  buildSky, drawIceFloor,
   createStars, drawStars,
   buildGlaciers,
 } from "../tundra/background";
@@ -52,9 +52,13 @@ export function useTundraScene(
     resize();
     window.addEventListener("resize", resize);
 
-    // Offscreen glacier silhouettes — regenerated on resize, not per frame.
+    // Offscreen sky + glacier silhouettes — regenerated on resize, not per frame.
+    const skyCanvas = document.createElement("canvas");
     const glCanvas = document.createElement("canvas");
-    const rebuildOffscreens = () => { buildGlaciers(glCanvas, W, H, PR); };
+    const rebuildOffscreens = () => {
+      buildSky(skyCanvas, W, H, PR);
+      buildGlaciers(glCanvas, W, H, PR);
+    };
     rebuildOffscreens();
     window.addEventListener("resize", rebuildOffscreens);
 
@@ -135,7 +139,7 @@ export function useTundraScene(
       // Back → front pipeline: sky, shimmer dots, distant glaciers, ice floor,
       // penguins on ice, snow in front, particles/ripples over everything,
       // drum stars on top, warp/flash/vignette frame.
-      drawSky(ctx, W, H);
+      ctx.drawImage(skyCanvas, 0, 0, W, H);
       drawStars(ctx, stars, tS);
       ctx.drawImage(glCanvas, 0, H * 0.35, W, H * 0.55);
       drawIceFloor(ctx, W, H, tS);
@@ -163,6 +167,7 @@ export function useTundraScene(
       window.removeEventListener("resize", rebuildOffscreens);
       window.removeEventListener("resize", resetScatter);
       engineRef.current = null;
+      skyCanvas.width = skyCanvas.height = 0;
       glCanvas.width = glCanvas.height = 0;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, cv.width, cv.height);

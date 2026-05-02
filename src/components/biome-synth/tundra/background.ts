@@ -5,30 +5,37 @@ import type { StarDot } from "./types";
 /* ── Sky ──
    A bright overcast arctic daylight. Top: pale mint `#E2FCFF`, middle: ice
    blue `#D4EFF2`, horizon: periwinkle `#B4DBF6`. No dark navy — a very
-   different feeling from the Space biome. */
-export function drawSky(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
+   different feeling from the Space biome.
+
+   The sky never changes between frames, so we bake it into an offscreen canvas
+   on first draw / resize and just blit it each frame. Saves three full-canvas
+   gradient fillRects per frame. */
+export function buildSky(canvas: HTMLCanvasElement, W: number, H: number, PR: number) {
+  canvas.width = Math.max(1, Math.floor(W * PR));
+  canvas.height = Math.max(1, Math.floor(H * PR));
+  const g = canvas.getContext("2d")!;
+  g.setTransform(PR, 0, 0, PR, 0, 0);
+
+  const grad = g.createLinearGradient(0, 0, 0, H);
   grad.addColorStop(0,    "#eaf8ff");
   grad.addColorStop(0.35, "#d8efff");
   grad.addColorStop(0.65, "#c3e4f7");
   grad.addColorStop(1,    "#aad4ef");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  g.fillStyle = grad;
+  g.fillRect(0, 0, W, H);
 
-  // A diffuse low polar sun — soft warm spill sitting on the horizon.
-  const sun = ctx.createRadialGradient(W * 0.78, H * 0.38, 10, W * 0.78, H * 0.38, Math.max(W, H) * 0.55);
+  const sun = g.createRadialGradient(W * 0.78, H * 0.38, 10, W * 0.78, H * 0.38, Math.max(W, H) * 0.55);
   sun.addColorStop(0,    "rgba(255,248,224,0.45)");
   sun.addColorStop(0.35, "rgba(255,232,200,0.18)");
   sun.addColorStop(1,    "rgba(255,232,200,0)");
-  ctx.fillStyle = sun;
-  ctx.fillRect(0, 0, W, H);
+  g.fillStyle = sun;
+  g.fillRect(0, 0, W, H);
 
-  // Cool bloom over the centre — lifts the whole scene toward cyan/white.
-  const bloom = ctx.createRadialGradient(W * 0.5, H * 0.58, 20, W * 0.5, H * 0.58, Math.max(W, H) * 0.7);
+  const bloom = g.createRadialGradient(W * 0.5, H * 0.58, 20, W * 0.5, H * 0.58, Math.max(W, H) * 0.7);
   bloom.addColorStop(0,    "rgba(240,250,255,0.35)");
   bloom.addColorStop(1,    "rgba(240,250,255,0)");
-  ctx.fillStyle = bloom;
-  ctx.fillRect(0, 0, W, H);
+  g.fillStyle = bloom;
+  g.fillRect(0, 0, W, H);
 }
 
 /* ── "Stars" ──
@@ -155,21 +162,33 @@ export function buildGlaciers(canvas: HTMLCanvasElement, W: number, H: number, P
 
 /* ── Ice floor ──
    Snow-white foreground with a subtle blue shadow under the horizon line
-   and small snowdrift ridges. Used as the "ground" penguins stand on. */
+   and small snowdrift ridges. Used as the "ground" penguins stand on.
+
+   Both background gradients only depend on H — cache them across frames and
+   rebuild only when the viewport height changes. */
+let floorCache: { h: number; floor: CanvasGradient; horizon: CanvasGradient } | null = null;
+function getFloorGradients(ctx: CanvasRenderingContext2D, H: number) {
+  if (floorCache && floorCache.h === H) return floorCache;
+  const iceY = H * 0.82;
+  const floor = ctx.createLinearGradient(0, iceY, 0, H);
+  floor.addColorStop(0, "#d5eaf4");
+  floor.addColorStop(0.3, "#eef7fb");
+  floor.addColorStop(1, "#ffffff");
+  const horizon = ctx.createLinearGradient(0, iceY, 0, iceY + 24);
+  horizon.addColorStop(0, "rgba(120,168,204,0.35)");
+  horizon.addColorStop(1, "rgba(120,168,204,0)");
+  floorCache = { h: H, floor, horizon };
+  return floorCache;
+}
+
 export function drawIceFloor(ctx: CanvasRenderingContext2D, W: number, H: number, tS: number) {
   const iceY = H * 0.82;
-  const grad = ctx.createLinearGradient(0, iceY, 0, H);
-  grad.addColorStop(0, "#d5eaf4");
-  grad.addColorStop(0.3, "#eef7fb");
-  grad.addColorStop(1, "#ffffff");
-  ctx.fillStyle = grad;
+  const grads = getFloorGradients(ctx, H);
+  ctx.fillStyle = grads.floor;
   ctx.fillRect(0, iceY, W, H - iceY);
 
   // Soft horizon shadow
-  const hs = ctx.createLinearGradient(0, iceY, 0, iceY + 24);
-  hs.addColorStop(0, "rgba(120,168,204,0.35)");
-  hs.addColorStop(1, "rgba(120,168,204,0)");
-  ctx.fillStyle = hs;
+  ctx.fillStyle = grads.horizon;
   ctx.fillRect(0, iceY, W, 24);
 
   // Snowdrifts — soft bumps gently shifting with a tiny tS sway so the

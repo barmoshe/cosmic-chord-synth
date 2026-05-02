@@ -1,4 +1,4 @@
-import { DRUM_STARS, type DrumName } from "../shared/constants";
+import { DRUM_STARS, isMobile, type DrumName } from "../shared/constants";
 import type { DrumGlyph, RGB } from "./types";
 
 export function createDrums(): DrumGlyph[] {
@@ -59,9 +59,13 @@ export function drawDrums(
     ctx.translate(d.x, d.y);
     ctx.rotate(tS * 0.12 + d.pulse * 0.4);
 
-    // Outer glow
-    ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
-    ctx.shadowBlur = 16 + d.pulse * 32;
+    // Outer glow — capped to avoid frame-killing blur radii.
+    if (d.pulse > 0.05) {
+      ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
+      ctx.shadowBlur = Math.min(isMobile ? 8 : 16, 8 + d.pulse * 14);
+    } else {
+      ctx.shadowBlur = 0;
+    }
 
     // Six-sided crystal — alternating long/short points for a faceted look.
     const points = 6;

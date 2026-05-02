@@ -1,3 +1,14 @@
+let warpCache: { w: number; h: number; grad: CanvasGradient } | null = null;
+function getWarpGradient(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  if (warpCache && warpCache.w === W && warpCache.h === H) return warpCache.grad;
+  const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.75);
+  g.addColorStop(0, "rgba(255,255,255,1)");
+  g.addColorStop(0.5, "rgba(212,239,242,0.62)");
+  g.addColorStop(1, "rgba(212,239,242,0)");
+  warpCache = { w: W, h: H, grad: g };
+  return g;
+}
+
 export function drawWarp(
   ctx: CanvasRenderingContext2D,
   W: number, H: number,
@@ -7,12 +18,11 @@ export function drawWarp(
   if (!warpState?.on) return;
   warpState.t += dt;
   const w = Math.min(1, warpState.t / 2);
-  const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.75);
-  g.addColorStop(0, `rgba(255,255,255,${0.35 + w * 0.5})`);
-  g.addColorStop(0.5, `rgba(212,239,242,${0.22 + w * 0.3})`);
-  g.addColorStop(1, "rgba(212,239,242,0)");
-  ctx.fillStyle = g;
+  ctx.save();
+  ctx.globalAlpha = 0.35 + w * 0.5;
+  ctx.fillStyle = getWarpGradient(ctx, W, H);
   ctx.fillRect(0, 0, W, H);
+  ctx.restore();
 }
 
 export function drawFlash(
@@ -30,10 +40,14 @@ export function drawFlash(
 }
 
 // Pale edge softening — bright scene stays readable, just kisses the corners.
+let vignetteCache: { w: number; h: number; grad: CanvasGradient } | null = null;
 export function drawVignette(ctx: CanvasRenderingContext2D, W: number, H: number) {
-  const vig = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.44, W / 2, H / 2, Math.max(W, H) * 0.78);
-  vig.addColorStop(0, "rgba(180,219,246,0)");
-  vig.addColorStop(1, "rgba(120,160,200,0.22)");
-  ctx.fillStyle = vig;
+  if (!vignetteCache || vignetteCache.w !== W || vignetteCache.h !== H) {
+    const vig = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.44, W / 2, H / 2, Math.max(W, H) * 0.78);
+    vig.addColorStop(0, "rgba(180,219,246,0)");
+    vig.addColorStop(1, "rgba(120,160,200,0.22)");
+    vignetteCache = { w: W, h: H, grad: vig };
+  }
+  ctx.fillStyle = vignetteCache.grad;
   ctx.fillRect(0, 0, W, H);
 }

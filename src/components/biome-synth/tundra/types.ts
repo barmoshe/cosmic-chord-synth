@@ -22,13 +22,13 @@ export interface StarDot {
 export interface Particle {
   x: number; y: number; vx: number; vy: number;
   life: number; maxLife: number;
-  col: RGB; rot: number; vr: number;
+  col: RGB; colRgb: string; rot: number; vr: number;
   kind: 0 | 1; alive: boolean;
 }
 
 export interface Ripple {
   x: number; y: number; r: number; maxR: number;
-  col: RGB; alpha: number; alive: boolean;
+  col: RGB; colRgb: string; alpha: number; alive: boolean;
 }
 
 export interface DrumGlyph {

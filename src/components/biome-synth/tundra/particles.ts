@@ -12,7 +12,7 @@ export function createParticlePool(): ParticlePool {
     pool: Array.from({ length: PARTICLE_POOL }, () => ({
       x: 0, y: 0, vx: 0, vy: 0,
       life: 0, maxLife: 1,
-      col: [0, 0, 0], rot: 0, vr: 0,
+      col: [0, 0, 0], colRgb: "rgb(0,0,0)", rot: 0, vr: 0,
       kind: 0, alive: false,
     })),
     cursor: 0,
@@ -24,6 +24,7 @@ export function spawnParticles(
   x: number, y: number,
   col: RGB, count: number, vel: number,
 ) {
+  const colRgb = `rgb(${Math.floor(col[0] * 255)},${Math.floor(col[1] * 255)},${Math.floor(col[2] * 255)})`;
   for (let i = 0; i < count; i++) {
     const p = pp.pool[pp.cursor];
     pp.cursor = (pp.cursor + 1) % pp.pool.length;
@@ -35,6 +36,7 @@ export function spawnParticles(
     p.maxLife = rand(70, 130);
     p.life = p.maxLife;
     p.col = col;
+    p.colRgb = colRgb;
     p.rot = a;
     p.vr = (i % 2 === 0 ? 1 : -1) * rand(0.05, 0.18);
     p.kind = Math.random() < 0.55 ? 1 : 0; // 1 = flake, 0 = spark
@@ -58,20 +60,17 @@ export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], h
     if (p.life <= 0) { p.alive = false; continue; }
     const t = p.life / p.maxLife;
     const alpha = Math.min(1, t * 1.3);
-    const cR = Math.floor(p.col[0] * 255);
-    const cG = Math.floor(p.col[1] * 255);
-    const cB = Math.floor(p.col[2] * 255);
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
     ctx.globalAlpha = alpha;
+    ctx.shadowColor = p.colRgb;
 
     if (p.kind === 1) {
       // Mini snowflake — three crossed strokes
-      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+      ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.2;
       ctx.lineCap = "round";
-      ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
       ctx.shadowBlur = 6;
       const r = 4;
       for (let k = 0; k < 3; k++) {
@@ -83,8 +82,7 @@ export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], h
       }
     } else {
       // Bright white spark
-      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-      ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
+      ctx.fillStyle = "#ffffff";
       ctx.shadowBlur = 10;
       ctx.beginPath();
       ctx.arc(0, 0, 1.8, 0, Math.PI * 2);

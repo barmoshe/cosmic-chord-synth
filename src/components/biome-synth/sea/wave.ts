@@ -119,6 +119,17 @@ export function drawWaveSurface(
   ctx.restore();
 }
 
+let causticsCache: { w: number; h: number; grad: CanvasGradient } | null = null;
+function getCausticsGradient(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  const floorTop = H * 0.82;
+  if (causticsCache && causticsCache.w === W && causticsCache.h === H) return causticsCache.grad;
+  const grad = ctx.createLinearGradient(0, floorTop, 0, H);
+  grad.addColorStop(0, "rgba(168,230,207,1)");
+  grad.addColorStop(1, "rgba(168,230,207,0)");
+  causticsCache = { w: W, h: H, grad };
+  return grad;
+}
+
 export function drawCaustics(
   ctx: CanvasRenderingContext2D,
   wave: WaveField,
@@ -127,16 +138,15 @@ export function drawCaustics(
   const floorTop = H * 0.82;
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+  ctx.fillStyle = getCausticsGradient(ctx, W, H);
   for (let i = 1; i < NSAMPLES - 1; i++) {
     const slope = wave.h[i + 1] - wave.h[i - 1];
     const brightness = clamp(0.06 + Math.abs(slope) * 0.04 + mid * 0.05, 0, 0.35);
     const x = surfaceXAt(i, W);
     const x2 = surfaceXAt(i + 1, W);
-    const cg = ctx.createLinearGradient(x, floorTop, x, H);
-    cg.addColorStop(0, `rgba(168,230,207,${brightness})`);
-    cg.addColorStop(1, "rgba(168,230,207,0)");
-    ctx.fillStyle = cg;
+    ctx.globalAlpha = brightness;
     ctx.fillRect(x - 1, floorTop, x2 - x + 2, H - floorTop);
   }
+  ctx.globalAlpha = 1;
   ctx.restore();
 }

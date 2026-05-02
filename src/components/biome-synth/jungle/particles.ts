@@ -12,7 +12,7 @@ export function createParticlePool(): ParticlePool {
     pool: Array.from({ length: PARTICLE_POOL }, () => ({
       x: 0, y: 0, vx: 0, vy: 0,
       life: 0, maxLife: 1,
-      col: [0, 0, 0], rot: 0, vr: 0,
+      col: [0, 0, 0], colStr: "rgb(0,0,0)", rot: 0, vr: 0,
       kind: 0, alive: false,
     })),
     cursor: 0,
@@ -24,6 +24,7 @@ export function spawnParticles(
   x: number, y: number,
   col: RGB, count: number, vel: number,
 ) {
+  const colStr = `rgb(${Math.floor(col[0] * 255)},${Math.floor(col[1] * 255)},${Math.floor(col[2] * 255)})`;
   for (let i = 0; i < count; i++) {
     const p = pp.pool[pp.cursor];
     pp.cursor = (pp.cursor + 1) % pp.pool.length;
@@ -35,6 +36,7 @@ export function spawnParticles(
     p.maxLife = rand(70, 120);
     p.life = p.maxLife;
     p.col = col;
+    p.colStr = colStr;
     p.rot = a;
     p.vr = (i % 2 === 0 ? 1 : -1) * rand(0.04, 0.14);
     p.kind = Math.random() < 0.55 ? 1 : 0; // more petals, fewer leaves
@@ -59,19 +61,16 @@ export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], h
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
     ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.colStr;
+    ctx.beginPath();
     if (p.kind === 1) {
       // flower petal
-      ctx.fillStyle = `rgb(${Math.floor(p.col[0] * 255)},${Math.floor(p.col[1] * 255)},${Math.floor(p.col[2] * 255)})`;
-      ctx.beginPath();
       ctx.ellipse(0, 0, 4, 5.5, 0, 0, Math.PI * 2);
-      ctx.fill();
     } else {
       // leaf
-      ctx.fillStyle = `rgb(${Math.floor(p.col[0] * 255)},${Math.floor(p.col[1] * 255)},${Math.floor(p.col[2] * 255)})`;
-      ctx.beginPath();
       ctx.ellipse(0, 0, 5, 2.3, 0, 0, Math.PI * 2);
-      ctx.fill();
     }
+    ctx.fill();
     ctx.restore();
   }
 }

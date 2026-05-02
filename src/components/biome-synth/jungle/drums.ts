@@ -1,4 +1,4 @@
-import { DRUM_STARS, type DrumName } from "../shared/constants";
+import { DRUM_STARS, isMobile, type DrumName } from "../shared/constants";
 import type { DrumGlyph, RGB } from "./types";
 
 export function createDrums(): DrumGlyph[] {
@@ -94,17 +94,22 @@ export function drawDrums(
     // Flower head — rotates with time + pulse.
     ctx.save();
     ctx.rotate(tS * 0.15 + d.pulse * 0.6);
-    ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
-    ctx.shadowBlur = 14 + d.pulse * 28;
+    if (d.pulse > 0.05) {
+      ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
+      ctx.shadowBlur = Math.min(isMobile ? 8 : 14, 6 + d.pulse * 12);
+    } else {
+      ctx.shadowBlur = 0;
+    }
+    // All 5 petals share an identical radial gradient — build once per drum.
+    const petalGrd = ctx.createRadialGradient(0, -r * 0.2, 1, 0, -r * 0.9, r * 0.85);
+    petalGrd.addColorStop(0,    `rgba(${hiR},${hiG},${hiB},0.95)`);
+    petalGrd.addColorStop(0.55, `rgba(${cR},${cG},${cB},0.92)`);
+    petalGrd.addColorStop(1,    `rgba(${loR},${loG},${loB},0.55)`);
+    ctx.fillStyle = petalGrd;
     for (let pIdx = 0; pIdx < 5; pIdx++) {
       const ang = (pIdx / 5) * Math.PI * 2;
       ctx.save();
       ctx.rotate(ang);
-      const grd = ctx.createRadialGradient(0, -r * 0.2, 1, 0, -r * 0.9, r * 0.85);
-      grd.addColorStop(0,    `rgba(${hiR},${hiG},${hiB},0.95)`);
-      grd.addColorStop(0.55, `rgba(${cR},${cG},${cB},0.92)`);
-      grd.addColorStop(1,    `rgba(${loR},${loG},${loB},0.55)`);
-      ctx.fillStyle = grd;
       ctx.beginPath();
       ctx.ellipse(0, -r * 0.58, r * 0.42, r * 0.78, 0, 0, Math.PI * 2);
       ctx.fill();

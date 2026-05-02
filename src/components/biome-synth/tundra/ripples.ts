@@ -10,7 +10,7 @@ export function createRipplePool(): RipplePool {
   return {
     pool: Array.from({ length: RIPPLE_POOL }, () => ({
       x: 0, y: 0, r: 0, maxR: 0,
-      col: [0, 0, 0], alpha: 0, alive: false,
+      col: [0, 0, 0], colRgb: "rgb(0,0,0)", alpha: 0, alive: false,
     })),
     cursor: 0,
   };
@@ -27,6 +27,7 @@ export function spawnRipple(
   r.r = 6;
   r.maxR = 140 + intensity * 70;
   r.col = col;
+  r.colRgb = `rgb(${Math.floor(col[0] * 255)},${Math.floor(col[1] * 255)},${Math.floor(col[2] * 255)})`;
   r.alpha = 0.6 * intensity;
   r.alive = true;
 }
@@ -42,15 +43,13 @@ export function drawRipples(ctx: CanvasRenderingContext2D, pool: Ripple[]) {
     r.r += 2.4;
     r.alpha *= 0.965;
     if (r.r >= r.maxR || r.alpha < 0.02) { r.alive = false; continue; }
-    const cR = Math.floor(r.col[0] * 255);
-    const cG = Math.floor(r.col[1] * 255);
-    const cB = Math.floor(r.col[2] * 255);
     ctx.save();
     ctx.translate(r.x, r.y);
-    ctx.strokeStyle = `rgba(${cR},${cG},${cB},${r.alpha})`;
+    ctx.globalAlpha = r.alpha;
+    ctx.strokeStyle = r.colRgb;
     ctx.lineWidth = 1.4;
     ctx.lineCap = "round";
-    ctx.shadowColor = `rgb(${cR},${cG},${cB})`;
+    ctx.shadowColor = r.colRgb;
     ctx.shadowBlur = 8;
     const arm = r.r;
     const branch = arm * 0.32;
