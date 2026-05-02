@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 import Landing from "./components/Landing";
 import { useBootSequence } from "./hooks/useBootSequence";
-import { STNYTH2_PALETTE } from "./styles";
+import { SYNTHSIM_PALETTE } from "./styles";
 
 const FADE_DELAY_MS = 350;
 
-const Stnyth2App = () => {
+const SynthSimApp = () => {
   const { progress, ready } = useBootSequence();
   const [loaderGone, setLoaderGone] = useState(false);
 
@@ -19,7 +19,7 @@ const Stnyth2App = () => {
   return (
     <div
       className="relative min-h-[100dvh] w-full overflow-hidden"
-      style={{ background: STNYTH2_PALETTE.bg }}
+      style={{ background: SYNTHSIM_PALETTE.bg }}
     >
       <Landing visible={ready} />
       {!loaderGone && <LoadingScreen progress={progress} fadingOut={ready} />}
@@ -27,4 +27,4 @@ const Stnyth2App = () => {
   );
 };
 
-export default Stnyth2App;
+export default SynthSimApp;

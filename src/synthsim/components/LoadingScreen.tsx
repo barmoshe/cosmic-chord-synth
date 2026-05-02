@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
-import { STNYTH2_PALETTE } from "../styles";
+import { SYNTHSIM_PALETTE } from "../styles";
 
 interface LoadingScreenProps {
   progress: number;
   fadingOut: boolean;
 }
 
-const LABEL = "STNYTH2";
+const LABEL = "SYNTHSIM";
 const OUTER_RADIUS = 32;
 const INNER_RADIUS = 18;
 const OUTER_CIRCUMFERENCE = 2 * Math.PI * OUTER_RADIUS;
@@ -21,8 +21,8 @@ const LoadingScreen = ({ progress, fadingOut }: LoadingScreenProps) => {
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100",
       )}
       style={{
-        background: `radial-gradient(ellipse at center, #14141c 0%, ${STNYTH2_PALETTE.bg} 70%)`,
-        color: STNYTH2_PALETTE.fg,
+        background: `radial-gradient(ellipse at center, #14141c 0%, ${SYNTHSIM_PALETTE.bg} 70%)`,
+        color: SYNTHSIM_PALETTE.fg,
         transitionDuration: "350ms",
       }}
       aria-hidden={fadingOut}
@@ -37,14 +37,14 @@ const LoadingScreen = ({ progress, fadingOut }: LoadingScreenProps) => {
             cx="40"
             cy="40"
             r={OUTER_RADIUS}
-            stroke={STNYTH2_PALETTE.line}
+            stroke={SYNTHSIM_PALETTE.line}
             strokeWidth="1"
           />
           <circle
             cx="40"
             cy="40"
             r={OUTER_RADIUS}
-            stroke={STNYTH2_PALETTE.accent}
+            stroke={SYNTHSIM_PALETTE.accent}
             strokeWidth="1"
             strokeLinecap="round"
             strokeDasharray={OUTER_CIRCUMFERENCE}
@@ -58,12 +58,12 @@ const LoadingScreen = ({ progress, fadingOut }: LoadingScreenProps) => {
             cx="40"
             cy="40"
             r={INNER_RADIUS}
-            stroke={STNYTH2_PALETTE.line}
+            stroke={SYNTHSIM_PALETTE.line}
             strokeWidth="1"
             strokeDasharray={`${INNER_CIRCUMFERENCE / 4} ${INNER_CIRCUMFERENCE}`}
             style={{
               transformOrigin: "40px 40px",
-              animation: "stnyth2-spin 2.4s linear infinite",
+              animation: "synthsim-spin 2.4s linear infinite",
             }}
           />
         </svg>
@@ -71,14 +71,14 @@ const LoadingScreen = ({ progress, fadingOut }: LoadingScreenProps) => {
 
       <div
         className="mt-8 flex gap-[6px] font-mono text-[11px] uppercase"
-        style={{ letterSpacing: "0.4em", color: STNYTH2_PALETTE.muted }}
+        style={{ letterSpacing: "0.4em", color: SYNTHSIM_PALETTE.muted }}
       >
         {LABEL.split("").map((ch, i) => (
           <span
             key={i}
             style={{
               opacity: 0,
-              animation: `stnyth2-letter-in 360ms ease-out ${100 + i * 60}ms forwards`,
+              animation: `synthsim-letter-in 360ms ease-out ${100 + i * 60}ms forwards`,
             }}
           >
             {ch}
@@ -88,12 +88,12 @@ const LoadingScreen = ({ progress, fadingOut }: LoadingScreenProps) => {
 
       <div
         className="mt-6 h-px w-[120px] overflow-hidden"
-        style={{ background: STNYTH2_PALETTE.line }}
+        style={{ background: SYNTHSIM_PALETTE.line }}
       >
         <div
           className="h-full origin-left"
           style={{
-            background: STNYTH2_PALETTE.accent,
+            background: SYNTHSIM_PALETTE.accent,
             transform: `scaleX(${progress / 100})`,
             transition: "transform 80ms linear",
           }}
@@ -101,11 +101,11 @@ const LoadingScreen = ({ progress, fadingOut }: LoadingScreenProps) => {
       </div>
 
       <style>{`
-        @keyframes stnyth2-spin {
+        @keyframes synthsim-spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        @keyframes stnyth2-letter-in {
+        @keyframes synthsim-letter-in {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }

@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "./pages/Home.tsx";
 import Play from "./pages/Play.tsx";
-import Stnyth2 from "./pages/Stnyth2.tsx";
+import Synthsim from "./pages/Synthsim.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -19,7 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/play" element={<Play />} />
-          <Route path="/stnyth2" element={<Stnyth2 />} />
+          <Route path="/synthsim" element={<Synthsim />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
