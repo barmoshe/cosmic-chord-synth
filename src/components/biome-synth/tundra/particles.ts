@@ -44,11 +44,23 @@ export function spawnParticles(
   }
 }
 
-// White sparkles + mini flakes. Lighter composite to pop against the bright
-// sky; shadow gets the lane tint so touches keep their color identity.
+// White sparkles + mini flakes. Two-pass batched render: sparks first as a
+// single fill path (one beginPath/fill per alpha bucket), flakes second with
+// rotation. Shadow blur is dropped — bright white on the cool sky reads
+// without it, and shadowBlur per particle was the dominant per-frame cost
+// when many particles were alive after rapid drum hits.
+const ALPHA_LEVELS = [0.25, 0.45, 0.65, 0.85];
+function bucketAlpha(a: number): number {
+  if (a < 0.35) return 0;
+  if (a < 0.55) return 1;
+  if (a < 0.75) return 2;
+  return 3;
+}
+
 export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], high: number) {
   const hiBoost = 1 + high * 0.5;
-  ctx.save();
+
+  // Step physics + cull dead in one pass.
   for (const p of pool) {
     if (!p.alive) continue;
     p.x += p.vx * hiBoost;
@@ -57,38 +69,62 @@ export function drawParticles(ctx: CanvasRenderingContext2D, pool: Particle[], h
     p.vx *= 0.988;
     p.rot += p.vr;
     p.life -= 1;
-    if (p.life <= 0) { p.alive = false; continue; }
-    const t = p.life / p.maxLife;
-    const alpha = Math.min(1, t * 1.3);
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rot);
-    ctx.globalAlpha = alpha;
-    ctx.shadowColor = p.colRgb;
-
-    if (p.kind === 1) {
-      // Mini snowflake — three crossed strokes
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.2;
-      ctx.lineCap = "round";
-      ctx.shadowBlur = 6;
-      const r = 4;
-      for (let k = 0; k < 3; k++) {
-        const a = (k / 3) * Math.PI;
-        ctx.beginPath();
-        ctx.moveTo(-Math.cos(a) * r, -Math.sin(a) * r);
-        ctx.lineTo( Math.cos(a) * r,  Math.sin(a) * r);
-        ctx.stroke();
-      }
-    } else {
-      // Bright white spark
-      ctx.fillStyle = "#ffffff";
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
+    if (p.life <= 0) p.alive = false;
   }
+
+  ctx.save();
+  ctx.fillStyle = "#ffffff";
+
+  // Pass 1 — sparks (kind 0) as filled circles, batched by alpha bucket.
+  for (let b = 0; b < ALPHA_LEVELS.length; b++) {
+    let started = false;
+    for (const p of pool) {
+      if (!p.alive || p.kind !== 0) continue;
+      const t = p.life / p.maxLife;
+      const a = Math.min(1, t * 1.3);
+      if (bucketAlpha(a) !== b) continue;
+      if (!started) {
+        ctx.globalAlpha = ALPHA_LEVELS[b];
+        ctx.beginPath();
+        started = true;
+      }
+      ctx.moveTo(p.x + 1.8, p.y);
+      ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+    }
+    if (started) ctx.fill();
+  }
+
+  // Pass 2 — flakes (kind 1) with three crossed strokes; batched by alpha.
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.2;
+  ctx.lineCap = "round";
+  for (let b = 0; b < ALPHA_LEVELS.length; b++) {
+    let started = false;
+    for (const p of pool) {
+      if (!p.alive || p.kind !== 1) continue;
+      const t = p.life / p.maxLife;
+      const a = Math.min(1, t * 1.3);
+      if (bucketAlpha(a) !== b) continue;
+      if (!started) {
+        ctx.globalAlpha = ALPHA_LEVELS[b];
+        ctx.beginPath();
+        started = true;
+      }
+      const r = 4;
+      const c = Math.cos(p.rot), s = Math.sin(p.rot);
+      // three crossed strokes spaced by 60°: rotations rot, rot+60°, rot+120°.
+      // Precompute via angle-add identities to avoid 3x trig per particle.
+      const c60 = 0.5,    s60 = 0.8660254;
+      const c120 = -0.5,  s120 = 0.8660254;
+      const x0 = c * r,             y0 = s * r;
+      const x1 = (c * c60 - s * s60) * r,   y1 = (s * c60 + c * s60) * r;
+      const x2 = (c * c120 - s * s120) * r, y2 = (s * c120 + c * s120) * r;
+      ctx.moveTo(p.x - x0, p.y - y0); ctx.lineTo(p.x + x0, p.y + y0);
+      ctx.moveTo(p.x - x1, p.y - y1); ctx.lineTo(p.x + x1, p.y + y1);
+      ctx.moveTo(p.x - x2, p.y - y2); ctx.lineTo(p.x + x2, p.y + y2);
+    }
+    if (started) ctx.stroke();
+  }
+
   ctx.restore();
 }

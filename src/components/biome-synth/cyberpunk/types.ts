@@ -11,13 +11,13 @@ export interface Building {
 export interface Particle {
   x: number; y: number; vx: number; vy: number;
   life: number; maxLife: number;
-  col: RGB; rot: number; vr: number;
+  col: RGB; colRgb: string; rot: number; vr: number;
   alive: boolean; kind: 0 | 1;
 }
 
 export interface Ripple {
   x: number; y: number; r: number; maxR: number;
-  col: RGB; alpha: number; alive: boolean;
+  col: RGB; colRgb: string; alpha: number; alive: boolean;
 }
 
 export interface RainStreak {
