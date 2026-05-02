@@ -3,6 +3,7 @@ import Hud from "../hud/Hud";
 import StallBanner from "../hud/StallBanner";
 import { TelemetryProvider } from "./TelemetryContext";
 import Throttle from "./Throttle";
+import WorldBackground from "./WorldBackground";
 import Yoke, { type YokeAxes } from "./Yoke";
 import AttitudeIndicator from "./instruments/AttitudeIndicator";
 import Airspeed from "./instruments/Airspeed";
@@ -26,13 +27,15 @@ const Cockpit = ({ flight, phase }: CockpitProps) => {
 
   return (
     <TelemetryProvider flight={flight}>
+      <WorldBackground />
+
       <div className="fixed inset-0 flex flex-col pointer-events-none">
         <div className="pointer-events-auto">
           <Hud phase={phase} />
         </div>
 
         <div className="relative flex-1 flex flex-col items-center pt-2 px-2 gap-2 min-h-0">
-          <div className="relative w-[min(60vw,320px)] aspect-square">
+          <div className="relative w-[min(46vw,260px)] aspect-square">
             <AttitudeIndicator />
             <StallBanner />
           </div>
@@ -62,7 +65,7 @@ const Cockpit = ({ flight, phase }: CockpitProps) => {
             paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
           }}
         >
-          <Yoke onChange={handleYoke} size={150} />
+          <Yoke onChange={handleYoke} size={170} />
         </div>
 
         <div
@@ -72,7 +75,7 @@ const Cockpit = ({ flight, phase }: CockpitProps) => {
             paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
           }}
         >
-          <Throttle onChange={handleThrottle} height={190} width={48} />
+          <Throttle onChange={handleThrottle} height={210} width={56} />
         </div>
       </div>
     </TelemetryProvider>

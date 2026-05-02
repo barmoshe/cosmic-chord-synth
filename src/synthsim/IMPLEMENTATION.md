@@ -902,39 +902,323 @@ Tone.js is mocked in jsdom using the `vi.hoisted()` registry pattern from `useAu
 
 ## 7. M4 — phase machine + flight plan
 
-### Files
-- `src/synthsim/flightplan/phases.ts` — array of phase records (mirrors `DJ_SECTIONS` shape)
-- `src/synthsim/flightplan/plan.ts` — emits a default route + weather knobs
-- `src/synthsim/sound/phaseScheduler.ts` — Transport-driven section advancement
-- `src/synthsim/hooks/usePhase.ts` — exposes current/next phase + progress
+Built on top of M3. **Goal**: replace the M3 fixed kick+hat heartbeat with a phase-driven section machine. The simulator becomes a generative composer — phases advance on flight events (taxi → takeoff → climb → cruise → descent → approach → landing → shutdown), each with its own drum pattern + mapping-profile patch.
 
-### Phase records (sketch)
-```ts
-export const PHASES = [
-  { name: "PREFLIGHT", bars: 4,  energy: 0.05, drum: "silence",  patch: { reverb: 0.2, gain: -40 } },
-  { name: "TAXI",      bars: 4,  energy: 0.15, drum: "tick",     patch: { reverb: 0.25 } },
-  { name: "TAKEOFF",   bars: 8,  energy: 0.85, drum: "build",    patch: { reverb: 0.3 } },
-  { name: "CLIMB",     bars: 16, energy: 0.7,  drum: "fourFloor",patch: { reverb: 0.45 } },
-  { name: "CRUISE",    bars: 32, energy: 0.6,  drum: "pulse",    patch: { reverb: 0.55 } },
-  { name: "DESCENT",   bars: 16, energy: 0.65, drum: "filtered", patch: { reverb: 0.5 } },
-  { name: "APPROACH",  bars: 12, energy: 0.8,  drum: "tight",    patch: { reverb: 0.35 } },
-  { name: "LANDING",   bars: 6,  energy: 0.95, drum: "impact",   patch: { reverb: 0.25 } },
-  { name: "SHUTDOWN",  bars: 4,  energy: 0.05, drum: "silence",  patch: { reverb: 0.7 } },
-] as const;
+### 7.1 Stance and constraints
+
+- **Self-contained**, same as M3. `src/synthsim/flightplan/` imports nothing from `src/components/biome-synth/`. We mirror the `DJ_SECTIONS` *pattern* but re-implement.
+- **Auto-only**. No manual phase override in M4 (locked decision). Telemetry-driven transitions only.
+- **No phase progress widget**. M4 reuses the existing Hud `phase` label — the existing `phase` prop on `<Hud>` becomes dynamic. No new instruments.
+- **No new audio voices**. Snare not added in M4 — "impact" pattern is a velocity-boosted kick + reverb-wet bump. Kick + hat only, same as M3.
+- **No new npm deps**. Tone, Vitest, Tailwind only.
+- **Phase patches override mapping output**. A phase patch beats the M3 telemetry mapping (e.g., PREFLIGHT silences the master gain even if throttle is up). Patches apply *after* `applyTelemetry` each tick.
+- **Refs over setState** on the audio path. Same discipline as M3 — phase state lives in a React state for the Hud, but the audio loop reads via a ref to avoid reconciler latency.
+
+### 7.2 Files
+
+```
+src/synthsim/flightplan/
+├── phases.ts                 PHASES record + TRANSITIONS predicate table
+├── phases.test.ts            shape + every predicate exercised
+├── drumPatterns.ts           16-step kick/hat grids per pattern key
+├── drumPatterns.test.ts      grid invariants + named-pattern shape
+├── phaseProfiles.ts          per-phase MappingProfile patch + merge fn
+└── phaseProfiles.test.ts     merge respects overrides, base preserved
+
+src/synthsim/hooks/
+├── usePhase.ts               state machine: subscribe → predicate → dwell → advance
+└── usePhase.test.tsx         starting state, advance triggers, dwell, no flicker
 ```
 
-### Auto-advance triggers
-- `TAXI → TAKEOFF`: throttle > 0.7 on ground for 2s
-- `TAKEOFF → CLIMB`: airspeed > vStall + onGround === false
-- `CLIMB → CRUISE`: |verticalSpeedFpm| < 200 sustained 4s
-- `CRUISE → DESCENT`: throttle < 0.4 sustained 3s
-- `DESCENT → APPROACH`: altitudeFt < 2000
-- `APPROACH → LANDING`: altitudeFt < 100 + onGround imminent
-- `LANDING → SHUTDOWN`: airspeed < 5 kt sustained 3s
-- `SHUTDOWN`: throttle === 0 + RPM < 0.05
+Modified:
+- `src/synthsim/sound/audioEngine.ts` — replace the fixed M3 heartbeat (`scheduleRepeat 4n` + `8n,8n`) with a single 16-step pattern scheduler reading a `currentPatternRef`. Add `setDrumPattern(key)` + `setLeadEnergy(0..1)` to the facade. `setBpm` already exists.
+- `src/synthsim/hooks/useTelemetrySound.ts` — accept `profile` from caller (already does) — caller now passes the *patched* profile.
+- `src/synthsim/SynthSimApp.tsx` — wire `usePhase`, pass current phase string to `<Cockpit phase=…>`, derive the patched profile from current phase, hand to `useTelemetrySound`. Drum-pattern key flows to engine via a `useEffect`.
+- `src/synthsim/cockpit/Cockpit.tsx` — already accepts `phase` prop; just ensure it's wired (already is).
 
-### Done when
-A completed preflight → shutdown demo plays a coherent arc, and section transitions feel synced to the actual flight events.
+### 7.3 Phase records — `phases.ts`
+
+Drop the `bars` field from the original sketch — phases advance on **flight conditions**, not on time. We keep a `minDwellSec` (anti-flicker floor) and a `drumPatternKey`.
+
+```ts
+export type PhaseName =
+  | "PREFLIGHT" | "TAXI" | "TAKEOFF" | "CLIMB" | "CRUISE"
+  | "DESCENT" | "APPROACH" | "LANDING" | "SHUTDOWN";
+
+export interface PhaseRecord {
+  name: PhaseName;
+  energy: number;          // 0..1, reserved for M5 use; M4 reads it for fuel ring etc.
+  drumPatternKey: DrumPatternKey;
+  minDwellSec: number;     // anti-flicker floor before this phase can exit
+}
+
+export const PHASES: Record<PhaseName, PhaseRecord> = {
+  PREFLIGHT: { name: "PREFLIGHT", energy: 0.05, drumPatternKey: "silence",   minDwellSec: 0  },
+  TAXI:      { name: "TAXI",      energy: 0.15, drumPatternKey: "tick",      minDwellSec: 2  },
+  TAKEOFF:   { name: "TAKEOFF",   energy: 0.85, drumPatternKey: "build",     minDwellSec: 4  },
+  CLIMB:     { name: "CLIMB",     energy: 0.7,  drumPatternKey: "fourFloor", minDwellSec: 6  },
+  CRUISE:    { name: "CRUISE",    energy: 0.6,  drumPatternKey: "pulse",     minDwellSec: 8  },
+  DESCENT:   { name: "DESCENT",   energy: 0.65, drumPatternKey: "filtered",  minDwellSec: 6  },
+  APPROACH:  { name: "APPROACH",  energy: 0.8,  drumPatternKey: "tight",     minDwellSec: 4  },
+  LANDING:   { name: "LANDING",   energy: 0.95, drumPatternKey: "impact",    minDwellSec: 2  },
+  SHUTDOWN:  { name: "SHUTDOWN",  energy: 0.05, drumPatternKey: "silence",   minDwellSec: 4  },
+};
+
+export interface Transition {
+  from: PhaseName;
+  to: PhaseName;
+  predicate: (t: Telemetry) => boolean;
+  sustainSec: number;      // predicate must be continuously true for this long
+}
+
+export const TRANSITIONS: Transition[] = [
+  { from: "PREFLIGHT", to: "TAXI",
+    predicate: (t) => t.throttle > 0.05 || t.rpm > 0.05, sustainSec: 0.5 },
+  { from: "TAXI", to: "TAKEOFF",
+    predicate: (t) => t.throttle > 0.7 && t.onGround,    sustainSec: 2 },
+  { from: "TAKEOFF", to: "CLIMB",
+    predicate: (t) => !t.onGround && t.airspeedKt > 50,   sustainSec: 0 },
+  { from: "CLIMB", to: "CRUISE",
+    predicate: (t) => Math.abs(t.verticalSpeedFpm) < 200, sustainSec: 4 },
+  { from: "CRUISE", to: "DESCENT",
+    predicate: (t) => t.throttle < 0.4 && t.verticalSpeedFpm < -200, sustainSec: 3 },
+  { from: "DESCENT", to: "APPROACH",
+    predicate: (t) => t.altitudeFt < 2000,                sustainSec: 0 },
+  { from: "APPROACH", to: "LANDING",
+    predicate: (t) => t.altitudeFt < 100 || t.onGround,   sustainSec: 0 },
+  { from: "LANDING", to: "SHUTDOWN",
+    predicate: (t) => t.airspeedKt < 5 && t.onGround,     sustainSec: 3 },
+];
+```
+
+The `usePhase` hook walks `TRANSITIONS` filtered by `from === currentPhase` each tick.
+
+### 7.4 Drum patterns — `drumPatterns.ts`
+
+Each pattern is a 16-step grid (one bar of 16ths) of velocity values 0..1.
+
+```ts
+export type DrumPatternKey =
+  | "silence" | "tick" | "build" | "fourFloor"
+  | "pulse" | "filtered" | "tight" | "impact";
+
+export interface DrumPattern {
+  key: DrumPatternKey;
+  kick: number[];          // length 16
+  hat:  number[];          // length 16
+}
+
+const z = () => Array(16).fill(0);
+const at = (positions: number[], vel = 1): number[] => {
+  const arr = z();
+  for (const p of positions) arr[p] = vel;
+  return arr;
+};
+
+export const DRUM_PATTERNS: Record<DrumPatternKey, DrumPattern> = {
+  silence:   { key: "silence",   kick: z(),                                hat: z() },
+  tick:      { key: "tick",      kick: z(),                                hat: at([2,6,10,14], 0.4) },
+  build:     { key: "build",     kick: at([0,4,8,12], 0.7),                hat: at([2,6,10,14], 0.6) },
+  fourFloor: { key: "fourFloor", kick: at([0,4,8,12]),                     hat: at([2,6,10,14], 0.7) },
+  pulse:     { key: "pulse",     kick: at([0,8], 0.85),                    hat: at([4,12], 0.5) },
+  filtered:  { key: "filtered",  kick: at([0,4,8,12], 0.6),                hat: at([2,6,10,14], 0.8) },
+  tight:     { key: "tight",     kick: at([0,4,8,12]),                     hat: at([0,2,4,6,8,10,12,14], 0.6) },
+  impact:    { key: "impact",    kick: at([0], 1.0),                       hat: at([8], 0.4) },
+};
+```
+
+The pattern scheduler reads `velocity = pattern.kick[step]` and only fires `triggerAttackRelease` when `> 0`.
+
+### 7.5 Phase profile patches — `phaseProfiles.ts`
+
+Per-phase partial mapping-profile overrides. Applied as a deep merge over `DEFAULT_PROFILE`.
+
+```ts
+export type PhaseProfilePatch = Partial<{
+  masterGainCeilingDb: number;     // hard cap on master gain output regardless of throttle
+  drumGainCeilingDb: number;       // hard cap on drum gain output
+  reverbWetBoost: number;          // added to reverb wet output (clamped to 1)
+  delayWetForce: number;           // forced delay wet (overrides gear-based bool)
+  leadFilterCeilingHz: number;     // cap lead filter cutoff (closes brightness in DESCENT)
+}>;
+
+export const PHASE_PATCHES: Record<PhaseName, PhaseProfilePatch> = {
+  PREFLIGHT: { masterGainCeilingDb: -36, drumGainCeilingDb: -60, reverbWetBoost: 0.05 },
+  TAXI:      { masterGainCeilingDb: -20, drumGainCeilingDb: -30 },
+  TAKEOFF:   { reverbWetBoost: 0.05 },
+  CLIMB:     { reverbWetBoost: 0.15 },
+  CRUISE:    { reverbWetBoost: 0.25 },
+  DESCENT:   { reverbWetBoost: 0.20, leadFilterCeilingHz: 4000 },
+  APPROACH:  { reverbWetBoost: 0.05, delayWetForce: 0.18 },
+  LANDING:   { masterGainCeilingDb: -10, reverbWetBoost: 0 },
+  SHUTDOWN:  { masterGainCeilingDb: -36, drumGainCeilingDb: -60, reverbWetBoost: 0.4 },
+};
+```
+
+A pure helper `applyPhasePatch(engine, patch)` runs *after* `applyTelemetry` each tick, calling the relevant setters with patch values (using a 200 ms ramp). The patch always wins because it's the last writer.
+
+### 7.6 Auto-advance — `usePhase.ts`
+
+```ts
+export interface PhaseHandle {
+  phase: PhaseName;
+  patch: PhaseProfilePatch;
+  pattern: DrumPattern;
+}
+
+export function usePhase(flight: FlightLoopHandle, active: boolean): PhaseHandle {
+  const [phase, setPhase] = useState<PhaseName>("PREFLIGHT");
+  const dwell = useRef({
+    enteredMs: performance.now(),
+    candidates: new Map<PhaseName, number>(), // candidate target → first-seen ms
+  });
+
+  useEffect(() => {
+    if (!active) return;
+    return flight.subscribe((t) => {
+      const now = performance.now();
+      const since = now - dwell.current.enteredMs;
+      const phaseRec = PHASES[phase];
+      if (since < phaseRec.minDwellSec * 1000) return;
+
+      const candidates = TRANSITIONS.filter((tr) => tr.from === phase);
+      for (const tr of candidates) {
+        if (tr.predicate(t)) {
+          const seen = dwell.current.candidates.get(tr.to) ?? now;
+          if (!dwell.current.candidates.has(tr.to))
+            dwell.current.candidates.set(tr.to, now);
+          if (now - seen >= tr.sustainSec * 1000) {
+            dwell.current.enteredMs = now;
+            dwell.current.candidates.clear();
+            setPhase(tr.to);
+            return;
+          }
+        } else {
+          dwell.current.candidates.delete(tr.to);
+        }
+      }
+    });
+  }, [flight, active, phase]);
+
+  return useMemo(() => ({
+    phase,
+    patch: PHASE_PATCHES[phase],
+    pattern: DRUM_PATTERNS[PHASES[phase].drumPatternKey],
+  }), [phase]);
+}
+```
+
+The `dwell.candidates` map handles overlapping predicates and per-transition `sustainSec` — without re-rendering. The hook resubscribes when `phase` changes (acceptable cost — handful of times per flight).
+
+### 7.7 audioEngine changes
+
+Replace this M3 block:
+
+```ts
+// REMOVE
+Tone.Transport.scheduleRepeat((t) => kick.triggerAttackRelease("C2", "16n", t), "4n");
+Tone.Transport.scheduleRepeat((t) => hat.triggerAttackRelease("32n", t, 0.6), "8n", "8n");
+```
+
+With a single 16-step scheduler reading `currentPatternRef` + a `stepRef`:
+
+```ts
+// inside createSoundEngine
+let currentPattern: DrumPattern = DRUM_PATTERNS.silence;
+let step = 0;
+
+eventIds.push(
+  Tone.Transport.scheduleRepeat((time) => {
+    if (!nodes) return;
+    const k = currentPattern.kick[step];
+    const h = currentPattern.hat[step];
+    if (k > 0) nodes.kick.triggerAttackRelease("C2", "16n", time, k);
+    if (h > 0) nodes.hat.triggerAttackRelease("32n", time, h);
+    step = (step + 1) % 16;
+  }, "16n"),
+);
+
+// New facade method:
+setDrumPattern: (pattern: DrumPattern) => { currentPattern = pattern; },
+```
+
+The lead arp scheduleRepeat from M3 is unchanged. The pattern only affects drums.
+
+### 7.8 SynthSimApp wire-up
+
+```tsx
+const { engine: sound } = useSoundEngine();
+const flight = useFlightLoop(flying);
+const phase = usePhase(flight, flying);
+
+// Drum pattern follows phase
+useEffect(() => {
+  if (!flying || !sound.isReady()) return;
+  sound.setDrumPattern(phase.pattern);
+}, [phase, flying, sound]);
+
+// Mapping pump runs every tick; phase patch is applied last
+useTelemetrySound(flight, sound, flying, DEFAULT_PROFILE, phase.patch);
+//                                       ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^
+//   M4: pump signature gains the patch arg, applies it after applyTelemetry.
+
+<Cockpit flight={flight} phase={phase.phase} />
+```
+
+`useTelemetrySound` gains a 5th arg `patch?: PhaseProfilePatch`. The new signature still defaults `profile = DEFAULT_PROFILE` so M3 callers (none external) remain compatible.
+
+### 7.9 Tests (~30 new, total ~198)
+
+| File | What it covers |
+|---|---|
+| `phases.test.ts` | PHASES has 9 entries; each pattern key is a valid `DrumPatternKey`; TRANSITIONS form a connected chain PREFLIGHT → SHUTDOWN; every predicate fires on a synthetic telemetry sample (and is false on the negation) |
+| `drumPatterns.test.ts` | every pattern has `kick.length === 16 && hat.length === 16`; all velocities ∈ [0..1]; `silence` is all zeros; `fourFloor` has kicks at 0,4,8,12; `impact` has a single kick at 0 |
+| `phaseProfiles.test.ts` | every phase has a patch entry; patch keys are within the typed union; `applyPhasePatch` calls expected setters with expected ceiling/boost values |
+| `usePhase.test.tsx` | starts at PREFLIGHT; PREFLIGHT → TAXI on throttle bump (after sustain); doesn't advance before `minDwellSec`; doesn't flicker (predicate going on/off resets dwell candidates); on phase change, re-subscribes; unsubscribes on unmount + on `active=false` |
+| `audioEngine.test.ts` (extension) | `setDrumPattern` swaps the pattern referenced by the 16-step scheduler; `step` advances modulo 16; pattern 0 (silence) fires no triggers |
+| `useTelemetrySound.test.tsx` (extension) | when patch is supplied, applyTelemetry runs first, then patch setters; ramp time used for patch is 0.2s |
+
+Tone.js + Transport remain mocked via the same `vi.hoisted` registry from M3 (`audioEngine.test.ts:1-80`). Add `transport.scheduleRepeat` capture so tests can step the 16-step scheduler manually.
+
+### 7.10 Verification
+
+`npm run dev`, navigate to `/synthsim`:
+
+1. **Pre-flight tap → cockpit appears**, Hud shows `PREFLIGHT`. Audio is faint drone/sub only — drums silent, lead silent.
+2. **Bump the throttle (any movement)**: phase auto-advances to `TAXI` after ~0.5 s sustained. Hud shows `TAXI`. The "tick" pattern starts (hat-only on offbeats). Reverb is dry.
+3. **Throttle to 100 % on the runway**: ~2 s later phase becomes `TAKEOFF`. Drums build, kick pattern thickens.
+4. **Liftoff at ~50 kt**: phase becomes `CLIMB` immediately (sustainSec=0). Four-on-the-floor kick. Reverb opens noticeably (CLIMB patch boosts wet by 0.15).
+5. **Level off (VS settles to ~0)**: 4 s later phase advances to `CRUISE`. Pulse pattern (kick on 1, hat on 2). The wash is at its widest — this is the chill section.
+6. **Throttle back + nose down**: 3 s later phase becomes `DESCENT`. Filtered pattern; lead filter clamps brightness via the patch ceiling.
+7. **Below 2000 ft**: phase becomes `APPROACH`. Tight pattern, delay wet forced up — gear-extension echo regardless of gear flag.
+8. **Wheels down + below 100 ft / on ground**: phase becomes `LANDING`. Single-hit "impact" kick on 1 of every bar, master gain ceiling at -10 dB punches through.
+9. **Roll out (airspeed below 5 kt + on ground for 3 s)**: phase becomes `SHUTDOWN`. Drums drop to silence; reverb tail blooms (patch reverbWetBoost 0.4); plane is silent within ~10 s.
+10. **No audible flicker** — going briefly into a stall in CLIMB doesn't kick us back to TAKEOFF; brief altitude bumps in CRUISE don't toggle DESCENT.
+11. `npm test` all green (~198). `npm run build` clean.
+12. **iPhone 14 Pro emulation**: phase label updates legibly, drums stay tight, no zipper noise on patch transitions (200 ms ramp absorbs them).
+
+### 7.11 Out of scope (deferred)
+
+- Manual phase override — no skip button, no keyboard shortcut.
+- Phase progress widget (current → next + dwell bar). The Hud label is enough for M4.
+- Per-phase scale or octave bias (heading still drives mode; altitude still drives octave).
+- Phase-specific lead arp patterns (silence in PREFLIGHT/SHUTDOWN, denser in CRUISE). M4 keeps the M3 8-note arp constant; phase only varies drums + profile patch.
+- Snare voice — patterns use kick + hat only.
+- Weather / wind / turbulence layer ("flight plan" knobs in DESIGN.md). M4 is just the phase machine — flight plan sketch is M5+.
+- Autopilot + DJ-mode generative composition. That's M5.
+
+### 7.12 Rollout (single batch)
+
+1. `flightplan/drumPatterns.ts` + test
+2. `flightplan/phaseProfiles.ts` + test
+3. `flightplan/phases.ts` + test (depends on patterns + patches)
+4. `audioEngine.ts` patch — replace 4n+8n heartbeat with 16n step scheduler reading a pattern ref; add `setDrumPattern` to facade; extend test
+5. `hooks/usePhase.ts` + test
+6. `hooks/useTelemetrySound.ts` extend signature + test extension
+7. `SynthSimApp.tsx` wire `usePhase`, drive drum pattern + patch, pass `phase.phase` to `<Cockpit>`
+8. `npm test` (~198) + `npm run build` clean
+9. Mobile smoke (full preflight → shutdown sequence on a real phone or emulation)
+10. Commit on feature branch, rebase on origin/main if it moved, fast-forward main, push both
 
 ---
 

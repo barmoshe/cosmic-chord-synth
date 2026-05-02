@@ -11,7 +11,7 @@ interface YokeProps {
   size?: number;
 }
 
-const SPRING_BACK_PER_SEC = 4;
+const SPRING_BACK_PER_SEC = 2.2;
 
 const Yoke = ({ onChange, size = 180 }: YokeProps) => {
   const padRef = useRef<HTMLDivElement | null>(null);

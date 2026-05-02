@@ -39,7 +39,10 @@ export function step(
   dt: number = FIXED_DT,
 ): FlightState {
   const speed = airspeed(state.velocity);
-  const speedFactor = Math.min(1, speed / 30);
+  const speedFactor = Math.max(
+    AIRFRAME.groundAuthorityFloor,
+    Math.min(1, speed / 30),
+  );
   const oldAxes = bodyAxes(state.attitude);
   const oldAoa = angleOfAttack(state.velocity, oldAxes);
 

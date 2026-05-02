@@ -48,16 +48,17 @@ describe("integrate.step — full throttle takeoff", () => {
 });
 
 describe("integrate.step — descent with no power", () => {
-  it("loses altitude when throttle cut in air", () => {
+  it("loses altitude when throttle cut + nose down", () => {
     const aloft: FlightState = {
       ...makeFlightState(),
       position: { x: 0, y: 500, z: 0 },
       velocity: { x: 0, y: 0, z: 50 },
+      attitude: { pitch: -0.15, roll: 0, yaw: 0 },
       rpm: 0.6,
       onGround: false,
     };
-    const ctrl: ControlInputs = { ...makeControls(), throttle: 0 };
-    const after = stepN(aloft, ctrl, 60 * 10);
+    const ctrl: ControlInputs = { ...makeControls(), throttle: 0, elevator: -0.4 };
+    const after = stepN(aloft, ctrl, 60 * 30);
     expect(after.position.y).toBeLessThan(500);
   });
 });
