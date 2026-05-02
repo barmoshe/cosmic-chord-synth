@@ -4,7 +4,7 @@ A flight simulator that's also a synthesizer. Every flight-state knob (throttle,
 
 Latest milestone: **M3 — telemetry-driven sound** (committed). M0–M2 already shipped (boot/landing, engine + telemetry, full SVG cockpit). M4 (phase machine) is planned (IMPLEMENTATION.md §7) but not built.
 
-The cockpit also has a **full-screen artificial horizon background** (`cockpit/WorldBackground.tsx`) that tracks pitch + roll — without it, the cockpit was a black void around the SVG instruments and players couldn't tell which way was up. M3 also re-tuned the airframe so a phone player can take off with **just throttle** (no elevator input required) — see `engine/airframe.ts` for the current curves.
+The cockpit has a **real Three.js world** (`cockpit/World3D.tsx`) behind the instruments — gradient sky shader, textured ground plane with a grid, a runway with a centerline marking, and a perspective camera that rotates with the plane's attitude (yaw/pitch/roll fed via `flight.subscribe` at 60 Hz). M3 also re-tuned the airframe so a phone player can take off with **just throttle** (no elevator input required) — see `engine/airframe.ts` for the current curves.
 
 Last verified: M3 ships 168 passing tests and a clean `npm run build`.
 
@@ -54,8 +54,10 @@ src/synthsim/
 │   └── *.test.ts                          forces (20) + integrate (8)
 ├── cockpit/
 │   ├── Cockpit.tsx                        portrait stack + safe-area-inset wiring
-│   ├── WorldBackground.tsx                full-screen sky+ground+horizon, tracks
-│   │                                      pitch (translateY) + roll (rotate)
+│   ├── World3D.tsx                        Three.js scene: gradient sky shader,
+│   │                                      ground + grid, runway + centerline.
+│   │                                      Camera rotation tracks attitude at 60Hz
+│   │                                      via flight.subscribe.
 │   ├── TelemetryContext.tsx               50ms-polled provider + useTelemetry()
 │   ├── TelemetryContext.test.tsx
 │   ├── DebugTelemetryHUD.tsx              dev-only telemetry block (?dev=1)
@@ -105,6 +107,7 @@ Tests are co-located. Total: 220.
 | M3 | telemetry-driven sound (v1) | ✅ | continuous textures + fixed heartbeat, async pre-flight gesture |
 | M3.1 | mobile-feel pass | ✅ | full-screen WorldBackground, gentler Yoke spring-back, larger touch targets, tuned airframe so throttle-only takes off |
 | M4 | phase machine + flight plan | ✅ | 9-phase FSM with 16-step drum patterns + per-phase profile patches; auto-advance on flight events; Hud label is now phase-driven |
+| M4.1 | real 3D world + perf | ✅ | replaced CSS WorldBackground with Three.js World3D (sky shader + ground + runway); TelemetryProvider 50ms→100ms; audio mapping decimated 2:1 (60Hz physics → 30Hz audio param ramps) |
 | M5 | autopilot = DJ mode | — | tap-AP generates a 4-min composition |
 | M6 | world view (Three.js) | — | optional polish; the plane is currently invisible |
 
@@ -174,6 +177,6 @@ See `.claude/rules/`:
 - M5: live profile editor UI ("re-patch live" — DESIGN.md §4 promise). DEFAULT_PROFILE is hard-coded today.
 - Cockpit-as-modular-synth (DESIGN.md §5): instrument controls double as synth knobs. Defer to M5+.
 - Kollsman-correct altimeter (currently absolute; flight plan/weather will carry the setting).
-- M6 (optional): real Three.js world view — clouds, terrain, runway. The current `WorldBackground.tsx` is a CSS-only stop-gap so the cockpit isn't a black void.
+- M6: richer 3D world. M4.1 ships a basic Three.js scene (`World3D.tsx`); M6 is the polish pass — cloud volumes, terrain heightmap, distant mountains, lighting, and a camera that translates with `flight.position` (currently camera only rotates).
 - Phugoid damping: with elevator held, the plane can pitch-overshoot into a stall. Game-feel is fine for short pulls; future work is auto-trim or stronger speed-stability damping.
 - ATC / radio FX, granular turbulence layer, TCAS dissonance — listed as v2 in DESIGN.md §4.

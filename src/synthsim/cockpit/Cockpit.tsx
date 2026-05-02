@@ -3,7 +3,7 @@ import Hud from "../hud/Hud";
 import StallBanner from "../hud/StallBanner";
 import { TelemetryProvider } from "./TelemetryContext";
 import Throttle from "./Throttle";
-import WorldBackground from "./WorldBackground";
+import World3D from "./World3D";
 import Yoke, { type YokeAxes } from "./Yoke";
 import AttitudeIndicator from "./instruments/AttitudeIndicator";
 import Airspeed from "./instruments/Airspeed";
@@ -27,7 +27,7 @@ const Cockpit = ({ flight, phase }: CockpitProps) => {
 
   return (
     <TelemetryProvider flight={flight}>
-      <WorldBackground />
+      <World3D flight={flight} />
 
       <div className="fixed inset-0 flex flex-col pointer-events-none">
         <div className="pointer-events-auto">

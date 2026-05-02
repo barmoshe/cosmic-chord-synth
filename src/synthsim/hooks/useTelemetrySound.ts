@@ -27,6 +27,8 @@ const captureContext = (t: Telemetry, p: MappingProfile) => {
   };
 };
 
+const AUDIO_TICK_DECIMATION = 2;
+
 export function useTelemetrySound(
   flight: FlightLoopHandle,
   engine: SoundEngine,
@@ -39,8 +41,11 @@ export function useTelemetrySound(
 
   useEffect(() => {
     if (!active) return;
+    let tick = 0;
     return flight.subscribe((t) => {
       if (!engine.isReady()) return;
+      const cur = tick++;
+      if (cur % AUDIO_TICK_DECIMATION !== 0) return;
       applyTelemetry(t, engine, profile);
       const current = patchRef.current;
       if (current) {

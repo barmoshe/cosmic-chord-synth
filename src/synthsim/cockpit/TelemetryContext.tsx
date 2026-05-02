@@ -12,7 +12,7 @@ interface TelemetryProviderProps {
 
 export const TelemetryProvider = ({
   flight,
-  intervalMs = 50,
+  intervalMs = 100,
   children,
 }: TelemetryProviderProps) => {
   const [t, setT] = useState<Telemetry>(flight.telemetryRef.current);
