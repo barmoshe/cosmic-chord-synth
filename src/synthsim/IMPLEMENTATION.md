@@ -664,47 +664,239 @@ On a real iPhone in Safari, you can fly a complete VFR pattern (takeoff → clim
 
 ## 6. M3 — telemetry-driven sound (v1 mapping)
 
-### Files
-- `src/synthsim/sound/audioEngine.ts` — Tone.js graph (~150 LOC, mirrors `useAudioEngine.ts` shape but smaller voice list)
-- `src/synthsim/sound/mapping.ts` — pure mapping fns
-- `src/synthsim/sound/profiles.ts` — `DEFAULT_PROFILE` mapping curves (the table from `DESIGN.md` §4)
-- `src/synthsim/hooks/useTelemetrySound.ts` — subscribes to flight loop, applies mapping every tick
+Built on top of M2. **Goal**: make the airplane play itself. Every flight-state knob (throttle, airspeed, altitude, pitch, roll, heading, RPM, gear, flaps, stall, overspeed) is wired into a small Tone.js graph through a `MappingProfile` so the sim becomes a generative instrument.
 
-### Audio graph (smaller than biome-synth)
+This is **not** the phase machine — that's M4. M3 ships a **fixed heartbeat pattern** + continuous textures so the mapping is fully demonstrable on its own.
+
+### 6.1 Stance and constraints
+
+- **Self-contained**. `src/synthsim/sound/` imports nothing from `src/components/biome-synth/`. We mirror biome-synth's *patterns* — function-built facade, dispose loop, `rampTo` smoothing, drums-dry routing — but re-implement them. The synthsim folder must remain extractable per `DESIGN.md` §11.
+- **No new npm deps**. Tone.js is already in `package.json` from biome-synth.
+- **AudioContext starts on user gesture**. Existing `Pre-flight →` button in `Landing.tsx` is the gesture. SynthSimApp awaits `sound.start()` before flipping `phase = "flying"`. No new UI.
+- **No `setState` on the audio path**. Same discipline as `useDjAutoPlay`: mutable refs + Transport callbacks.
+
+### 6.2 Files
+
 ```
-lead (PolySynth, sawtooth)  ─► leadFilter ─┐
-sub  (Synth, sine)          ─► gainSub  ───┤
-drone (Synth, sine, slow)   ─► droneFilter ┤
-                                           ├─► chorus ─► delay ─► reverb ─► comp ─► limiter ─► destination
-kick  (MembraneSynth)       ───────────────┘ (drums dry, like biome-synth)
-hat   (MetalSynth)          ─────────────────► comp (dry path)
+src/synthsim/sound/
+├── scales.ts                       8 modes + headingToScale() + scaleStepToMidi()
+├── scales.test.ts                  octant partitioning + step wrapping
+├── profiles.ts                     LinearCurve / BoolCurve types + DEFAULT_PROFILE
+├── profiles.test.ts                shape + bounded ranges
+├── mapping.ts                      pure linMap + applyTelemetry() — no Tone.js refs
+├── mapping.test.ts                 each setter call asserted on a stub engine
+├── audioEngine.ts                  createSoundEngine() factory: function-built facade
+└── audioEngine.test.ts             graph construction + ramps + dispose (Tone mocked)
+
+src/synthsim/hooks/
+├── useSoundEngine.ts               useMemo + dispose-on-unmount; engine is created lazy
+├── useSoundEngine.test.tsx         single-instance + dispose lifecycle
+├── useTelemetrySound.ts            flight.subscribe → applyTelemetry per tick
+└── useTelemetrySound.test.tsx      subscribe/unsubscribe + ready-gate
 ```
 
-### Mapping fn (skeleton)
+Modified:
+- `src/synthsim/SynthSimApp.tsx` — owns `useSoundEngine`; async `handlePreflight` awaits `sound.start()` before flipping to `flying`; mounts `useTelemetrySound`.
+- `src/synthsim/components/Landing.tsx` — `starting` prop disables the button + swaps label to `Starting engines…`.
+
+### 6.3 Audio graph
+
+```
+lead   (PolySynth, sawtooth, maxPoly 3)
+  → leadFilter (lowpass)
+  → distortion   (wet 0 default — gated by stallWarning)
+  → vibrato      (depth 0.08, frequency from yawRate)
+  → chorus → delay → reverb ─┐
+                              │
+drone  (Synth, sine, slow)    │
+  → droneFilter (cutoff from VS) → reverb ─┤
+                                            │
+sub    (Synth, sine)                        │
+  → subVolume ────────────────────────────────┤
+                                              │
+kick   (MembraneSynth) ─┐                     │
+hat    (MetalSynth)     ├ drumVolume ─────────┤  (drums dry — see audio-engine rule)
+                        ┘                     │
+                                              ▼
+                                         masterPanner
+                                              │
+                                         bitcrusher (wet 0 default — gated by overspeed)
+                                              │
+                                         masterComp → limiter → masterVolume → Tone.getDestination()
+```
+
+**Param defaults** (mirror biome-synth conventions):
+- Reverb: `Freeverb({ roomSize: 0.78, dampening: 3500, wet: 0.3 })`
+- Delay: `FeedbackDelay({ delayTime: "8n.", feedback: 0.28, wet: 0 })`
+- Chorus: `Chorus({ frequency: 0.6, delayTime: 3.5, depth: 0.4, wet: 0.12 }).start()`
+- Compressor: `{ threshold: -18, ratio: 3, attack: 0.003, release: 0.1 }`
+- Limiter: `-1 dB`
+- BitCrusher: `{ bits: 4, wet: 0 }`
+- Distortion: `{ distortion: 0.4, wet: 0 }`
+- Vibrato: `{ frequency: 0, depth: 0.08 }` — frequency driven by yawRate; replaces an LFO so static-detune doesn't fight modulation.
+
+### 6.4 SoundEngine facade
+
 ```ts
-export function applyTelemetry(t: Telemetry, eng: SoundEngine, profile: MappingProfile) {
-  // gain
-  eng.setMasterGainDb(linMap(t.throttle, 0, 1, -60, -6));
-  // bpm
-  Tone.Transport.bpm.rampTo(linMap(t.airspeedKt, 30, 200, 60, 160), 0.2);
-  // octave
-  eng.setLeadOctaveOffset(Math.floor(t.altitudeFt / 5000));
-  // filter
-  eng.setLeadFilterCutoff(linMap(t.pitchDeg, -20, 20, 200, 8000));
-  // pan
-  eng.setMasterPan(linMap(t.rollDeg, -45, 45, -1, 1));
-  // verb wet from flaps, delay bypass from gear, etc.
-  // distortion on stallWarning, bit-crush on overspeed.
+export interface SoundEngine {
+  start(): Promise<boolean>;
+  dispose(): void;
+  isReady(): boolean;
+  setMasterGainDb(db: number, rampS?: number): void;
+  setMasterPan(p: number, rampS?: number): void;
+  setLeadFilterCutoff(hz: number, rampS?: number): void;
+  setDroneFilterCutoff(hz: number, rampS?: number): void;
+  setReverbWet(w: number, rampS?: number): void;
+  setDelayWet(w: number, rampS?: number): void;
+  setVibratoRate(hz: number, rampS?: number): void;
+  setSubAmplitudeDb(db: number, rampS?: number): void;
+  setDistortionWet(w: number, rampS?: number): void;
+  setBitcrusherWet(w: number, rampS?: number): void;
+  setBpm(bpm: number, rampS?: number): void;
+  setDrumGainDb(db: number, rampS?: number): void;
+  setLeadOctaveOffset(n: number): void;
+  setLeadScale(name: ScaleName): void;
 }
 ```
 
-`Tone.Transport.bpm.rampTo(value, duration)` is confirmed safe ([Tone.js Transport docs](https://tonejs.github.io/docs/14.7.39/Transport)).
+Internally the factory holds a `nodes` ref (only populated after `start()`) plus a `playbackState` (current scale, octave, arp step) read by Transport callbacks. All ramping setters early-return if `nodes === null`, so it's safe to call them before `start()` resolves.
 
-### Done when
-- Tap-to-start gesture lifts AudioContext on iOS Safari.
-- Throttle audibly affects gain, airspeed audibly shifts BPM, altitude shifts pitch in steps.
-- No audible glitches/zipper noise (use `rampTo` with 0.05–0.2s smoothing on every continuous param).
-- CPU stays under 30% on iPhone 12.
+### 6.5 Heartbeat scheduler
+
+Inside `audioEngine.start()`:
+
+```ts
+Tone.Transport.scheduleRepeat((t) => kick.triggerAttackRelease("C2", "16n", t), "4n");
+Tone.Transport.scheduleRepeat((t) => hat.triggerAttackRelease("32n", t, 0.6), "8n", "8n");
+Tone.Transport.scheduleRepeat((t) => {
+  const midi = scaleStepToMidi(SCALES[state.scale], state.arpStep, ROOT_MIDI, state.octaveOffset);
+  lead.triggerAttackRelease(Tone.Frequency(midi, "midi").toFrequency(), "16n", t);
+  state.arpStep = (state.arpStep + 1) % SCALES[state.scale].steps.length;
+}, "8n");
+
+drone.triggerAttack(Tone.Frequency(48, "midi").toFrequency());
+sub.triggerAttack(Tone.Frequency(36, "midi").toFrequency());
+Tone.Transport.bpm.value = 90;
+Tone.Transport.start();
+```
+
+The drum heartbeat is gain-gated. At idle on the ground (throttle < 0.1) `mapping.ts` ramps `drumVolume` to `-60 dB`, so the heartbeat is silent without scheduling tricks. The lead arp keeps running quietly (lead voice volume itself is at -10 dB by default).
+
+### 6.6 Mapping (`mapping.ts`)
+
+Pure helpers + `applyTelemetry()` — no Tone.js imports, no side effects on the engine outside the setter calls.
+
+```ts
+export const linMap = (v, inMin, inMax, outMin, outMax) => {
+  const span = inMax - inMin;
+  if (span === 0) return outMin;
+  const t = (clamp(v, inMin, inMax) - inMin) / span;
+  return outMin + t * (outMax - outMin);
+};
+```
+
+`applyTelemetry(t, engine, profile)` walks every row of DESIGN.md §4 and calls the matching setter:
+
+| Telemetry | Curve | Output | Ramp |
+|---|---|---|---|
+| `throttle` | linear | master gain `-60..-6 dB` | 50 ms |
+| `throttle` (≥ 0.1) | linear | drum gain `-30..-6 dB` (else `-60`) | 80 ms |
+| `airspeedKt` | linear | BPM `60..160` | 200 ms |
+| `altitudeFt` | step / 5000 ft | leadOctaveOffset 0..n | discrete |
+| `pitchDeg` | linear | leadFilter cutoff `200..8000 Hz` | 80 ms |
+| `rollDeg` | linear | masterPan `-1..+1` | 80 ms |
+| `yawRateDps` (abs) | linear | vibrato rate `0..8 Hz` | 100 ms |
+| `verticalSpeedFpm` | linear | droneFilter cutoff `200..2000 Hz` | 200 ms |
+| `rpm` (≥ 0.05) | linear | sub amplitude `-36..-12 dB` (else `-60`) | 80 ms |
+| `headingDeg` | step (8 octants) | lead scale (8 modes) | discrete |
+| `flaps` | linear | reverb wet `0.20..0.55` | 200 ms |
+| `gearDown` | bool | delay wet `0..0.14` | 200 ms |
+| `stallWarning` | bool | distortion wet `0..0.7` | 80 ms |
+| `overspeed` | bool | bitcrusher wet `0..0.6` | 80 ms |
+
+`scales.ts` provides the eight modes — `[minorPentatonic, dorian, mixolydian, lydian, ionian, aeolian, phrygian, locrian]` — and `headingToScale(deg)` partitions the compass into 45° octants.
+
+### 6.7 Telemetry pump
+
+```ts
+// useTelemetrySound.ts
+useEffect(() => {
+  if (!active) return;
+  return flight.subscribe((t) => {
+    if (!engine.isReady()) return;
+    applyTelemetry(t, engine, profile);
+  });
+}, [flight, engine, active, profile]);
+```
+
+Subscribes via the existing `flight.subscribe` — same source the cockpit uses. Audio runs at 60 Hz physics rate (one tick per `useFlightLoop` step), so continuous params hit `rampTo` ~60 times/sec; the 50–200 ms ramps absorb the discretization without zipper noise.
+
+### 6.8 Audio-start gesture
+
+```tsx
+const handlePreflight = async () => {
+  setStarting(true);
+  try {
+    await sound.start();         // Tone.start() then buildGraph()
+  } finally {
+    setStarting(false);
+    setPhase("flying");
+  }
+};
+```
+
+`Tone.start()` is invoked synchronously inside the click handler stack (the click is the user gesture; `await` lets the AudioContext promise resolve). iOS Safari's autoplay policy is satisfied. If the start rejects we still flip to `flying` — the cockpit is still flyable, just silent — and the engine logs to console.
+
+### 6.9 Tests (168 total, +71 over M2)
+
+| File | What it covers |
+|---|---|
+| `scales.test.ts` | 14 tests: 8 scales structurally valid, octant partitioning, step wrapping (positive + negative) |
+| `profiles.test.ts` | 7 tests: linear curves consistent, ramp times bounded 0–500 ms, gain dB sane, BPM bounded, pan in -1..+1, bool outputs in 0..1 |
+| `mapping.test.ts` | 19 tests: `linMap` boundaries + clamp + zero-span; every row of the §4 table asserted on a stub engine |
+| `audioEngine.test.ts` | 17 tests: lazy init, full graph construction, three Transport scheduleRepeats, drone+sub triggered, every setter ramps the right param at the right time, dispose calls dispose on every node + clears events |
+| `useSoundEngine.test.tsx` | 2 tests: stable instance across rerenders, dispose on unmount |
+| `useTelemetrySound.test.tsx` | 5 tests: inactive doesn't subscribe, active subscribes + applies, ready-gate skips when not ready, unsubscribe on unmount + on active flip |
+
+Tone.js is mocked in jsdom using the `vi.hoisted()` registry pattern from `useAudioEngine.test.ts:8-80`, extended with `Panner`, `Distortion`, `BitCrusher`, `Vibrato`, and a `Transport` stub (`bpm.rampTo`, `scheduleRepeat`, `start`/`stop`/`clear`).
+
+### 6.10 Verification
+
+`npm run dev`, navigate to `/synthsim`:
+
+1. **Loader → Pre-flight → tap CTA** → button briefly says "Starting engines…", cockpit appears.
+2. **Audible faint drone/sub** even at idle on the ground (no drums; throttle 0).
+3. **Throttle to 100%**: master gain rises smoothly (no zipper); drum heartbeat fades in once throttle ≥ 0.1.
+4. **Yoke up** (pitch climbing): lead filter clearly opens up.
+5. **Bank right**: stereo image pans right.
+6. **Climb past ~5000 ft sim**: lead arp jumps an octave.
+7. **Sustained banking through 360°**: scale mode rotates through 8 modes; each octant feels different.
+8. **Pull elevator into stall**: distortion ramps in (clipped tone, "stick shaker"); STALL banner pulses.
+9. **Dive past Vne**: bitcrusher ramps in; OVERSPEED banner appears.
+10. **iPhone Safari** (real device or emulation): audio starts on tap; no glitches; CPU stays under 30 % (DESIGN.md §3 budget).
+11. `npm test` all green (168). `npm run build` clean. No new deps.
+12. **Extraction smoke**: `grep -rn "biome-synth" src/synthsim` returns nothing — synthsim is import-clean.
+
+### 6.11 Out of scope (deferred)
+
+- Phase-driven drum patterns (silence/tick/build/fourFloor/pulse/filtered/tight/impact). M3 ships **one** fixed heartbeat — phases land in M4.
+- Per-phase energy curves and section transitions (M4).
+- ATC/radio FX, granular turbulence layer, TCAS dissonance — listed as v2 in DESIGN.md §4.
+- Cockpit-as-modular-synth (DESIGN.md §5): instruments don't double as synth knobs yet — that's M5+.
+- Live profile editor UI ("re-patch live"). DEFAULT_PROFILE is hard-coded in M3.
+
+### 6.12 Rollout (executed in one commit)
+
+1. `scales.ts` + test
+2. `profiles.ts` + test
+3. `mapping.ts` + test (depends on profiles + scales + the SoundEngine type)
+4. `audioEngine.ts` + test (Tone mocked)
+5. `useSoundEngine.ts` + test
+6. `useTelemetrySound.ts` + test
+7. `Landing.tsx` `starting` prop
+8. `SynthSimApp.tsx` async pre-flight handler + hook wire-up
+9. `npm test` + `npm run build`
+10. Commit on `claude/plane-website-setup-7znAm`, rebase onto `origin/main` if it has moved, fast-forward `main`, push both
 
 ---
 

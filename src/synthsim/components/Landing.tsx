@@ -2,10 +2,11 @@ import { SYNTHSIM_PALETTE } from "../styles";
 
 interface LandingProps {
   visible: boolean;
+  starting?: boolean;
   onPreflight?: () => void;
 }
 
-const Landing = ({ visible, onPreflight }: LandingProps) => {
+const Landing = ({ visible, starting = false, onPreflight }: LandingProps) => {
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center px-6 text-center"
@@ -44,7 +45,8 @@ const Landing = ({ visible, onPreflight }: LandingProps) => {
       <button
         type="button"
         onClick={onPreflight}
-        className="mt-10 sm:mt-12 px-5 sm:px-6 py-2 text-[10px] sm:text-xs uppercase tracking-[0.3em] font-mono border transition-colors duration-300 hover:bg-white/5 active:bg-white/10 touch-manipulation"
+        disabled={starting}
+        className="mt-10 sm:mt-12 px-5 sm:px-6 py-2 text-[10px] sm:text-xs uppercase tracking-[0.3em] font-mono border transition-colors duration-300 hover:bg-white/5 active:bg-white/10 disabled:opacity-60 disabled:cursor-wait touch-manipulation"
         style={{
           borderColor: SYNTHSIM_PALETTE.line,
           color: SYNTHSIM_PALETTE.fg,
@@ -54,7 +56,7 @@ const Landing = ({ visible, onPreflight }: LandingProps) => {
             : "none",
         }}
       >
-        Pre-flight →
+        {starting ? "Starting engines…" : "Pre-flight →"}
       </button>
 
       <style>{`
