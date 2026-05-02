@@ -7,6 +7,7 @@ interface Shortcuts {
   onNextScale: () => void;
   onToggleHelp: () => void;
   onCloseHelp: () => void;
+  onToggleDjPanel: () => void;
 }
 
 export function useKeyboardShortcuts({
@@ -16,6 +17,7 @@ export function useKeyboardShortcuts({
   onNextScale,
   onToggleHelp,
   onCloseHelp,
+  onToggleDjPanel,
 }: Shortcuts) {
   useEffect(() => {
     if (!enabled) return;
@@ -45,6 +47,11 @@ export function useKeyboardShortcuts({
           e.preventDefault();
           onToggleHelp();
           break;
+        case "l":
+        case "L":
+          e.preventDefault();
+          onToggleDjPanel();
+          break;
         case "Escape":
           onCloseHelp();
           break;
@@ -52,5 +59,5 @@ export function useKeyboardShortcuts({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [enabled, onToggleDj, onPrevScale, onNextScale, onToggleHelp, onCloseHelp]);
+  }, [enabled, onToggleDj, onPrevScale, onNextScale, onToggleHelp, onCloseHelp, onToggleDjPanel]);
 }

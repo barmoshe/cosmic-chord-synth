@@ -104,6 +104,7 @@ export default function BiomeSynthApp() {
   const [engineReady, setEngineReady] = useState(false);
   const [theme, setTheme] = useState<BiomeTheme>(readStoredTheme);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [djExpanded, setDjExpanded] = useState(false);
 
   const isJungle = theme === "jungle";
   const isSea = theme === "sea";
@@ -284,6 +285,7 @@ export default function BiomeSynthApp() {
   const toggleDj = useCallback(() => setAutoPlay(p => !p), []);
   const toggleHelp = useCallback(() => setHelpOpen(v => !v), []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
+  const toggleDjPanel = useCallback(() => setDjExpanded(v => !v), []);
 
   useKeyboardShortcuts({
     enabled: phase === "play",
@@ -292,6 +294,7 @@ export default function BiomeSynthApp() {
     onNextScale: nextScale,
     onToggleHelp: toggleHelp,
     onCloseHelp: closeHelp,
+    onToggleDjPanel: toggleDjPanel,
   });
 
   const scaleIndex = SCALE_ORDER.indexOf(scale);
@@ -446,6 +449,8 @@ export default function BiomeSynthApp() {
             bpm={THEME_PRESETS[theme].bpm}
             userLayerRef={userLayerRef}
             theme={theme}
+            expanded={djExpanded}
+            onExpandChange={setDjExpanded}
           />
 
           <div className="biome-scale-group" aria-label="Scale selector">

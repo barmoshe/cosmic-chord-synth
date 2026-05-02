@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { DJ_SECTIONS, isMobile } from "../shared/constants";
+import { DJ_SECTIONS } from "../shared/constants";
 import type { DjUi, DrumPattern, DrumLane } from "../hooks/useDjAutoPlay";
 import type { BiomeTheme } from "./ThemeChooser";
 
@@ -10,6 +10,8 @@ interface DjPanelProps {
   bpm?: number;
   userLayerRef?: React.MutableRefObject<DrumPattern>;
   theme?: BiomeTheme;
+  expanded: boolean;
+  onExpandChange: (next: boolean) => void;
 }
 
 // Default velocity written when a user force-enables a step via tap.
@@ -45,11 +47,10 @@ const SECTION_OFFSETS: Record<string, { start: number; width: number }> = (() =>
   return out;
 })();
 
-export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, userLayerRef, theme = "space" }: DjPanelProps) {
+export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, userLayerRef, theme = "space", expanded, onExpandChange }: DjPanelProps) {
   const [phase, setPhase] = useState("");
   const [nextPhase, setNextPhase] = useState("");
   const [bpm, setBpm] = useState(bpmProp ?? 0);
-  const [expanded, setExpanded] = useState(!isMobile);
   const [reducedMotion, setReducedMotion] = useState(false);
   // Bump to force a re-render after user tap edits so `data-user` attributes refresh.
   const [, setUserEditTick] = useState(0);
@@ -213,7 +214,7 @@ export default function DjPanel({ autoPlay, onToggle, onReady, bpm: bpmProp, use
   }, [reducedMotion]);
 
   const handleToggle = useCallback(() => { onToggle(); }, [onToggle]);
-  const handleExpand = useCallback(() => { setExpanded(e => !e); }, []);
+  const handleExpand = useCallback(() => { onExpandChange(!expanded); }, [expanded, onExpandChange]);
 
   // Tap-to-edit: cycle the step between the generator's value, force-on, and force-off.
   //   tap clean step     → if generator has a hit, force mute (0); else force on

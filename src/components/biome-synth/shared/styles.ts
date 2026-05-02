@@ -220,20 +220,20 @@ export const BIOME_STYLES = `
           color: #7C95B5;
         }
 
-        /* ── Cosmic Conductor — top-docked DJ console ──
-           Sits below the header so the jungle ground + drum flowers stay
-           visible at the bottom. Wrapper is pointer-events:none so galaxy
-           taps pass through padding; interactive children re-enable events.
-           Z-index sits above HUD (10) but below transition overlays (15). */
+        /* ── Cosmic Conductor — left-docked DJ console ──
+           Anchored to the left edge so the centerpiece artwork stays visible.
+           Defaults to collapsed (a small pill); press the L key (or click the
+           chevron) to expand the drum-grid drawer. Wrapper is
+           pointer-events:none so galaxy taps pass through padding; interactive
+           children re-enable events. Z-index sits above HUD (10) but below
+           transition overlays (15). */
         .conductor-root {
           position: fixed;
-          left: 50%;
+          left: 12px;
           top: 68px;
-          transform: translateX(-50%);
           z-index: 14;
           display: flex; flex-direction: column; align-items: stretch;
           gap: 10px;
-          width: min(420px, calc(100vw - 24px));
           pointer-events: none;
           font-family: 'Orbitron', monospace;
           color: #B4C9E0;
@@ -243,8 +243,11 @@ export const BIOME_STYLES = `
              collapsed pill's progress strip + phase dot stay in sync. */
           --phase-color: #22D3EE;
         }
+        .conductor-root.is-expanded {
+          width: min(420px, calc(100vw - 24px));
+        }
         .conductor-root.is-collapsed {
-          width: min(360px, calc(100vw - 24px));
+          width: auto;
           gap: 0;
         }
 
@@ -604,9 +607,14 @@ export const BIOME_STYLES = `
 
         @media (max-width: 480px) {
           .conductor-root {
+            top: auto;
             bottom: 12px;
-            width: calc(100vw - 20px);
+            left: 12px;
+            right: auto;
             gap: 8px;
+          }
+          .conductor-root.is-expanded {
+            width: min(420px, calc(100vw - 20px));
           }
           .conductor-transport {
             grid-template-columns: 48px 1fr 24px 32px;

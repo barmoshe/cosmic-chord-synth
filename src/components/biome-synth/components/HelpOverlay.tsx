@@ -53,6 +53,7 @@ export default function HelpOverlay({ open, onClose }: HelpOverlayProps) {
           <ul className="biome-help-list">
             <li><span className="biome-help-kbd">Space</span> toggle AI DJ</li>
             <li><span className="biome-help-kbd">←</span> <span className="biome-help-kbd">→</span> change scale</li>
+            <li><span className="biome-help-kbd">L</span> expand / collapse DJ console</li>
             <li><span className="biome-help-kbd">H</span> / <span className="biome-help-kbd">?</span> show / hide this help</li>
             <li><span className="biome-help-kbd">Esc</span> close this panel</li>
           </ul>
