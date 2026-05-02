@@ -380,34 +380,285 @@ Run `npm run dev`, open Chrome DevTools mobile emulation (iPhone 14 Pro), naviga
 
 ## 5. M2 — primary cockpit (mobile portrait)
 
-Built on top of M1.
+Built on top of M1. **Goal**: replace `DebugTelemetryHUD` with a real, hand-rolled SVG cockpit that's flyable with one thumb on a phone.
 
-### Files
-- `src/synthsim/cockpit/Cockpit.tsx` — orchestrates layout
-- `src/synthsim/cockpit/instruments/AttitudeIndicator.tsx` — SVG horizon ball, ±60° roll, ±20° pitch ladder
-- `src/synthsim/cockpit/instruments/Airspeed.tsx` — round dial 0–200 kt, color arcs (green/yellow/red)
-- `src/synthsim/cockpit/instruments/Altimeter.tsx` — three-needle dial OR digital tape (digital is easier on phone)
-- `src/synthsim/cockpit/instruments/Heading.tsx` — compass card
-- `src/synthsim/cockpit/instruments/Variometer.tsx` — ±2000 fpm dial
-- `src/synthsim/hud/Hud.tsx` — phase / fuel / time top bar
-- `src/synthsim/hud/StallBanner.tsx` — flashing red banner when `stallWarning`
+### 5.1 Stance and constraints
 
-### Layout (portrait)
+- All instruments are **own-built SVG** (no `react-flight-indicators`, no third-party SVG asset packs). MIT-clean, no GPL contagion. Each instrument is small (50–150 LOC) and renders at 20 Hz, which is plenty for an instrument panel — the AI horizon will look smooth because pitch/roll are physically smooth on the engine side (60 Hz integration with stability terms).
+- **Single shared subscription**: a `<TelemetryProvider>` polls `flight.telemetryRef` once at 50 ms and broadcasts via React context. Every instrument is a thin consumer. Avoids 7 timers spinning in parallel.
+- **Telemetry is read-only here.** Yoke/Throttle still write to `flight.controlsRef`. No instrument writes back.
+- **Mobile portrait first**, landscape gets a wider layout but reuses the same instrument components — no special cases.
+- Keep `DebugTelemetryHUD` available behind a query-string toggle (`/synthsim?dev=1`) for development.
+
+### 5.2 Files
 
 ```
-┌──────────────────────┐
-│ HUD: PHASE | T | FUEL│
-├──────────────────────┤
-│   ATTITUDE INDICATOR │  ← 60% width, 35vh
-├──────────────────────┤
-│  ASI │  ALT  │  HSI  │  ← 33% each, 18vh
-├──────────────────────┤
-│ [ YOKE ] | [THR]     │  ← bottom, safe-area padded
-└──────────────────────┘
+src/synthsim/
+├── cockpit/
+│   ├── Cockpit.tsx                       layout: portrait stack / landscape grid
+│   ├── TelemetryContext.tsx              context + provider + useTelemetry()
+│   └── instruments/
+│       ├── instrumentChrome.ts           shared SVG helpers (tickMark, dialCircle, deg→rad)
+│       ├── AttitudeIndicator.tsx         horizon ball + bank pointer + aircraft symbol
+│       ├── Airspeed.tsx                  round dial 0–200 kt, color arcs
+│       ├── Altimeter.tsx                 digital scrolling tape
+│       ├── Heading.tsx                   rotating compass card
+│       └── Variometer.tsx                ±2000 fpm dial
+├── hud/
+│   ├── Hud.tsx                           top bar (phase + fuel + sim-clock)
+│   └── StallBanner.tsx                   flashing red banner over the AI
+└── (modify) SynthSimApp.tsx              mount <Cockpit /> instead of debug overlays
 ```
+
+### 5.3 Subscription pattern — `TelemetryContext.tsx`
+
+```tsx
+import { createContext, useContext, useEffect, useState } from "react";
+import type { FlightLoopHandle } from "../hooks/useFlightLoop";
+import type { Telemetry } from "../engine/types";
+
+const Ctx = createContext<Telemetry | null>(null);
+
+interface ProviderProps {
+  flight: FlightLoopHandle;
+  intervalMs?: number;
+  children: React.ReactNode;
+}
+
+export const TelemetryProvider = ({ flight, intervalMs = 50, children }: ProviderProps) => {
+  const [t, setT] = useState<Telemetry>(flight.telemetryRef.current);
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setT({ ...flight.telemetryRef.current });
+    }, intervalMs);
+    return () => window.clearInterval(id);
+  }, [flight, intervalMs]);
+  return <Ctx.Provider value={t}>{children}</Ctx.Provider>;
+};
+
+export const useTelemetry = (): Telemetry => {
+  const t = useContext(Ctx);
+  if (!t) throw new Error("useTelemetry must be used inside <TelemetryProvider>");
+  return t;
+};
+```
+
+If the AI horizon ever feels jittery at 50 ms (it shouldn't, the engine is smooth), the AI is the only candidate for an imperative ref-driven escape hatch via `flight.subscribe`. Don't optimize prematurely.
+
+### 5.4 Shared SVG helpers — `instrumentChrome.ts`
+
+Pure functions, no React. Tests live alongside.
+
+```ts
+export const TAU = Math.PI * 2;
+export const D2R = Math.PI / 180;
+export const polar = (cx: number, cy: number, r: number, deg: number) => {
+  const a = (deg - 90) * D2R;
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+};
+export const arcPath = (cx: number, cy: number, r: number, fromDeg: number, toDeg: number) => {
+  const a = polar(cx, cy, r, fromDeg);
+  const b = polar(cx, cy, r, toDeg);
+  const large = Math.abs(toDeg - fromDeg) > 180 ? 1 : 0;
+  return `M ${a.x} ${a.y} A ${r} ${r} 0 ${large} 1 ${b.x} ${b.y}`;
+};
+export const clamp = (v: number, lo: number, hi: number) => v < lo ? lo : v > hi ? hi : v;
+```
+
+### 5.5 Instrument specs
+
+#### AttitudeIndicator (~150 LOC)
+
+- Square SVG, viewBox `-100 -100 200 200`. Outer black bezel circle.
+- A `<clipPath>` (a circle r=88) clips a rotating+translating group that contains:
+  - Sky rectangle (top half) — `fill: #4a7fb0`
+  - Ground rectangle (bottom half) — `fill: #6e4a2a`
+  - Horizon line — `stroke: #fff stroke-width: 2`
+  - Pitch ladder: every 5° from -30° to +30°, short white tick at ±5°, longer at ±10°/±20°/±30° with a label.
+- **Transform on the inner group**:
+  - `translate(0, ${pitchDeg * PITCH_PIXELS_PER_DEG})` (e.g. 5 px/deg)
+  - `rotate(${-rollDeg})`
+- Outside the clip:
+  - Aircraft symbol: yellow `<path>` "wings + center dot" — fixed at center.
+  - Bank pointer: triangle at the top, fixed; bank scale arc with tick marks at ±10/±20/±30/±60° rotates with `-rollDeg`.
+- **Smooth-mode escape hatch**: optional prop `subscribe?: FlightLoopHandle["subscribe"]` — when supplied, AI bypasses context and writes the inner group's `transform` via `gRef.current.setAttribute(...)` from inside the subscriber. Use only if 50 ms feels jittery.
+
+#### Airspeed (~80 LOC)
+
+- Square SVG, viewBox `-100 -100 200 200`. Black bezel.
+- Tick ring: every 10 kt from 0 to 200, label every 20 kt.
+- Color arcs (drawn with `arcPath`, stroke-width 8 inside the tick ring):
+  - White 35–85 kt (Vfe band — flap operating range)
+  - Green 47–127 kt (Vno — normal operating)
+  - Yellow 127–160 kt (caution)
+  - Red line at 160 kt (Vne)
+- Needle: a `<path>` (long thin pointer), rotated by `(airspeedKt / 200) * 270 - 135` deg.
+- Text readout at bottom inside the dial: `{Math.round(airspeedKt)} kt`.
+
+#### Altimeter — digital tape (~80 LOC)
+
+Why tape over three-needle: phone-readable, no ambiguity at 1000 ft boundary.
+
+- Vertical SVG strip, viewBox `0 0 100 200`. Black background.
+- Centered tape:
+  - For `i` in `[-5..+5]`: tick at `y = 100 + i * 20`, label `(altRounded + i*100)` ft.
+  - Tape `transform: translate(0, ${(alt % 100) * 0.2})` so it scrolls smoothly between hundreds.
+  - Tape clipped to the strip.
+- Center reticle: white horizontal line + boxed digital number `{Math.round(alt)}` ft on the right side.
+
+#### Heading (~80 LOC)
+
+- Square SVG, viewBox `-100 -100 200 200`. Black bezel.
+- Outer compass card: 12-hour-clock layout — letters N (0°), E (90°), S (180°), W (270°), `3`/`6`/`12`/`15`/`21`/`24`/`30`/`33` in between.
+- Card group rotated by `-headingDeg` (heading 90° → E rotates to top).
+- Lubber line at 12 o'clock outside the card: yellow triangle pointer.
+- Text readout inside the card showing heading in 3-digit form: `${pad3(Math.round(headingDeg))}`.
+
+#### Variometer (~50 LOC)
+
+- Square SVG. Black bezel.
+- Tick ring: 0 at 9 o'clock (left), `+1000`, `+2000` going clockwise to top, `-1000`, `-2000` going counter-clockwise to bottom. Linear 0–2000 fpm.
+- Single needle rotated by `(verticalSpeedFpm / 2000) * 90` deg — pointing up at 9 o'clock for level, swinging clockwise for climb.
+- Clamp visual deflection at ±90° (saturate, don't wrap).
+
+### 5.6 HUD + StallBanner
+
+- `Hud.tsx` (top bar, ~40 LOC):
+  ```
+  ┌────────────────────────────────────────────┐
+  │ PRE-FLIGHT       T+00:00     FUEL ▮▮▮▮▮▯▯▯ │
+  └────────────────────────────────────────────┘
+  ```
+  - Sim-clock counter: `useState` + `setInterval(1000)` while `flying`.
+  - Fuel: 8 segments, on/off based on `fuel * 8`.
+  - Phase string: `"PRE-FLIGHT"` for now (the real phase FSM lands in M4).
+  - Safe-area inset top, mono small-caps.
+
+- `StallBanner.tsx` (~30 LOC):
+  - Renders only when `telemetry.stallWarning || telemetry.overspeed`.
+  - Centered banner overlaying the AI: `STALL` red, `OVERSPEED` orange, both flash at 4 Hz via `animate-pulse` Tailwind utility (already enabled by `tailwindcss-animate`).
+  - Pointer-events-none.
+
+### 5.7 Cockpit layout — `Cockpit.tsx`
+
+```tsx
+const Cockpit = ({ flight }: { flight: FlightLoopHandle }) => (
+  <TelemetryProvider flight={flight}>
+    <div className="fixed inset-0 flex flex-col">
+      <Hud />
+      <div className="relative flex-1 flex flex-col">
+        <div className="relative flex justify-center pt-2">
+          <AttitudeIndicator />
+          <StallBanner />
+        </div>
+        <div className="grid grid-cols-4 gap-1 px-2 mt-2">
+          <Airspeed />
+          <Altimeter />
+          <Heading />
+          <Variometer />
+        </div>
+        <div className="flex-1" />
+      </div>
+
+      <div
+        className="absolute left-0 bottom-0"
+        style={{
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <Yoke onChange={...} size={170} />
+      </div>
+      <div
+        className="absolute right-0 bottom-0"
+        style={{
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <Throttle onChange={...} height={210} width={52} />
+      </div>
+    </div>
+  </TelemetryProvider>
+);
+```
+
+Sizes (portrait):
+- AI: `min(60vw, 320px)` square
+- Small dials: 25% width each, square (`aspect-ratio: 1 / 1`)
+- HUD: ~6 vh tall
+
+Landscape (≥ 768px wide): the same components in a 6-pack-ish grid; the existing `<Cockpit>` switches via a small `useIsLandscape()` hook (matchMedia + `(orientation: landscape) and (min-width: 768px)`). For M2 the landscape path can be a stretch — portrait must work; landscape can wait until M3 if we run out of room.
+
+### 5.8 SynthSimApp wiring change
+
+Replace the M1 debug overlays:
+
+```diff
+- <DebugTelemetryHUD telemetryRef={flight.telemetryRef} />
+- <Yoke ... /> + <Throttle ... />
++ <Cockpit flight={flight} />
++ {/* Yoke + Throttle now live inside Cockpit */}
+```
+
+`?dev=1` in URL re-enables `<DebugTelemetryHUD />` as a corner overlay for development.
+
+### 5.9 Tests
+
+Per `.claude/rules/testing.md` — Vitest + jsdom, mock no Tone/Three (M2 doesn't touch them).
+
+| Test file | What it covers |
+|---|---|
+| `cockpit/instruments/instrumentChrome.test.ts` | `polar` + `arcPath` math: known-angle outputs, full-circle wrap, `clamp` |
+| `cockpit/instruments/AttitudeIndicator.test.tsx` | Renders the inner group with `transform` containing `rotate(-rollDeg)` and `translate(... pitchDeg ...)`. Use `getByTestId('ai-inner')`. |
+| `cockpit/instruments/Airspeed.test.tsx` | Needle rotation = expected angle for a few input speeds. Color arcs are present (count `<path>` elements with stroke colors). |
+| `cockpit/instruments/Altimeter.test.tsx` | Digital readout matches input altitude rounded to nearest foot. |
+| `cockpit/instruments/Heading.test.tsx` | Compass card rotation = `-headingDeg`. Lubber line rendered. |
+| `cockpit/instruments/Variometer.test.tsx` | Needle rotation clamps at ±90°. |
+| `cockpit/TelemetryContext.test.tsx` | Provider polls and updates context value when `telemetryRef` mutates externally. Throws when `useTelemetry` used outside provider. |
+| `hud/Hud.test.tsx` | Sim-clock advances; fuel segments scale with `fuel`. |
+| `hud/StallBanner.test.tsx` | Renders when `stallWarning`; absent otherwise; renders `OVERSPEED` when `overspeed`. |
+
+Total: ~25 new tests. Mock `setInterval` via `vi.useFakeTimers()` for `Hud` and `TelemetryContext`.
+
+### 5.10 Verification
+
+`npm run dev`, navigate to `/synthsim`:
+
+1. Loader → Pre-flight → tap CTA → cockpit appears, no debug HUD.
+2. **Static check**: AI shows artificial horizon centered, ASI needle at 0, ALT reads 0, HSI shows N at top, V/S needle level.
+3. **Throttle to 100%**: ASI needle rises smoothly, RPM-driven engine "feel" — needle isn't jittery.
+4. **Yoke up**: AI horizon descends (sky fills), ASI keeps climbing, ALT tape scrolls upward when airborne.
+5. **Yoke right**: AI rolls right, HSI compass card rotates left (absolute heading drifts right).
+6. **At low speed + nose up**: STALL banner pulses over the AI; engine telemetry agrees.
+7. **iPhone 14 Pro Safari emulation**: no element overflows, instruments stay readable, dynamic-island doesn't overlap HUD.
+8. **`?dev=1`**: `DebugTelemetryHUD` appears in a corner; numbers agree with the visual instruments to within 1 unit.
+9. `npm run lint` (when fixed) / `npm run build` clean. `npm test` all green (47 + ~25 = ~72 tests).
+
+### 5.11 Out of scope (defer)
+
+- Landscape 6-pack layout — defer if portrait squeezes time.
+- Real altimeter Kollsman setting (29.92 inHg) — defer to flight plan / weather (M4).
+- Heading bug, ALT bug, AP-target overlays on instruments — that's M5.
+- Wired-up engine RPM gauge / fuel gauges — telemetry exists, but UI defers (low value vs cost on phone).
+- Sound — that's M3.
+
+### 5.12 Rollout
+
+Single batch (one commit):
+1. `instrumentChrome.ts` + test
+2. `TelemetryContext.tsx` + test
+3. Five instruments + their tests
+4. `Hud` + `StallBanner` + their tests
+5. `Cockpit.tsx`
+6. `SynthSimApp.tsx` swap
+7. `?dev=1` query-string gate around `DebugTelemetryHUD`
+8. `npm test` + `npm run build`
+9. Mobile smoke check (Safari iPhone emulation)
+10. Commit + push
 
 ### Done when
-On a real iPhone in Safari, you can fly a complete VFR pattern (takeoff → climb → 1000ft → 270° turn → descent → land) using only touch yoke + throttle. No layout breaks at notch/dynamic-island devices.
+On a real iPhone in Safari, you can fly a complete VFR pattern (takeoff → climb → 1000ft → 270° turn → descent → land) using only touch yoke + throttle. No layout breaks at notch/dynamic-island devices. All instruments agree with the engine telemetry to within rounding.
 
 ---
 
